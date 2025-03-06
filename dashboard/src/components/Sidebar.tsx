@@ -73,7 +73,8 @@ const SidebarComponent = ({ isCollapsed, isToggled, setIsToggled }: any) => {
               alignItems: "center",
               ...theme.fonts.bold,
               ":hover": {
-                background: theme.colors.lightWhite,
+                background: isCollapsed ? theme.colors.lightGray : theme.colors.lightWhite,
+                color: isCollapsed ? theme.colors.black : theme.colors.white,
               },
             },
             subMenuContent: {
