@@ -13,8 +13,8 @@ RUN npm install
 # Copy the rest of the application
 COPY . .
 
-# Build the Vite application
-RUN npm run build
+# # Build the Vite application
+# RUN npm run build
 
 # Expose the port Vite will run on
 EXPOSE 5173
