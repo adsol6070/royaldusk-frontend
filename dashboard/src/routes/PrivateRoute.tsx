@@ -1,7 +1,12 @@
 import { Navigate } from "react-router-dom";
 import { useAuthContext } from "../common/context/AuthContext";
+import { ReactNode } from "react";
 
-const PrivateRoute = ({ children }) => {
+interface PrivateRouteProps {
+  children: ReactNode;
+}
+
+const PrivateRoute = ({ children }: PrivateRouteProps) => {
   const { user, loading } = useAuthContext();
 
   if (loading) {

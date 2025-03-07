@@ -1,33 +1,29 @@
 services:
   dashboard:
+    container_name: dashboard
     build:
       context: ./dashboard
       dockerfile: Dockerfile
     ports:
-      - "5173:5173"
-    volumes:
-      - ./dashboard:/app
-      - /app/node_modules
+      - "4173:4173"
     environment:
       - NODE_ENV=development
-    command: ["npm", "run", "dev"]
+    command: ["npm", "run", "preview"]
 
   website:
+    container_name: website
     build:
       context: ./website
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    volumes:
-      - ./website:/app
-      - /app/node_modules
     environment:
       - NODE_ENV=production
     command: ["npm", "run", "start"]
 
   nginx:
     image: nginx:latest
-    container_name: nginx_proxy
+    container_name: nginx
     ports:
       - "80:80"
       - "443:443"
@@ -37,24 +33,17 @@ services:
       - certbot
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - letsencrypt:/etc/letsencrypt
-      - ./html:/var/www/html
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
     restart: always
 
   certbot:
     image: certbot/certbot
     container_name: certbot
     volumes:
-      - letsencrypt:/etc/letsencrypt
-      - ./html:/var/www/html
-    entrypoint: ["/bin/sh", "-c"]
-    command: >
-      "if [ ! -f /etc/letsencrypt/live/royaldusk.com/fullchain.pem ]; then 
-        certbot certonly --webroot --webroot-path=/var/www/html 
-        --email go@royaldusk.com --agree-tos --no-eff-email 
-        -d royaldusk.com -d www.royaldusk.com;
-      fi
-      && trap exit TERM; while :; do certbot renew --quiet; sleep 12h & wait $${!}; done"
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    command: certonly --webroot -w /var/www/certbot --force-renewal --email go@royaldusk.com --agree-tos --no-eff-email -d royaldusk.com -d www.royaldusk.com
 
 volumes:
   letsencrypt:
