@@ -44,6 +44,3 @@ services:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
     command: certonly --webroot -w /var/www/certbot --force-renewal --email go@royaldusk.com --agree-tos --no-eff-email -d royaldusk.com -d www.royaldusk.com
-
-volumes:
-  letsencrypt:
