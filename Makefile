@@ -10,7 +10,10 @@ up:
 		$(DOCKER_COMPOSE) up -d --build nginx dashboard website; \
 	else \
 		echo "SSL certificate not found, starting Certbot service..."; \
-		$(DOCKER_COMPOSE) up -d --build; \
+		$(DOCKER_COMPOSE) --profile certbot_setup up -d certbot; \
+		sleep 10; \
+		echo "Restarting Nginx after Certbot Setup..."; \
+		$(DOCKER_COMPOSE) up -d --build nginx dashboard website; \
 	fi
 
 # Stop all services
