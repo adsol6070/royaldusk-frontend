@@ -4,11 +4,10 @@ services:
     build:
       context: ./dashboard
       dockerfile: Dockerfile
-    ports:
-      - "4173:4173"
     environment:
       - NODE_ENV=development
-    command: ["npm", "run", "preview"]
+    volumes:
+      - dashboard-build:/app/dist
 
   website:
     container_name: website
@@ -32,6 +31,7 @@ services:
       - website
       - certbot
     volumes:
+      - dashboard-build:/usr/share/nginx/html/dashboard:ro
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
@@ -44,3 +44,6 @@ services:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
     command: certonly --webroot -w /var/www/certbot --force-renewal --email go@royaldusk.com --agree-tos --no-eff-email -d royaldusk.com -d www.royaldusk.com
+
+volumes:
+  dashboard-build:

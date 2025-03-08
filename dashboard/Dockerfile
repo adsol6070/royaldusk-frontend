@@ -1,10 +1,10 @@
-# Use an official Node.js runtime as a parent image
+# Use a lightweight Node.js image
 FROM node:18-alpine
 
-# Set the working directory
+# Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json before running npm install
+# Copy package files first (better for caching)
 COPY package*.json ./
 
 # Install dependencies
@@ -13,11 +13,8 @@ RUN npm install
 # Copy the rest of the application
 COPY . .
 
-# # Build the Vite application
+# Build the React app
 RUN npm run build
 
-# Expose the port Vite will run on
-EXPOSE 4173
-
-# Start the Vite development server
-CMD ["npm", "run", "preview"]
+# Only keep build files in the final container
+CMD ["echo", "React build completed!"]
