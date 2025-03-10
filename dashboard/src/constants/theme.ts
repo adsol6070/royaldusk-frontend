@@ -1,16 +1,23 @@
 export const theme = {
+  layout: {
+    sidebarWidth: "300px",
+    navbarHeight: "80px",
+  },
   colors: {
-    lightWhite: "#ffffff26",
-    offWhite: "#fff3",
-    darkBlue: "#05073c",
-    almostWhite: "#fefefe",
-    whiteSmoke: "#f5f5f5",
-    orangeYellow: "#ffad1e",
-    black: "#000000",
+    background: "#f5f5f5",
+    sidebarBackground: "#05073c",
+    menuHover: "#ffffff26",
+    menuText: "#FFFFFF",
+    subMenuBackground: "#05073c",
+
+    navbarBackground: "#FFFFFF",
+    navbarText: "",
+
     white: "#FFFFFF",
-    lightPink :"#f3bac0",
+    black: "#000000",
+    whiteSmoke: "#f5f5f5",
+    offWhite: "#fff3",
     lightGray: "#f5f5f5",
-    terraCotta :"#e35f6c",
   },
   fonts: {
     regular: {
@@ -35,4 +42,3 @@ export const theme = {
     },
   },
 };
-

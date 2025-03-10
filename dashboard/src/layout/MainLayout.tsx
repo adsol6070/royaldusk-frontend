@@ -1,5 +1,5 @@
 import { useState } from "react";
-import styled from "styled-components"; // Import styled-components
+import styled from "styled-components";
 import { Header } from "../components";
 import SidebarComponent from "../components/Sidebar";
 import { Outlet } from "react-router-dom";
@@ -52,7 +52,7 @@ const ContentWrapper = styled.div`
   flex: 1;
   padding: 20px;
   overflow-y: auto;
-  background-color: ${theme.colors.lightGray};
+  background-color: ${theme.colors.background};
 `;
 
 export default MainLayout;
