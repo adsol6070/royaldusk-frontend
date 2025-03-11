@@ -534,7 +534,7 @@ const page = () => {
       </section>
       {/* Benefit Area end */}
       {/* Mobile App Area start */}
-      <section className="mobile-app-area p-100 rel z-1">
+      <section className="mobile-app-area pt-100 pb-100 rel z-1">
         <div className="container">
           <div className="row align-items-center justify-content-between">
             <div className="col-lg-6">

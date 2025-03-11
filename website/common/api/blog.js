@@ -1,4 +1,6 @@
-import HttpClient from '../helpers';
+import { HttpClient } from '../helpers';
+
+const Blog_Base_Url = "http://localhost:7200";
 
 // const accessTokenKey = 'access_token';
 
@@ -21,39 +23,21 @@ import HttpClient from '../helpers';
 // BlogService for managing blog operations
 function BlogService() {
   return {
-    // Create a new blog post
-    // createPost: (post) => {
-    //   return HttpClient.post('/blog/', post, { headers: getAuthHeaders(true) });
-    // },
 
     // Retrieve all blog posts
     getAllPosts: () => {
-      return HttpClient.get('/blog/', { _skipAuth: true });
+      return HttpClient.get(`${Blog_Base_Url}/blogs`, { _skipAuth: true });
     },
-    // Retrieve an image for a blog post
-    // getImage: async (blogId) => {
-    //   return await HttpClient.get(`/blog/${blogId}/image`, {
-    //     responseType: 'blob',
-    //     headers: getAuthHeaders(),
-    //   });
-    // },
 
     // Retrieve a single blog post by ID
-    getPostById: (postId) => {
-      return HttpClient.get(`/blog/${postId}`, { _skipAuth: true });
+    getPostById: (id) => {
+      return HttpClient.get(`${Blog_Base_Url}/blogs/${id}`, { _skipAuth: true });
+    },
+    
+    getAllBlogCategories: () => {
+      return HttpClient.get(`${Blog_Base_Url}/blogCategories`, { _skipAuth: true });
     },
 
-    // // Update an existing blog post
-    // updatePost: (postId, updatedPost) => {
-    //   return HttpClient.patch(`/blog/${postId}`, updatedPost, {
-    //     headers: getAuthHeaders(true),
-    //   });
-    // },
-
-    // // Delete a blog post by ID
-    // deletePost: (postId) => {
-    //   return HttpClient.delete(`/blog/${postId}`, { headers: getAuthHeaders() });
-    // },
   };
 }
 

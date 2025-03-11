@@ -15,6 +15,7 @@ const Menu = () => {
                 src="/assets/images/logos/rdusk-logo.png"
                 alt="Logo"
                 title="Logo"
+                width={120}
               />
             </Link>
           </div>
@@ -36,7 +37,7 @@ const Menu = () => {
         >
           <ul className="navigation clearfix">
             <li>
-              <a href="/">Home</a>
+              <Link href="/">Home</Link>
             </li>
             <li>
               <Link href="/about">About</Link>
@@ -49,7 +50,7 @@ const Menu = () => {
             </li>
              */}
             <li>
-              <Link href="/blog">blog</Link>
+              <Link href="/blog">blogs</Link>
             </li>
             <li>
               <Link href="/contact">Contact Us</Link>
@@ -96,6 +97,7 @@ const Header1 = ({ sidebarClick }) => {
                       src="/assets/images/logos/rdusk-logo.png"
                       alt="Logo"
                       title="Logo"
+                      width={160}
                     />
                   </Link>
                 </div>
@@ -178,6 +180,7 @@ const Header2 = ({ sidebarClick }) => {
                       src="/assets/images/logos/rdusk-logo.png"
                       alt="Logo"
                       title="Logo"
+                      width={160}
                     />
                   </Link>
                 </div>
@@ -205,7 +208,7 @@ const Header2 = ({ sidebarClick }) => {
           </div>
           <div className="logo text-lg-center">
             <Link href="/">
-              <img src="/assets/images/logos/rdusk-logo.png" alt="Logo" />
+              <img src="/assets/images/logos/rdusk-logo.png" alt="Logo" width={160}/>
             </Link>
           </div>
           <hr className="my-40" />
@@ -346,7 +349,7 @@ const Header2 = ({ sidebarClick }) => {
             </li>
             <li className="dropdown">
               <a href="#" onClick={() => activeMenuSet("blog")}>
-                blog
+                blogs
               </a>
               <ul style={activeLi("blog")}>
                 <li>

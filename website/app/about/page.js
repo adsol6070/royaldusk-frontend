@@ -1,8 +1,7 @@
+'use client';
 import Banner from "@/components/Banner";
-import Counter from "@/components/Counter";
+import Loader from "@/components/loader";
 import SectionTitle from "@/components/SectionTitle";
-import Client from "@/components/slider/Client";
-import Testimonial from "@/components/slider/Testimonial";
 import ReveloLayout from "@/layout/ReveloLayout";
 import Link from "next/link";
 const page = () => {
@@ -69,7 +68,7 @@ const page = () => {
         </div>
       </section>
       {/* About Area end */}
-    
+      
       {/* Team Area start */}
       <section className="about-team-area pb-70 rel z-1">
         <div className="container">

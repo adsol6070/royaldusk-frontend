@@ -1,1 +1,1 @@
-export { default as blogApi } from './Blog'
+export { default as blogApi } from './blog'
