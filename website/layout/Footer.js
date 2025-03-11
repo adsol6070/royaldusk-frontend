@@ -411,7 +411,7 @@ const Footer2 = ({ insta }) => {
             <div
               className="col col-small"
               data-aos="fade-up"
-              data-aos-duration={1500}
+              data-aos-duration={500}
               data-aos-offset={50}
             >
               <div className="footer-widget footer-text">
@@ -419,7 +419,7 @@ const Footer2 = ({ insta }) => {
                   <Link href="/">
                     <img
                       src="/assets/images/logos/white-logo.png"
-                      width={170}
+                      width={180}
                       alt="Logo"
                     />
                   </Link>
@@ -439,7 +439,7 @@ const Footer2 = ({ insta }) => {
               className="col col-small"
               data-aos="fade-up"
               data-aos-delay={100}
-              data-aos-duration={1500}
+              data-aos-duration={500}
               data-aos-offset={50}
             >
               <div className="footer-widget footer-links ms-md-5">
@@ -469,7 +469,7 @@ const Footer2 = ({ insta }) => {
               className="col col-small"
               data-aos="fade-up"
               data-aos-delay={150}
-              data-aos-duration={1500}
+              data-aos-duration={500}
               data-aos-offset={50}
             >
               <div className="footer-widget footer-links ms-lg-4">
@@ -496,7 +496,7 @@ const Footer2 = ({ insta }) => {
               className="col col-md-6 col-10 col-small"
               data-aos="fade-up"
               data-aos-delay={200}
-              data-aos-duration={1500}
+              data-aos-duration={500}
               data-aos-offset={50}
             >
               <div className="footer-widget footer-contact">

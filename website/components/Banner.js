@@ -14,7 +14,7 @@ const Banner = ({ pageTitle, pageName, search }) => {
             <h2
               className="page-title mb-10"
               data-aos="fade-left"
-              data-aos-duration={1500}
+              data-aos-duration={1000}
               data-aos-offset={50}
             >
               {pageTitle}
@@ -24,7 +24,7 @@ const Banner = ({ pageTitle, pageName, search }) => {
                 className="breadcrumb justify-content-center mb-20"
                 data-aos="fade-right"
                 data-aos-delay={200}
-                data-aos-duration={1500}
+                data-aos-duration={1000}
                 data-aos-offset={50}
               >
                 <li className="breadcrumb-item">

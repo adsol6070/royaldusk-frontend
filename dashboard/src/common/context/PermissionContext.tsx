@@ -1,5 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { rolesApi } from "../../common";
+import React, { createContext, useContext, useState } from "react";
 import { useAuthContext } from "./AuthContext";
 
 interface PermissionContextProps {

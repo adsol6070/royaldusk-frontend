@@ -1,8 +1,4 @@
 import axios from 'axios';
-import Swal from 'sweetalert2';
-import withReactContent from 'sweetalert2-react-content';
-
-const MySwal = withReactContent(Swal);
 
 const ErrorCodeMessages = {
   401: 'Invalid credentials',
@@ -12,7 +8,6 @@ const ErrorCodeMessages = {
 
 const HttpClient = () => {
   const _httpClient = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL,
     timeout: 6000,
     headers: {
       'Content-Type': 'application/json',
@@ -22,7 +17,7 @@ const HttpClient = () => {
   // Request Interceptor
   _httpClient.interceptors.request.use(
     async (config) => {
-      // Check if the request should skip attaching the token
+      // Allow unauthenticated access for blogs
       if (!config._skipAuth) {
         const token = localStorage.getItem('access_token');
         if (token) {

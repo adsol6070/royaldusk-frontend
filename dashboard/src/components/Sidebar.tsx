@@ -13,10 +13,8 @@ import Logo from "../assets/images/white-logo.png";
 import { CiBarcode } from "react-icons/ci";
 import { LiaTableSolid } from "react-icons/lia";
 import { RiRestaurant2Line } from "react-icons/ri";
-import { usePermissions } from "../common/context/PermissionContext";
 
 const SidebarComponent = ({ isCollapsed, isToggled, setIsToggled }: any) => {
-  const { permissions } = usePermissions();
 
   return (
     <Sidebar

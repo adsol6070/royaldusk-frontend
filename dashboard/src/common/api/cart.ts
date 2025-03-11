@@ -17,12 +17,6 @@ const getAuthHeaders = (isMultipart: boolean = false) => {
   return headers;
 };
 
-interface MenuData {
-  _id: string;
-  name: string;
-  price: string;
-  image: string;
-}
 interface CartItem {
   menuItem: string;
   quantity: number;
