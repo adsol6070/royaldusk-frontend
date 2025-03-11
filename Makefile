@@ -1,10 +1,20 @@
 # Variables
 DOCKER_COMPOSE = docker-compose
 PROJECT_NAME = royaldusk
+CERTBOT_PATH = ./certbot/conf/live/royaldusk.com/fullchain.pem
 
 # Build and start all services
 up:
-	$(DOCKER_COMPOSE) up -d --build
+	@if sudo test -f $(CERTBOT_PATH); then \
+		echo "SSL certificate found, starting all services..."; \
+		$(DOCKER_COMPOSE) up -d --build nginx dashboard website; \
+	else \
+		echo "SSL certificate not found, starting Certbot service..."; \
+		$(DOCKER_COMPOSE) --profile certbot_setup up -d certbot; \
+		sleep 10; \
+		echo "Restarting Nginx after Certbot Setup..."; \
+		$(DOCKER_COMPOSE) up -d --build nginx dashboard website; \
+	fi
 
 # Stop all services
 down:

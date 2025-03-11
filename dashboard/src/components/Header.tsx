@@ -48,8 +48,8 @@ const HeaderContainer = styled.header`
   align-items: center;
   justify-content: space-between;
   padding: 0px 20px;
-  height: 69px;
-  background-color: ${theme.colors.white};
+  height: ${theme.layout.navbarHeight};
+  background-color: ${theme.colors.navbarBackground};
   border-bottom: 3px solid ${theme.colors.whiteSmoke};
   flex-wrap: nowrap;
 
