@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import styled from "styled-components";
 import { Header } from "../components";
 import SidebarComponent from "../components/Sidebar";
@@ -7,7 +7,7 @@ import { theme } from "../constants/theme";
 
 const MainLayout = () => {
   const [isCollapsed, setIsCollapsed] = useState<boolean | null>(true);
-  const [isToggled, setIsToggled] = useState<boolean | null>(true);
+  const [isToggled, setIsToggled] = useState<boolean | null>(false);
 
   const toggleSidebar = () => {
     if (window.innerWidth > 768) {
@@ -29,7 +29,9 @@ const MainLayout = () => {
       <LayoutBody>
         <Header onToggleSidebar={toggleSidebar} />
         <ContentWrapper>
-          <Outlet />
+          <Suspense fallback={<div>Loading...</div>}>
+            <Outlet />
+          </Suspense>
         </ContentWrapper>
       </LayoutBody>
     </MainContainer>

@@ -14,7 +14,7 @@ const PrivateRoute = ({ children }: PrivateRouteProps) => {
     return <div>Loading...</div>;
   }
 
-  return user ? children : <Navigate to={ROUTES.LOGIN} replace />;
+  return user ? children : <Navigate to={ROUTES.AUTH.LOGIN} replace />;
 };
 
 export default PrivateRoute;

@@ -11,6 +11,7 @@ const SidebarComponent = ({ isCollapsed, isToggled, setIsToggled }: any) => {
       breakPoint="md"
       backgroundColor={theme.colors.sidebarBackground}
       width={theme.layout.sidebarWidth}
+      style={{ border: 0 }}
       transitionDuration={500}
       collapsed={isCollapsed}
       toggled={isToggled}
