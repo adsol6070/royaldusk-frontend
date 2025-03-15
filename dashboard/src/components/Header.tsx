@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FaSearch, FaRegUserCircle } from "react-icons/fa";
+import { FaRegUserCircle } from "react-icons/fa";
 import { RxHamburgerMenu } from "react-icons/rx";
 import styled from "styled-components";
 import { theme } from "../constants/theme";
@@ -15,20 +15,12 @@ const Header = ({ onToggleSidebar }: any) => {
 
   return (
     <HeaderContainer>
-      <LeftContainer>
-        <HamburgerButton onClick={onToggleSidebar}>
-          <RxHamburgerMenu />
-        </HamburgerButton>
-        <SearchContainer>
-          <SearchButton>
-            <FaSearch />
-          </SearchButton>
-          <SearchInput type="text" placeholder="search" />
-        </SearchContainer>
-      </LeftContainer>
+      <HamburgerButton onClick={onToggleSidebar}>
+        <RxHamburgerMenu />
+      </HamburgerButton>
       <ProfileContainer>
         <ProfileButton onClick={handleDropdownToggle}>
-          <FaRegUserCircle color={theme.colors.black} size={24} />
+          <FaRegUserCircle color={theme.colors.white} size={24} />
         </ProfileButton>
         {isDropdownOpen && (
           <DropdownMenu>
@@ -41,8 +33,6 @@ const Header = ({ onToggleSidebar }: any) => {
   );
 };
 
-// Styled components
-
 const HeaderContainer = styled.header`
   display: flex;
   align-items: center;
@@ -52,53 +42,6 @@ const HeaderContainer = styled.header`
   background-color: ${theme.colors.navbarBackground};
   border-bottom: 3px solid ${theme.colors.whiteSmoke};
   flex-wrap: nowrap;
-
-  @media (max-width: 768px) {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-  }
-`;
-
-const LeftContainer = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px; /* Small gap between hamburger and search */
-`;
-
-const SearchContainer = styled.div`
-  display: flex;
-  align-items: center;
-  background-color: ${theme.colors.white};
-  border-radius: 30px;
-  border: 1px solid #afadab;
-  padding: 2px;
-
-  /* Added max-width for larger screens */
-  max-width: 400px; /* Adjust this value as needed */
-  flex: 1; /* Allow it to grow */
-
-  @media (max-width: 768px) {
-    width: 100%; /* Full width on smaller screens */
-    grid-column: 2; /* Place it in the center grid column */
-    justify-self: center; /* Center it in the grid */
-  }
-`;
-
-const SearchInput = styled.input`
-  border: none;
-  padding: 5px 10px;
-  border-radius: 20px;
-  outline: none;
-  flex: 1;
-`;
-
-const SearchButton = styled.button`
-  background: transparent;
-  border: none;
-  color: #afadab;
-  cursor: pointer;
-  text-align: center;
 `;
 
 const ProfileContainer = styled.div`
@@ -144,22 +87,9 @@ const DropdownItem = styled.a`
 const HamburgerButton = styled.button`
   background: none;
   border: none;
-  color: ${theme.colors.black};
+  color: ${theme.colors.white};
   font-size: 24px;
   cursor: pointer;
 `;
 
 export default Header;
-
-// const ProfileLink = styled(Link)`
-//   color: ${theme.colors.white};
-//   font-size: 24px;
-//   margin-left: 20px;
-//   text-decoration: none;
-//   cursor: pointer;
-
-//   @media (max-width: 768px) {
-//     grid-column: 3; /* Place it in the right grid column */
-//     justify-self: end; /* Align to the right in the grid */
-//   }
-// `;

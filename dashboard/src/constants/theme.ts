@@ -5,12 +5,13 @@ export const theme = {
   },
   colors: {
     background: "#f5f5f5",
-    sidebarBackground: "#05073c",
+    sidebarBackground: "#1a1f2b",
     menuHover: "#ffffff26",
     menuText: "#FFFFFF",
-    subMenuBackground: "#05073c",
+    subMenuBackground: "#1a1f2b",
 
-    navbarBackground: "#FFFFFF",
+    navbarBackground: "#2a2e35",
+    // navbarBackground: "#FFFFFF",
     navbarText: "",
 
     white: "#FFFFFF",

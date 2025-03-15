@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { Button, Container, Form, Row, Col } from "react-bootstrap";
 import Select from "react-select";
@@ -65,9 +65,8 @@ const CreateBlog = () => {
   } = useForm();
 
   const title = watch("title", "");
-
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
-  const [content, setContent] = useState("");
+  const quillRef = useRef<ReactQuill>(null);
 
   const saveBlogToDB = async (blogData: any) => {
     const db = await initDB();
@@ -79,8 +78,12 @@ const CreateBlog = () => {
   };
 
   const onSubmit = async (data: any) => {
+    const editor = quillRef.current?.getEditor();
+    const content = editor?.root.innerHTML || "";
     const blogData = { ...data, content, createdAt: new Date().toISOString() };
+    console.log("BlogData:", blogData);
     await saveBlogToDB(blogData);
+    resetForm();
   };
 
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,6 +92,17 @@ const CreateBlog = () => {
       setValue("thumbnail", file);
       setThumbnailPreview(URL.createObjectURL(file));
     }
+  };
+
+  const resetForm = () => {
+    reset();
+    const editor = quillRef.current?.getEditor();
+    if (editor) {
+      editor.setText("");
+    }
+    setValue("category", null);
+    setValue("tags", []);
+    setThumbnailPreview(null);
   };
 
   useEffect(() => {
@@ -139,10 +153,9 @@ const CreateBlog = () => {
           <Form.Group className="mb-3">
             <Form.Label>Content</Form.Label>
             <ReactQuill
-              value={content}
-              onChange={setContent}
-              modules={modules}
+              ref={quillRef}
               theme="snow"
+              modules={modules}
               style={{ height: "300px", marginBottom: "55px" }}
               placeholder="Write blog content here..."
             />
@@ -252,7 +265,9 @@ const CreateBlog = () => {
                 variant="danger"
                 type="button"
                 className="w-100"
-                onClick={() => reset()}
+                onClick={() => {
+                  resetForm();
+                }}
               >
                 ✖️ Clear
               </Button>

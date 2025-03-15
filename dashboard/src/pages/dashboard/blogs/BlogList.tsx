@@ -10,21 +10,41 @@ import {
 import { FaPlus, FaEdit, FaTrash, FaExclamationCircle } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { openDB } from "idb";
+import { ROUTES } from "../../../common/constants/routes";
+import { useNavigate } from "react-router-dom";
 
 const BlogList = () => {
+  const navigate = useNavigate();
   const [blogs, setBlogs] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const blogsPerPage = 10;
 
+  const initializeDB = async () => {
+    const db = await openDB("BlogDB", 1, {
+      upgrade(db) {
+        if (!db.objectStoreNames.contains("blogs")) {
+          db.createObjectStore("blogs", { keyPath: "id", autoIncrement: true });
+        }
+      },
+    });
+    return db;
+  };
+
   const fetchBlogs = async () => {
-    const db = await openDB("BlogDB", 1);
+    const db = await initializeDB();
+
+    if (!db.objectStoreNames.contains("blogs")) {
+      console.error("Object store 'blogs' not found.");
+      return; // Avoid crashing the app
+    }
+
     const allBlogs = await db.getAll("blogs");
     console.log("All Blogs:", allBlogs);
 
     const modifiedBlogs = allBlogs.map((blog) => ({
       id: blog.id,
       title: blog.title,
-      category: blog.category.value,
+      category: blog.category.label,
       status: blog.status,
       publishDate: blog.publishDate,
     }));
@@ -52,7 +72,13 @@ const BlogList = () => {
     <Container className="p-5 shadow-lg rounded bg-light">
       <h2 className="mb-4 text-center fw-bold">📜 Blog List</h2>
       <div className="d-flex justify-content-end mb-3">
-        <Button variant="success" href="/create-blog">
+        <Button
+          variant="success"
+          onClick={() => {
+            const route = ROUTES.PRIVATE.CREATE_BLOG;
+            navigate(typeof route === "function" ? route() : route);
+          }}
+        >
           <FaPlus className="me-2" /> Create Blog
         </Button>
       </div>

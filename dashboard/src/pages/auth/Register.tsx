@@ -1,12 +1,14 @@
+import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { ROUTES } from "../../common/constants/routes";
 
 const Form = () => {
   return (
     <StyledWrapper>
-      <form className="modern-form">
-        <div className="form-title">Sign Up</div>
-        <div className="form-body">
-          <div className="input-group">
+      <div>
+        <form className="modern-form">
+          <div className="form-title">Sign Up</div>
+          <div className="form-body">
             <div className="input-wrapper">
               <svg fill="none" viewBox="0 0 24 24" className="input-icon">
                 <circle
@@ -30,8 +32,6 @@ const Form = () => {
                 type="text"
               />
             </div>
-          </div>
-          <div className="input-group">
             <div className="input-wrapper">
               <svg fill="none" viewBox="0 0 24 24" className="input-icon">
                 <path
@@ -47,8 +47,6 @@ const Form = () => {
                 type="email"
               />
             </div>
-          </div>
-          <div className="input-group">
             <div className="input-wrapper">
               <svg fill="none" viewBox="0 0 24 24" className="input-icon">
                 <path
@@ -81,17 +79,17 @@ const Form = () => {
               </button>
             </div>
           </div>
-        </div>
-        <button className="submit-button" type="submit">
-          <span className="button-text">Create Account</span>
-          <div className="button-glow" />
-        </button>
-        <div className="form-footer">
-          <a className="login-link" href="#">
-            Already have an account? <span>Login</span>
-          </a>
-        </div>
-      </form>
+          <button className="submit-button" type="submit">
+            <span className="button-text">Create Account</span>
+            <div className="button-glow" />
+          </button>
+          <div className="form-footer">
+            <Link className="login-link" to={ROUTES.AUTH.LOGIN} replace>
+              Already have an account? <span>Login</span>
+            </Link>
+          </div>
+        </form>
+      </div>
     </StyledWrapper>
   );
 };
@@ -109,8 +107,10 @@ const StyledWrapper = styled.div`
     position: relative;
     width: 300px;
     padding: 24px;
-    background: #ffffff;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 16px;
+    backdrop-filter: blur(10px);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
       0 2px 4px -2px rgba(0, 0, 0, 0.05),
       inset 0 0 0 1px rgba(148, 163, 184, 0.1);
@@ -120,20 +120,18 @@ const StyledWrapper = styled.div`
   .form-title {
     font-size: 22px;
     font-weight: 600;
-    color: var(--text-main);
+    // color: var(--text-main);
+    color: #ffffff;
     margin: 0 0 24px;
     text-align: center;
     letter-spacing: -0.01em;
   }
-
-  .input-group {
-    margin-bottom: 16px;
-  }
-
+    
   .input-wrapper {
     position: relative;
     display: flex;
     align-items: center;
+    margin-bottom: 16px;
   }
 
   .form-input {
@@ -184,7 +182,8 @@ const StyledWrapper = styled.div`
     width: 100%;
     height: 40px;
     margin-top: 8px;
-    background: var(--primary);
+    // background: var(--primary);
+    background: #14b8a6;
     color: white;
     border: none;
     border-radius: 10px;
@@ -201,7 +200,9 @@ const StyledWrapper = styled.div`
     background: linear-gradient(
       90deg,
       transparent,
-      rgba(255, 255, 255, 0.2),
+      rgba(20, 184, 166, 0.5),
+      /* Soft teal-cyan glow */ rgba(20, 184, 166, 0.8),
+      /* Brighter glow at center */ rgba(20, 184, 166, 0.5),
       transparent
     );
     transform: translateX(-100%);
@@ -215,13 +216,14 @@ const StyledWrapper = styled.div`
   }
 
   .login-link {
-    color: var(--text-secondary);
+    color: #f1f5f9;
     text-decoration: none;
     transition: all 0.2s ease;
   }
 
   .login-link span {
-    color: var(--primary);
+    color: #38bdf8
+    font-weight: 600; 
     font-weight: 500;
   }
 
@@ -243,7 +245,7 @@ const StyledWrapper = styled.div`
   }
 
   .submit-button:hover {
-    background: var(--primary-dark);
+    background: #0d9488;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25),
       0 2px 4px rgba(59, 130, 246, 0.15);
@@ -254,11 +256,11 @@ const StyledWrapper = styled.div`
   }
 
   .login-link:hover {
-    color: var(--text-main);
+    color: #bae6fd;
   }
 
   .login-link:hover span {
-    color: var(--primary-dark);
+     color: #0ea5e9; 
   }
 
   /* Active States */
