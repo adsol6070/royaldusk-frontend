@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Container,
   Button,
@@ -6,67 +6,43 @@ import {
   Pagination,
   OverlayTrigger,
   Tooltip,
+  Form,
 } from "react-bootstrap";
-import { FaPlus, FaEdit, FaTrash, FaExclamationCircle } from "react-icons/fa";
-import { toast } from "react-toastify";
-import { openDB } from "idb";
-import { ROUTES } from "../../../common/constants/routes";
+import {
+  FaPlus,
+  FaEdit,
+  FaTrash,
+  FaExclamationCircle,
+  FaEye,
+} from "react-icons/fa";
+import { ROUTES } from "@/config/route-paths.config";
 import { useNavigate } from "react-router-dom";
+import { useBlogs, useDeleteBlog, useUpdateBlogStatus } from "@/hooks/useBlog";
 
 const BlogList = () => {
   const navigate = useNavigate();
-  const [blogs, setBlogs] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const blogsPerPage = 10;
 
-  const initializeDB = async () => {
-    const db = await openDB("BlogDB", 1, {
-      upgrade(db) {
-        if (!db.objectStoreNames.contains("blogs")) {
-          db.createObjectStore("blogs", { keyPath: "id", autoIncrement: true });
-        }
-      },
-    });
-    return db;
+  const { data: blogs } = useBlogs();
+  const { mutate: deleteBlog } = useDeleteBlog();
+  const { mutate: updateBlogStatus } = useUpdateBlogStatus();
+
+  console.log("Blogs:", blogs);
+  const handleDelete = async (id: number) => {
+    deleteBlog(id);
   };
 
-  const fetchBlogs = async () => {
-    const db = await initializeDB();
-
-    if (!db.objectStoreNames.contains("blogs")) {
-      console.error("Object store 'blogs' not found.");
-      return; // Avoid crashing the app
-    }
-
-    const allBlogs = await db.getAll("blogs");
-    console.log("All Blogs:", allBlogs);
-
-    const modifiedBlogs = allBlogs.map((blog) => ({
-      id: blog.id,
-      title: blog.title,
-      category: blog.category.label,
-      status: blog.status,
-      publishDate: blog.publishDate,
-    }));
-    setBlogs(modifiedBlogs);
+  const handleStatusChange = (id: number, newStatus: string) => {
+    console.log("Id:", id);
+    console.log("New status:", newStatus);
+    updateBlogStatus({ id, status: newStatus });
   };
-
-  useEffect(() => {
-    fetchBlogs();
-  }, []);
 
   const indexOfLastBlog = currentPage * blogsPerPage;
   const indexOfFirstBlog = indexOfLastBlog - blogsPerPage;
-  const currentBlogs = blogs.slice(indexOfFirstBlog, indexOfLastBlog);
-  const totalPages = Math.ceil(blogs.length / blogsPerPage);
-
-  // Delete blog from IndexedDB
-  const handleDelete = async (id: number) => {
-    const db = await openDB("BlogDB", 1);
-    await db.delete("blogs", id);
-    setBlogs(blogs.filter((blog) => blog.id !== id));
-    toast.success("Blog deleted successfully!");
-  };
+  const currentBlogs = blogs?.slice(indexOfFirstBlog, indexOfLastBlog);
+  const totalPages = Math.ceil(blogs?.length / blogsPerPage);
 
   return (
     <Container className="p-5 shadow-lg rounded bg-light">
@@ -82,7 +58,7 @@ const BlogList = () => {
           <FaPlus className="me-2" /> Create Blog
         </Button>
       </div>
-      {blogs.length > 0 ? (
+      {blogs?.length > 0 ? (
         <>
           <Table
             striped
@@ -108,17 +84,34 @@ const BlogList = () => {
                   <td>{blog.title}</td>
                   <td>{blog.category}</td>
                   <td>
-                    <span
-                      className={`badge px-3 py-2 rounded-pill fw-bold ${
-                        blog.status === "Published"
-                          ? "bg-success text-white"
-                          : "bg-warning text-dark"
+                    <Form.Select
+                      value={blog.status}
+                      onChange={(e) =>
+                        handleStatusChange(blog.id, e.target.value)
+                      }
+                      className={`fw-bold ${
+                        blog.status === "published"
+                          ? "text-success"
+                          : "text-warning"
                       }`}
                     >
-                      {blog.status}
-                    </span>
+                      <option value="draft">Draft</option>
+                      <option value="published">Published</option>
+                    </Form.Select>
                   </td>
-                  <td>{blog.publishDate}</td>
+
+                  <td>
+                    {blog?.published_at
+                      ? new Intl.DateTimeFormat("en-GB", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: true,
+                        }).format(new Date(blog.published_at))
+                      : "N/A"}
+                  </td>
                   <td>
                     <OverlayTrigger
                       placement="top"
@@ -128,8 +121,26 @@ const BlogList = () => {
                         variant="outline-primary"
                         size="sm"
                         className="me-2"
+                        onClick={() =>
+                          navigate(`${ROUTES.PRIVATE.EDIT_BLOG(blog.id)}`)
+                        }
                       >
                         <FaEdit />
+                      </Button>
+                    </OverlayTrigger>
+                    <OverlayTrigger
+                      placement="top"
+                      overlay={<Tooltip>Preview Blog</Tooltip>}
+                    >
+                      <Button
+                        variant="outline-info"
+                        size="sm"
+                        className="me-2"
+                        onClick={() =>
+                          navigate(`${ROUTES.PRIVATE.BLOG_DETAILS(blog.id)}`)
+                        }
+                      >
+                        <FaEye />
                       </Button>
                     </OverlayTrigger>
                     <OverlayTrigger
@@ -150,7 +161,6 @@ const BlogList = () => {
             </tbody>
           </Table>
 
-          {/* Pagination */}
           <div className="d-flex justify-content-center mt-4">
             <Pagination>
               <Pagination.First

@@ -1,6 +1,10 @@
 import styled, { keyframes } from "styled-components";
 
-// Keyframe animations
+interface StarProps {
+  left: string;
+  top: string;
+}
+
 const tail = keyframes`
   0% { height: 0; }
   30% { height: 300px; }
@@ -18,7 +22,6 @@ const shooting = keyframes`
   100% { transform: translateY(100vh); }
 `;
 
-// Styled Components
 const NightSky = styled.div`
   background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
   height: 100vh;
@@ -32,10 +35,10 @@ const NightSky = styled.div`
   left: 0;
 `;
 
-const ShootingStar = styled.div`
+const ShootingStar = styled.div<StarProps>`
   position: absolute;
-  left: ${({ left }) => left || "50%"};
-  top: ${({ top }) => top || "50%"};
+  left: ${({ left }) => left};
+  top: ${({ top }) => top};
   width: 2px;
   background: linear-gradient(
     180deg,
@@ -65,13 +68,11 @@ const ShootingStar = styled.div`
   }
 `;
 
-// Component
 const ShootingStarsBackground = () => {
-  // Generate random positions for stars
   const stars = Array.from({ length: 20 }).map((_, i) => ({
     id: i,
     left: `${Math.random() * 100}vw`,
-    top: `${Math.random() * -100}vh`, // Start from above the viewport
+    top: `${Math.random() * -100}vh`,
   }));
 
   return (

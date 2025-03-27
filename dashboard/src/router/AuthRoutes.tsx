@@ -1,6 +1,6 @@
 import { Routes, Route } from "react-router-dom";
-import { AuthLayout } from "../layout";
-import { AUTH_ROUTES } from "./routesConfig";
+import { AuthLayout } from "@/layout";
+import { AUTH_ROUTES } from "../config/app-routes.config";
 
 const AuthRoutes = () => {
   return (
