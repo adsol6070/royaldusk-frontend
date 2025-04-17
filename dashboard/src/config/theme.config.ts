@@ -19,6 +19,11 @@ export const theme = {
     whiteSmoke: "#f5f5f5",
     offWhite: "#fff3",
     lightGray: "#f5f5f5",
+    primary: "#0d6efd",          
+    secondary: "#6c757d",        
+    primaryDark: "#0a58ca",       
+    textPrimary: "#212529",       
+    textSecondary: "#6c757d",
   },
   fonts: {
     regular: {

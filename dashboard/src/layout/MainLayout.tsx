@@ -4,6 +4,7 @@ import { Header } from "@/components";
 import SidebarComponent from "@/components/layout/Sidebar";
 import { Outlet } from "react-router-dom";
 import { theme } from "@/config/theme.config";
+import Spinner from "@/components/layout/Spinner";
 
 const MainLayout = () => {
   const [isMobile] = useState(() => window.innerWidth <= 768);
@@ -29,7 +30,13 @@ const MainLayout = () => {
       <LayoutBody>
         <Header onToggleSidebar={toggleSidebar} />
         <ContentWrapper>
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}>
+            <Spinner size={60} color="#10b981" thickness={6} />
+          </div>}>
             <Outlet />
           </Suspense>
         </ContentWrapper>

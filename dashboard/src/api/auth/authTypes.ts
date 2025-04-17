@@ -7,7 +7,17 @@ export interface RegisterPayload {
   name: string;
   email: string;
   password: string;
-  confirmPassword: string;
+  confirmPassword?: string;
+}
+
+export interface ForgotPasswordPayload {
+  email: string;
+}
+
+export interface ResetPasswordPayload {
+  newPassword: string;
+  confirmPassword?: string;
+  token: string;
 }
 
 export interface AuthResponse {
@@ -17,4 +27,9 @@ export interface AuthResponse {
     name: string;
     email: string;
   };
+}
+
+export interface ForgotPasswordResponse {
+  success: boolean;
+  message: string;
 }

@@ -1,31 +1,58 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FaRegUserCircle } from "react-icons/fa";
 import { RxHamburgerMenu } from "react-icons/rx";
 import styled from "styled-components";
 import { theme } from "@/config/theme.config";
 import { useAuth } from "@/context/AuthContext";
+import { capitalizeFirstLetter } from "@/utils/capitalizeFirstLetter";
+import { useNavigate } from "react-router-dom";
+import { ROUTES } from "@/config/route-paths.config";
 
 const Header = ({ onToggleSidebar }: any) => {
   const { logoutUser } = useAuth();
+  const navigate = useNavigate();
+  const userDetail: any = JSON.parse(localStorage.getItem("user") || "null");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   const handleDropdownToggle = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !(dropdownRef.current as any).contains(event.target)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
     <HeaderContainer>
       <HamburgerButton onClick={onToggleSidebar}>
         <RxHamburgerMenu />
       </HamburgerButton>
-      <ProfileContainer>
-        <ProfileButton onClick={handleDropdownToggle}>
-          <FaRegUserCircle color={theme.colors.white} size={24} />
-        </ProfileButton>
+      <ProfileContainer ref={dropdownRef}>
+          <p>{userDetail.custom_claims.user_name}</p>
+          <ProfileButton onClick={handleDropdownToggle}>
+            <FaRegUserCircle color={theme.colors.white} size={24} />
+            <UserName>{capitalizeFirstLetter(userDetail?.custom_claims?.user_name) || "User"}</UserName>
+          </ProfileButton>
         {isDropdownOpen && (
           <DropdownMenu>
-            <DropdownItem href="/profile">View Profile</DropdownItem>
-            <DropdownItem onClick={() => logoutUser()}>Logout</DropdownItem>
+            <DropdownItemButton onClick={() => 
+              {navigate(`${ROUTES.PRIVATE.PROFILE(userDetail.custom_claims.user_id)}`); 
+              setIsDropdownOpen(false);}
+            }>View Profile</DropdownItemButton>
+            <DropdownItemButton onClick={() => logoutUser()}>Logout</DropdownItemButton>
           </DropdownMenu>
         )}
       </ProfileContainer>
@@ -46,6 +73,9 @@ const HeaderContainer = styled.header`
 
 const ProfileContainer = styled.div`
   position: relative; /* Necessary for positioning the dropdown menu */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   @media (max-width: 768px) {
     grid-column: 3; /* Place it in the right grid column */
@@ -60,6 +90,13 @@ const ProfileButton = styled.button`
   cursor: pointer;
 `;
 
+const UserName = styled.span`
+  color: ${theme.colors.white};
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0px 5px;
+`;
+
 const DropdownMenu = styled.div`
   position: absolute;
   top: 100%;
@@ -72,7 +109,7 @@ const DropdownMenu = styled.div`
   z-index: 1000;
 `;
 
-const DropdownItem = styled.a`
+const DropdownItemButton = styled.a`
   display: block;
   padding: 8px 16px;
   color: ${theme.colors.black};
