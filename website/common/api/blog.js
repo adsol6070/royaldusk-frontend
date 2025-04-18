@@ -38,6 +38,10 @@ function BlogService() {
       return HttpClient.get(`${Blog_Base_Url}/blogCategories`, { _skipAuth: true });
     },
 
+    getPostByCategory: (category) => {
+      return HttpClient.get(`${Blog_Base_Url}/blogs/category/${category}`, { _skipAuth: true });
+    },
+
   };
 }
 

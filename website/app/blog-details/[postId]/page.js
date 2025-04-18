@@ -4,6 +4,7 @@ import Banner from "@/components/Banner";
 import BlogSidebar from "@/components/Blogsidebar";
 import Loader from "@/components/loader";
 import ReveloLayout from "@/layout/ReveloLayout";
+import slugToTitle from "@/utility/slugToTitleConverter";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -49,11 +50,11 @@ const page = ({ params }) => {
                 <div
                   className="blog-details-content"
                   data-aos="fade-up"
-                  data-aos-duration={1500}
+                  data-aos-duration={1000}
                   data-aos-offset={50}
                 >
                   <Link href="/blog" className="category">
-                    {blogDetail.category}
+                    {slugToTitle(blogDetail.category)}
                   </Link>
                   <ul className="blog-meta mb-30">
                     <li>
@@ -72,7 +73,7 @@ const page = ({ params }) => {
                   <div
                     className="image mt-40 mb-30"
                     data-aos="fade-up"
-                    data-aos-duration={1500}
+                    data-aos-duration={1000}
                     data-aos-offset={50}
                   >
                     <img src={blogDetail.thumbnail} alt="Blog Details" />
@@ -82,13 +83,13 @@ const page = ({ params }) => {
                     <div
                       className="item"
                       data-aos="fade-left"
-                      data-aos-duration={1500}
+                      data-aos-duration={1000}
                       data-aos-offset={50}
                     >
                       <h6>Tags </h6>
                       <div className="tag-coulds">
                         {blogDetail.tags.map((tag, index) => (
-                          <Link key={index} href={`/blog?tag=${tag}`}>
+                          <Link key={index} href="">
                             {tag}
                           </Link>
                         ))}
@@ -97,7 +98,7 @@ const page = ({ params }) => {
                     <div
                       className="item"
                       data-aos="fade-right"
-                      data-aos-duration={1500}
+                      data-aos-duration={1000}
                       data-aos-offset={50}
                     >
                       {/* <h6>Share </h6>
