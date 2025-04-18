@@ -1,5 +1,5 @@
 import { Outlet } from "react-router-dom";
-import ShootingStarsBackground from "../components/AuthBackground";
+import ShootingStarsBackground from "@/components/AuthBackground";
 import styled from "styled-components";
 
 const AuthContainer = styled.main`

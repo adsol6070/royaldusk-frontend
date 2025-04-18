@@ -1,59 +1,143 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import { ROUTES } from "../../common/constants/routes";
+import { ROUTES } from "@/config/route-paths.config";
+import { useAuth } from "@/context/AuthContext";
+import { useState } from "react";
+import toast, { Toaster } from "react-hot-toast";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import { useForm } from "react-hook-form";
+import { LoginPayload } from "@/api";
+
+const schema = yup.object().shape({
+  email: yup.string().email("Invalid email format").required("Email is required"),
+  password: yup.string().min(6, "Password must be least 6 characters").required("Password is required"),
+});
 
 const Form = () => {
+  const { userLogin } = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({ resolver: yupResolver(schema) });
+
+  const onSubmit = async (data: LoginPayload) => {
+    try {
+      const response = await userLogin(data);
+      if (response) {
+        toast.success("Login successful!");
+        navigate(
+          typeof ROUTES.PRIVATE.DASHBOARD === "string"
+            ? ROUTES.PRIVATE.DASHBOARD
+            : ROUTES.PRIVATE.DASHBOARD(),
+          { replace: true }
+        );
+      } else {
+        toast.error("Invalid credentials. Please try again.");
+      }
+    } catch (err) {
+      console.error("Internal error occurred. Please try again.");
+      toast.error("An error occurred. Please try again later.");
+    }
+  };
+
   return (
     <StyledWrapper>
+      <Toaster position="top-right" />
       <div>
-        <form className="modern-form">
+        <form className="modern-form" onSubmit={handleSubmit(onSubmit)}>
           <div className="form-title">Sign In</div>
           <div className="form-body">
-            <div className="input-wrapper">
-              <svg fill="none" viewBox="0 0 24 24" className="input-icon">
-                <path
-                  strokeWidth="1.5"
-                  stroke="currentColor"
-                  d="M3 8L10.8906 13.2604C11.5624 13.7083 12.4376 13.7083 13.1094 13.2604L21 8M5 19H19C20.1046 19 21 18.1046 21 17V7C21 5.89543 20.1046 5 19 5H5C3.89543 5 3 5.89543 3 7V17C3 18.1046 3.89543 19 5 19Z"
-                />
-              </svg>
-              <input
-                required
-                placeholder="Email"
-                className="form-input"
-                type="email"
-              />
-            </div>
-            <div className="input-wrapper">
-              <svg fill="none" viewBox="0 0 24 24" className="input-icon">
-                <path
-                  strokeWidth="1.5"
-                  stroke="currentColor"
-                  d="M12 10V14M8 6H16C17.1046 6 18 6.89543 18 8V16C18 17.1046 17.1046 18 16 18H8C6.89543 18 6 17.1046 6 16V8C6 6.89543 6.89543 6 8 6Z"
-                />
-              </svg>
-              <input
-                required
-                placeholder="Password"
-                className="form-input"
-                type="password"
-              />
-              <button className="password-toggle" type="button">
-                <svg fill="none" viewBox="0 0 24 24" className="eye-icon">
+            <div className="field-full-wrapper">
+              <div className="input-wrapper">
+                <svg fill="none" viewBox="0 0 24 24" className="input-icon">
                   <path
                     strokeWidth="1.5"
                     stroke="currentColor"
-                    d="M2 12C2 12 5 5 12 5C19 5 22 12 22 12C22 12 19 19 12 19C5 19 2 12 2 12Z"
-                  />
-                  <circle
-                    strokeWidth="1.5"
-                    stroke="currentColor"
-                    r={3}
-                    cy={12}
-                    cx={12}
+                    d="M3 8L10.8906 13.2604C11.5624 13.7083 12.4376 13.7083 13.1094 13.2604L21 8M5 19H19C20.1046 19 21 18.1046 21 17V7C21 5.89543 20.1046 5 19 5H5C3.89543 5 3 5.89543 3 7V17C3 18.1046 3.89543 19 5 19Z"
                   />
                 </svg>
-              </button>
+                <input
+                  placeholder="Email"
+                  className="form-input"
+                  type="email"
+                  {...register("email")}
+                />
+              </div>
+              {errors.email && (
+                <small className="text-danger">
+                  {errors.email.message as string}
+                </small>
+              )}
+            </div>
+            <div className="field-full-wrapper">
+              <div className="input-wrapper">
+                <svg fill="none" viewBox="0 0 24 24" className="input-icon">
+                  <path
+                    strokeWidth="1.5"
+                    stroke="currentColor"
+                    d="M12 10V14M8 6H16C17.1046 6 18 6.89543 18 8V16C18 17.1046 17.1046 18 16 18H8C6.89543 18 6 17.1046 6 16V8C6 6.89543 6.89543 6 8 6Z"
+                  />
+                </svg>
+                <input
+                  placeholder="Password"
+                  className="form-input"
+                  type={showPassword ? "text" : "password"}
+                  {...register("password")}
+                />
+                <button
+                  className="password-toggle"
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                >
+                  <svg fill="none" viewBox="0 0 24 24" className="eye-icon">
+                    {showPassword ? (
+                      <path
+                        strokeWidth="1.5"
+                        stroke="currentColor"
+                        d="M12 5C5 5 2 12 2 12C2 12 5 19 12 19C19 19 22 12 22 12C22 12 19 5 12 5Z M12 15C10.3431 15 9 13.6569 9 12C9 10.3431 10.3431 9 12 9C13.6569 9 15 10.3431 15 12C15 13.6569 13.6569 15 12 15Z"
+                      />
+                    ) : (
+                      <>
+                        <path
+                          strokeWidth="1.5"
+                          stroke="currentColor"
+                          d="M2 12C2 12 5 5 12 5C19 5 22 12 22 12C22 12 19 19 12 19C5 19 2 12 2 12Z"
+                        />
+                        <circle
+                          strokeWidth="1.5"
+                          stroke="currentColor"
+                          r={3}
+                          cy={12}
+                          cx={12}
+                        />
+                        <line
+                          strokeWidth="1.5"
+                          stroke="currentColor"
+                          x1="3"
+                          y1="3"
+                          x2="21"
+                          y2="21"
+                          strokeLinecap="round"
+                        />
+                      </>
+                    )}
+                  </svg>
+                </button>
+              </div>
+              {errors.password && (
+                <small className="text-danger">
+                  {errors.password.message as string}
+                </small>
+              )}
+            </div>
+            <div className="forgot-password-box">
+              <Link className="login-link" to={ROUTES.AUTH.FORGOT_PASSWORD} replace>
+                <span>Forgot Password</span>
+              </Link>
             </div>
           </div>
           <button className="submit-button" type="submit">
@@ -107,7 +191,10 @@ const StyledWrapper = styled.div`
     position: relative;
     display: flex;
     align-items: center;
-    margin-bottom: 16px;
+    }
+    
+    .field-full-wrapper {
+      margin-bottom: 16px;
   }
 
   .form-input {
@@ -184,6 +271,11 @@ const StyledWrapper = styled.div`
     transform: translateX(-100%);
     transition: transform 0.5s ease;
   }
+
+.forgot-password-box {
+    text-align: right;
+    font-size: 12px;
+}
 
   .form-footer {
     margin-top: 16px;

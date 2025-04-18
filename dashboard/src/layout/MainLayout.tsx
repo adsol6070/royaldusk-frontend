@@ -1,22 +1,23 @@
 import { Suspense, useState } from "react";
 import styled from "styled-components";
-import { Header } from "../components";
-import SidebarComponent from "../components/Sidebar";
+import { Header } from "@/components";
+import SidebarComponent from "@/components/layout/Sidebar";
 import { Outlet } from "react-router-dom";
-import { theme } from "../constants/theme";
+import { theme } from "@/config/theme.config";
+import Spinner from "@/components/layout/Spinner";
 
 const MainLayout = () => {
-  const [isCollapsed, setIsCollapsed] = useState<boolean | null>(true);
-  const [isToggled, setIsToggled] = useState<boolean | null>(false);
+  const [isMobile] = useState(() => window.innerWidth <= 768);
+  const [isCollapsed, setIsCollapsed] = useState<boolean | null>(
+    isMobile ? null : false
+  );
+  const [isToggled, setIsToggled] = useState<boolean | null>(
+    isMobile ? false : null
+  );
 
   const toggleSidebar = () => {
-    if (window.innerWidth > 768) {
-      setIsCollapsed((prevState) => !prevState);
-      setIsToggled(null);
-    } else {
-      setIsToggled((prevState) => !prevState);
-      setIsCollapsed(null);
-    }
+    setIsCollapsed(isMobile ? null : (prev) => !prev);
+    setIsToggled(isMobile ? (prev) => !prev : null);
   };
 
   return (
@@ -29,7 +30,13 @@ const MainLayout = () => {
       <LayoutBody>
         <Header onToggleSidebar={toggleSidebar} />
         <ContentWrapper>
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}>
+            <Spinner size={60} color="#10b981" thickness={6} />
+          </div>}>
             <Outlet />
           </Suspense>
         </ContentWrapper>

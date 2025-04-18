@@ -1,6 +1,6 @@
 import { BrowserRouter as Router } from "react-router-dom";
-import AppProviders from "./common/providers/AppProviders";
-import MainRoutes from "./router/MainRoutes";
+import { MainRoutes } from "./router";
+import { AppProviders } from "./context";
 
 const App = () => {
   return (
