@@ -82,7 +82,7 @@ const BlogList = () => {
                 <tr key={blog.id} className="align-middle">
                   <td className="fw-bold">{indexOfFirstBlog + index + 1}</td>
                   <td>{blog.title}</td>
-                  <td>{blog.category}</td>
+                  <td>{blog.category_name}</td>
                   <td>
                     <Form.Select
                       value={blog.status}

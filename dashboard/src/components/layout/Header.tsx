@@ -24,7 +24,7 @@ const Header = ({ onToggleSidebar }: any) => {
         </ProfileButton>
         {isDropdownOpen && (
           <DropdownMenu>
-            <DropdownItem href="/profile">View Profile</DropdownItem>
+            <DropdownItem href="/app/profile">View Profile</DropdownItem>
             <DropdownItem onClick={() => logoutUser()}>Logout</DropdownItem>
           </DropdownMenu>
         )}

@@ -1,5 +1,5 @@
 import { blogApi } from "@/api/blog/blogApi";
-import { Blog, BlogPayload } from "@/api/blog/blogTypes";
+import { Blog } from "@/api/blog/blogTypes";
 import { blogCategoryApi } from "@/api/blog/categories/blogCategoryApi";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";

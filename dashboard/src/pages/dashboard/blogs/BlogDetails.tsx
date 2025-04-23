@@ -13,14 +13,14 @@ const BlogDetails = () => {
           <h1 className="fw-bold text-dark">{blog?.title}</h1>
           <p className="text-muted">
             By <span className="fw-bold">{blog?.author}</span> |{" "}
-            {new Date(blog?.publishedAt).toLocaleDateString("en-US", {
+            {new Date(blog?.published_at).toLocaleDateString("en-US", {
               year: "numeric",
               month: "long",
               day: "2-digit",
             })}
           </p>
           <Badge bg="primary" className="mb-3">
-            Technology
+            {blog?.category_name}
           </Badge>
         </Col>
       </Row>
@@ -28,7 +28,7 @@ const BlogDetails = () => {
       <Row>
         <Col md={{ span: 10, offset: 1 }}>
           <Image
-            src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b"
+            src={blog?.thumbnail}
             alt={blog?.title}
             fluid
             className="rounded shadow"
