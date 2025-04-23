@@ -24,7 +24,7 @@ export const blogApi = {
       {
         headers: {
           "Content-Type": "multipart/form-data",
-        }
+        },
       }
     );
     return response.data;
@@ -33,7 +33,12 @@ export const blogApi = {
   updateBlog: async (id: string, data: FormData): Promise<Blog> => {
     const response = await httpClient.patch<Blog>(
       API_ENDPOINTS.BLOG.UPDATE(id),
-      data
+      data,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
     );
     return response.data;
   },

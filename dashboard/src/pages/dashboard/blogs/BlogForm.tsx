@@ -48,7 +48,9 @@ const BlogForm = () => {
     formState: { errors },
     watch,
     reset,
-  } = useForm();
+  } = useForm({
+    mode: "onChange",
+  });
 
   const title = watch("title", "");
   const status = watch("status");
@@ -106,7 +108,7 @@ const BlogForm = () => {
       createBlog(formData);
     }
 
-    resetForm();
+    // resetForm();
   };
 
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -160,6 +162,7 @@ const BlogForm = () => {
         meta_title: blog.meta_title || "",
         meta_description: blog.meta_description || "",
         status: blog.status || "draft",
+        published_at: blog.published_at || "",
       });
     }
     setDisplayDate(blog?.published_at ? blog?.published_at.split("T")[0] : "");
@@ -185,8 +188,18 @@ const BlogForm = () => {
                 <Form.Label>Title</Form.Label>
                 <Form.Control
                   type="text"
-                  placeholder="Enter blog title"
-                  {...register("title", { required: "Title is required" })}
+                  placeholder="Enter blog title (5-150 characters)"
+                  {...register("title", {
+                    required: "Title is required",
+                    minLength: {
+                      value: 5,
+                      message: "Title must be at least 5 characters",
+                    },
+                    maxLength: {
+                      value: 150,
+                      message: "Title cannot exceed 150 characters",
+                    },
+                  })}
                 />
                 {errors.title && (
                   <small className="text-danger">
@@ -201,7 +214,7 @@ const BlogForm = () => {
                 <Form.Label>Slug</Form.Label>
                 <Form.Control
                   type="text"
-                  placeholder="Auto-generated slug"
+                  placeholder="Auto-generated slug (editable if needed)"
                   {...register("slug", { required: "Slug is required" })}
                 />
               </Form.Group>
@@ -214,8 +227,14 @@ const BlogForm = () => {
                 <Form.Label>Author</Form.Label>
                 <Form.Control
                   type="text"
-                  placeholder="Enter author name"
-                  {...register("author", { required: "Author is required" })}
+                  placeholder="Enter author name (max 10 characters)"
+                  {...register("author", {
+                    required: "Author is required",
+                    maxLength: {
+                      value: 10,
+                      message: "Author name cannot exceed 10 characters",
+                    },
+                  })}
                 />
                 {errors.author && (
                   <small className="text-danger">
@@ -265,7 +284,7 @@ const BlogForm = () => {
               theme="snow"
               modules={modules}
               style={{ height: "300px", marginBottom: "55px" }}
-              placeholder="Write blog content here..."
+              placeholder="Write detailed blog content (minimum 50 characters)..."
             />
           </Form.Group>
 
@@ -277,7 +296,10 @@ const BlogForm = () => {
                   ref={tagsInputRef}
                   value={tags}
                   onChange={(newTags) => {
-                    setTags(newTags);
+                    const uniqueTags = [
+                      ...new Set(newTags.map((tag) => tag.toLowerCase())),
+                    ];
+                    setTags(uniqueTags);
                   }}
                   inputProps={{
                     placeholder: "Add a tag",
@@ -292,8 +314,13 @@ const BlogForm = () => {
                 <Form.Control
                   as="textarea"
                   rows={2}
-                  placeholder="Short summary of the blog"
-                  {...register("excerpt")}
+                  placeholder="Provide a short summary (max 300 characters)"
+                  {...register("excerpt", {
+                    maxLength: {
+                      value: 300,
+                      message: "Excerpt cannot exceed 300 characters",
+                    },
+                  })}
                 />
               </Form.Group>
             </Col>
@@ -303,8 +330,13 @@ const BlogForm = () => {
             <Form.Label>Meta Title (SEO)</Form.Label>
             <Form.Control
               type="text"
-              placeholder="Enter SEO title"
-              {...register("meta_title")}
+              placeholder="Enter SEO title (max 150 characters)"
+              {...register("meta_title", {
+                maxLength: {
+                  value: 150,
+                  message: "Meta title cannot exceed 150 characters",
+                },
+              })}
             />
           </Form.Group>
 
@@ -313,8 +345,13 @@ const BlogForm = () => {
             <Form.Control
               as="textarea"
               rows={2}
-              placeholder="Enter SEO description"
-              {...register("meta_description")}
+              placeholder="Write an SEO-friendly description (max 300 characters)"
+              {...register("meta_description", {
+                maxLength: {
+                  value: 300,
+                  message: "Meta description cannot exceed 300 characters",
+                },
+              })}
             />
           </Form.Group>
 
