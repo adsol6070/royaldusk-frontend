@@ -3,6 +3,7 @@ import Subscribe from "@/components/Subscribe";
 import TourSidebar from "@/components/TourSidebar";
 import ReveloLayout from "@/layout/ReveloLayout";
 import Link from "next/link";
+
 const page = () => {
   return (
     <ReveloLayout>

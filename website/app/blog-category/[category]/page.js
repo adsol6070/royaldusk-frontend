@@ -8,7 +8,8 @@ import slugToTitle from "@/utility/slugToTitleConverter";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-const page = () => {
+const page = ({ params }) => {
+  const category = params.category;
   const [blogs, setBlogs] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -16,7 +17,8 @@ const page = () => {
   useEffect(() => {
     async function fetchBlogs() {
       try {
-        const response = await blogApi.getAllPosts();
+        setLoading(true);
+        const response = await blogApi.getPostByCategory(category);
         const blogsData = response.data;
         setBlogs(blogsData);
       } catch (err) {
@@ -27,10 +29,10 @@ const page = () => {
         setLoading(false);
       }
     }
-    
+
     fetchBlogs();
   }, []);
-
+console.log("blog data", blogs);
   return (
     <ReveloLayout insta>
       <Banner pageTitle={"Blogs"} />

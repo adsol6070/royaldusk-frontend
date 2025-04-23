@@ -39,7 +39,7 @@ const BlogSidebar = () => {
 				<div
 					className="widget widget-search"
 					data-aos="fade-up"
-					data-aos-duration={1500}
+					data-aos-duration={1000}
 					data-aos-offset={50}
 				>
 					<form action="#" className="default-search-form">
@@ -53,15 +53,20 @@ const BlogSidebar = () => {
 				<div
 					className="widget widget-category"
 					data-aos="fade-up"
-					data-aos-duration={1500}
+					data-aos-duration={1000}
 					data-aos-offset={50}
 				>
 					<h5 className="widget-title">Category</h5>
 					<ul className="list-style-three">
-						{
+						<li>
+							<Link href={`/blog`}>All</Link>
+						</li>
+						{blogCategories.length === 0 && !loading ? (
+    <p className="text-center">No Categories Available</p>
+  ):
 							blogCategories.map((category) => (
 								<li>
-									<Link href="blog">{category.name}</Link>
+									<Link href={`/blog-category/${category.slug}`}>{category.name}</Link>
 								</li>
 							))
 						}
@@ -70,12 +75,14 @@ const BlogSidebar = () => {
 				<div
 					className="widget widget-news"
 					data-aos="fade-up"
-					data-aos-duration={1500}
+					data-aos-duration={1000}
 					data-aos-offset={50}
 				>
 					<h5 className="widget-title">Recent Blogs</h5>
 					<ul>
-						{blogsData.map((blog) => (
+						{blogsData.length === 0 && !loading ? (
+    <p className="text-center">No Recents Blogs Available</p>
+  ): blogsData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).map((blog) => (
 							<li key={blog.id}>
 								<div className="image">
 									<img src={blog.thumbnail} alt={blog.title} />

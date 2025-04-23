@@ -10,8 +10,7 @@ import {
   Tooltip,
 } from "react-bootstrap";
 import { FaPlus, FaEdit, FaTrash, FaExclamationCircle } from "react-icons/fa";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/ReactToastify.css";
+import { Toaster, toast } from 'react-hot-toast';
 import {
   useBlogCategories,
   useCreateBlogCategory,
@@ -68,7 +67,7 @@ const CategoryList = () => {
 
   return (
     <>
-      <ToastContainer />
+      <Toaster position="top-right" toastOptions={{duration: 2000}}/>
       <Container className="p-5 shadow-lg rounded bg-light">
         <h2 className="mb-4 text-center fw-bold">📂 Blog Categories</h2>
         <div className="d-flex justify-content-end mb-3">
