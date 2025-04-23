@@ -41,9 +41,7 @@ const Profile = () => {
         {
           onSuccess: () => {
             setEditing(false);
-            toast.success("Profile updated successfully!");
           },
-          onError: () => toast.error("Failed to update profile"),
         }
       );
     } else {

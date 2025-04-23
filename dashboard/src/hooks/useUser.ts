@@ -17,7 +17,7 @@ const useCustomMutation = <T, V>(
       queryClient.invalidateQueries({ queryKey });
     },
     onError: (error) => {
-      toast.error(error.message || "Something went wrong!");
+      toast.error("Something went wrong!");
       console.log("Error:", error);
     },
   });
