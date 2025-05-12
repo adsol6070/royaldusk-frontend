@@ -41,18 +41,29 @@ const Header = ({ onToggleSidebar }: any) => {
         <RxHamburgerMenu />
       </HamburgerButton>
       <ProfileContainer ref={dropdownRef}>
-          <p>{userDetail.custom_claims.user_name}</p>
-          <ProfileButton onClick={handleDropdownToggle}>
-            <FaRegUserCircle color={theme.colors.white} size={24} />
-            <UserName>{capitalizeFirstLetter(userDetail?.custom_claims?.user_name) || "User"}</UserName>
-          </ProfileButton>
+        <p>{userDetail.custom_claims.user_name}</p>
+        <ProfileButton onClick={handleDropdownToggle}>
+          <FaRegUserCircle color={theme.colors.white} size={24} />
+          <UserName>
+            {capitalizeFirstLetter(userDetail?.custom_claims?.user_name) ||
+              "User"}
+          </UserName>
+        </ProfileButton>
         {isDropdownOpen && (
           <DropdownMenu>
-            <DropdownItemButton onClick={() => 
-              {navigate(`${ROUTES.PRIVATE.PROFILE(userDetail.custom_claims.user_id)}`); 
-              setIsDropdownOpen(false);}
-            }>View Profile</DropdownItemButton>
-            <DropdownItemButton onClick={() => logoutUser()}>Logout</DropdownItemButton>
+            <DropdownItemButton
+              onClick={() => {
+                navigate(
+                  `${ROUTES.PRIVATE.PROFILE(userDetail.custom_claims.user_id)}`
+                );
+                setIsDropdownOpen(false);
+              }}
+            >
+              View Profile
+            </DropdownItemButton>
+            <DropdownItemButton onClick={() => logoutUser()}>
+              Logout
+            </DropdownItemButton>
           </DropdownMenu>
         )}
       </ProfileContainer>
