@@ -1,7 +1,11 @@
 import Aos from "aos";
+
 export const roveloUtility = {
   animation() {
-    Aos.init();
+    Aos.init({
+      duration: 500, 
+      once: true,   
+    });
   },
   fixedHeader() {
     window.addEventListener("scroll", function () {

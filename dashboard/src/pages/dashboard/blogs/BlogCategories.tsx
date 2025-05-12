@@ -17,6 +17,7 @@ import {
   useDeleteBlogCategory,
   useUpdateBlogCategory,
 } from "@/hooks/useBlog";
+import { capitalizeFirstLetter } from "@/utils/capitalizeFirstLetter";
 
 const CategoryList = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -104,7 +105,7 @@ const CategoryList = () => {
                     <td className="fw-bold">
                       {indexOfFirstCategory + index + 1}
                     </td>
-                    <td>{category.name}</td>
+                    <td>{capitalizeFirstLetter(category.name)}</td>
                     <td>
                       <OverlayTrigger
                         placement="top"

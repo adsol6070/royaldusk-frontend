@@ -31,6 +31,13 @@ const ROUTE_PATHS = {
   TOUR_DETAILS: (tourId = ":id") => `/dashboard/tours/details/${tourId}`,
   CREATE_TOUR: "/dashboard/tours/create",
   EDIT_TOUR: (tourId = ":id") => `/dashboard/tours/edit/${tourId}`,
+
+  PACKAGE_LIST: "/dashboard/package/list",
+  PACKAGE_DETAILS: (packageId = ":id") => `/dashboard/package/details/${packageId}`,
+  CREATE_PACKAGE: "/dashboard/package/create",
+  EDIT_PACKAGE: (packageId = ":id") => `/dashboard/package/edit/${packageId}`,
+  PACKAGE_META: `/dashboard/package/packagemeta`,
+  PACKAGE_ENQUIRY: `/dashboard/package/packageenquiry`,
 };
 
 const getFullPath = <T extends string | ((...args: any[]) => string)>(

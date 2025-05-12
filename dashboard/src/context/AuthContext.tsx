@@ -1,5 +1,16 @@
-import { authApi, LoginPayload, RegisterPayload, ResetPasswordPayload } from "@/api";
-import { createContext, ReactNode, useContext, useState, useEffect } from "react";
+import {
+  authApi,
+  LoginPayload,
+  RegisterPayload,
+  ResetPasswordPayload,
+} from "@/api";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useState,
+  useEffect,
+} from "react";
 import { jwtDecode } from "jwt-decode";
 import toast from "react-hot-toast";
 
@@ -13,7 +24,10 @@ interface DecodedToken {
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  userLogin: (data: LoginPayload) => Promise<boolean>;
+  userInfo?: DecodedToken | null;
+  userLogin: (
+    data: LoginPayload
+  ) => Promise<{ success: boolean; message?: string }>;
   userRegister: (data: RegisterPayload) => Promise<boolean>;
   logoutUser: () => void;
   forgotPassword: (email: string) => Promise<boolean>;
@@ -23,16 +37,26 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<DecodedToken | null>(
-    JSON.parse(localStorage.getItem("user") || "null")
+  const [token, setToken] = useState<string | null>(
+    localStorage.getItem("token")
   );
 
-  // Function to decode JWT and store user info
+  // Decode token only when needed
+  const getDecodedToken = (): DecodedToken | null => {
+    if (!token) return null;
+    try {
+      return jwtDecode(token);
+    } catch (error) {
+      console.error("Error decoding token:", error);
+      return null;
+    }
+  };
+
   const storeUser = (token: string) => {
     try {
       const decoded: DecodedToken = jwtDecode(token);
-      localStorage.setItem("user", JSON.stringify(decoded));
-      setUser(decoded);
+      localStorage.setItem("token", token);
+      setToken(token);
       scheduleAutoLogout(decoded.exp);
     } catch (error) {
       console.error("Error decoding JWT:", error);
@@ -40,10 +64,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Schedule auto-logout based on token expiration
   const scheduleAutoLogout = (exp: number) => {
-    const currentTime = Math.floor(Date.now() / 1000); // Convert to seconds
-    const timeout = (exp - currentTime) * 1000; // Convert to milliseconds
+    const currentTime = Math.floor(Date.now() / 1000); // seconds
+    const timeout = (exp - currentTime) * 1000; // milliseconds
 
     if (timeout > 0) {
       setTimeout(() => {
@@ -55,82 +78,123 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-    // Forgot Password function
-    const forgotPassword = async (email: string): Promise<boolean> => {
-      try {
-        const response = await authApi.forgotPassword(email);
-        if(response.success) {
-        toast.success(response.message);
-        }else{
-          toast.error(response.message);
-        }
-        return true;
-      } catch (error) {
-        console.error("Forgot password failed", error);
-        toast.error("Failed to send password reset email.");
-        return false;
-      }
-    };
-
-    const resetPassword = async (data: ResetPasswordPayload): Promise<boolean> => {
-      try {
-        const response = await authApi.resetPassword(data);
-        if (response.success) {
-          toast.success(response.message);
-          return true;
-        } else {
-          toast.error("Password reset failed");
-          return false;
-        }
-      } catch (error) {
-        console.error("Reset password failed", error);
-        toast.error("Failed to reset password.");
-        return false;
-      }
-    };
-
-  // Check authentication status on load
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      const parsedUser: DecodedToken = JSON.parse(storedUser);
-      setUser(parsedUser);
-      scheduleAutoLogout(parsedUser.exp);
-    }
-  }, []);
-
-  // Login function
-  const userLogin = async (data: LoginPayload) => {
+  const forgotPassword = async (email: string): Promise<boolean> => {
     try {
-      const response = await authApi.login(data);
-      storeUser(response.token);
+      const response = await authApi.forgotPassword(email);
+      if (response.success) {
+        toast.success(response.message);
+      } else {
+        toast.error(response.message);
+      }
       return true;
     } catch (error) {
-      console.error("Login failed", error);
+      console.error("Forgot password failed", error);
+      toast.error("Failed to send password reset email.");
       return false;
     }
   };
 
-  // Register function
+  const resetPassword = async (
+    data: ResetPasswordPayload
+  ): Promise<boolean> => {
+    try {
+      const response = await authApi.resetPassword(data);
+      if (response.success) {
+        toast.success(response.message);
+        return true;
+      } else {
+        toast.error("Password reset failed");
+        return false;
+      }
+    } catch (error) {
+      console.error("Reset password failed", error);
+      toast.error("Failed to reset password.");
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    const storedToken = localStorage.getItem("token");
+    if (storedToken) {
+      try {
+        const decoded: DecodedToken = jwtDecode(storedToken);
+        setToken(storedToken);
+        scheduleAutoLogout(decoded.exp);
+      } catch (error) {
+        console.error("Invalid stored token:", error);
+        logoutUser();
+      }
+    }
+  }, []);
+
+  const userLogin = async (
+    data: LoginPayload
+  ): Promise<{ success: boolean; message?: string }> => {
+    try {
+      const response = await authApi.login(data);
+      storeUser(response.token);
+      return { success: true };
+    } catch (error) {
+      console.error("Login failed", error);
+      let message = "Login failed. Please try again.";
+
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "isAxiosError" in error
+      ) {
+        const axiosError = error as any;
+
+        if (!axiosError.response) {
+          message = "Network error. Please check your internet connection.";
+        } else {
+          const status = axiosError.response.status;
+          const errorMsg = axiosError.response.data?.message;
+
+          if (status === 401) {
+            message = "Invalid credentials. Please try again.";
+          } else if (status >= 500) {
+            message = "Server error. Please try again later.";
+          } else {
+            message = errorMsg || `Login failed with status code ${status}`;
+          }
+        }
+      } else if (error instanceof Error) {
+        message = error.message;
+      }
+
+      return { success: false, message };
+    }
+  };
+
   const userRegister = async (data: RegisterPayload) => {
     try {
       const response = await authApi.register(data);
       await userLogin({ email: data.email, password: data.password });
-      return true; 
+      return true;
     } catch (error) {
       console.error("Registration failed", error);
       return false;
     }
   };
 
-  // Logout function
   const logoutUser = () => {
-    setUser(null);
-    localStorage.removeItem("user"); 
+    setToken(null);
+    localStorage.removeItem("token");
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated: !!user, userLogin, userRegister, logoutUser, forgotPassword, resetPassword }}>
+    <AuthContext.Provider
+      value={{
+        isAuthenticated: !!getDecodedToken(),
+        userInfo: getDecodedToken(),
+        userLogin,
+        userRegister,
+        logoutUser,
+        forgotPassword,
+        resetPassword,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

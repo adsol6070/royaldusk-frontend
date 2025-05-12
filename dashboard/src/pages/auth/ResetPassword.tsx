@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { ROUTES } from "@/config/route-paths.config";
 import { useAuth } from "@/context/AuthContext";
 import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useForm } from "react-hook-form";
@@ -53,6 +53,7 @@ const Form = () => {
 
   return (
     <StyledWrapper>
+      <Toaster position="top-right" />
       <div>
         <form className="modern-form" onSubmit={handleSubmit(onSubmit)}>
           <div className="form-title">Reset Password</div>

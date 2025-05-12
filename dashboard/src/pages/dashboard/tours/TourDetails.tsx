@@ -5,7 +5,24 @@ import { useParams } from "react-router-dom";
 
 const TourDetails = () => {
   const { id } = useParams();
-  const { data: tour } = useTourById(String(id));
+const { data: fetchedTour } = useTourById(String(id));
+
+const demoTour = {
+  id: 1,
+  name: "Majestic Himalayas",
+  location: "Manali, India",
+  createdAt: "2025-04-01T10:30:00Z",
+  description: `
+    Embark on an unforgettable journey through the snow-capped peaks of the Himalayas.
+    This tour offers breathtaking views, serene monasteries, and thrilling adventures 
+    like river rafting, paragliding, and mountain trekking. Perfect for nature lovers 
+    and adrenaline seekers!
+  `,
+  image:
+    "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80",
+};
+
+const tour = fetchedTour || demoTour;
 
   return (
     <Container className="py-5 bg-white">

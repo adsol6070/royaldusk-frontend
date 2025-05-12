@@ -1,10 +1,17 @@
 import Banner from "@/components/Banner";
 import Subscribe from "@/components/Subscribe";
 import TourSidebar from "@/components/TourSidebar";
+import FormInput from "@/components/ui/FormInput";
 import ReveloLayout from "@/layout/ReveloLayout";
 import Link from "next/link";
 
 const page = () => {
+  const options = [
+    { value: "new", label: "Newest" },
+    { value: "old", label: "Oldest" },
+    { value: "high to low", label: "High To Low" },
+    { value: "low to high", label: "Low To High" },
+  ];
   return (
     <ReveloLayout>
       <Banner pageTitle={"Tour & Activities"} />
@@ -31,16 +38,18 @@ const page = () => {
                 <div className="sort-text mb-15 me-4 me-xl-auto">
                   2 Tours found
                 </div>
-                <div className="sort-text mb-15 me-4">Sort By</div>
-                <select>
-                  <option value="default" selected="">
-                    Short By
-                  </option>
-                  <option value="new">Newness</option>
-                  <option value="old">Oldest</option>
-                  <option value="hight-to-low">High To Low</option>
-                  <option value="low-to-high">Low To High</option>
-                </select>
+                <div className="sort-text mb-15 me-4"> 
+                  <FormInput
+                  // label="Sort"
+                  name="sort"
+                  // register={register}
+                  placeholder="Sort By"
+                  as="select"
+                  border="none"
+                  options={options}
+                  // error={errors.sort}
+                />
+                </div>
               </div>
               <div className="tour-grid-wrap">
                 <div className="row">
@@ -75,7 +84,7 @@ const page = () => {
                           </div>
                         </div>
                         <h6>
-                          <Link href="/contact">Emirates Park Zoo</Link>
+                          <Link href="/tour-details">Emirates Park Zoo</Link>
                         </h6>
                         {/* <ul className="blog-meta">
                           <li>

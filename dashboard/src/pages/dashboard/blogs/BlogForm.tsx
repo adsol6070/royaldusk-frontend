@@ -4,8 +4,7 @@ import { Button, Container, Form, Row, Col } from "react-bootstrap";
 import Select from "react-select";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/ReactToastify.css";
+import toast, { Toaster } from "react-hot-toast";
 import { useParams } from "react-router-dom";
 import { generateSlug } from "@/utils/generateSlug";
 import {
@@ -16,6 +15,7 @@ import {
 } from "@/hooks/useBlog";
 import TagsInput from "react-tagsinput";
 import "react-tagsinput/react-tagsinput.css";
+import { capitalizeFirstLetter } from "@/utils/capitalizeFirstLetter";
 
 const modules = {
   toolbar: [
@@ -176,7 +176,7 @@ const BlogForm = () => {
 
   return (
     <>
-      <ToastContainer />
+      <Toaster position="top-right" toastOptions={{duration: 2000}} />
       <Container className="p-5 shadow-lg rounded bg-white">
         <h2 className="mb-4 text-center fw-bold">
           {isEditMode ? "✏️ Edit Blog" : "📝 Create a Blog"}
@@ -256,13 +256,13 @@ const BlogForm = () => {
                       {...field}
                       options={categories.map((category) => ({
                         value: category.id,
-                        label: category.name,
+                        label: capitalizeFirstLetter(category.name),
                       }))}
                       value={
                         categories
                           .map((category) => ({
                             value: category.id,
-                            label: category.name,
+                            label: capitalizeFirstLetter(category.name),
                           }))
                           .find((option) => option.value === field.value) ||
                         null
@@ -273,6 +273,11 @@ const BlogForm = () => {
                     />
                   )}
                 />
+                 {errors.category_id && (
+                  <small className="text-danger">
+                    {errors.category_id.message as string}
+                  </small>
+                )}
               </Form.Group>
             </Col>
           </Row>

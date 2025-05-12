@@ -1,6 +1,13 @@
+import FormInput from "./ui/FormInput";
+
 const SearchFilter = () => {
+  const options = [
+    { value: "india", label: "India" },
+    { value: "usa", label: "USA" },
+    { value: "uk", label: "UK" },
+  ];
   return (
-    <div className="container container-1400">
+    <div className="container container-1000">
       <div
         className="search-filter-inner"
         data-aos="zoom-out-down"
@@ -11,45 +18,65 @@ const SearchFilter = () => {
           <div className="icon">
             <i className="fal fa-map-marker-alt" />
           </div>
-          <span className="title">Destinations</span>
-          <select name="city" id="city" style={{padding:"0px !important"}}>
-            <option value="value1">City or Region</option>
-            <option value="value2">City</option>
-            <option value="value2">Region</option>
-          </select>
+          <span className="title">Destination</span>
+          <FormInput
+            name="destination"
+            className="nice-select"
+            // register={register}
+            placeholder="Select Destination"
+            as="select"
+            border="none"
+            options={options}
+            // error={errors.destination}
+          />
         </div>
         <div className="filter-item clearfix">
           <div className="icon">
             <i className="fal fa-flag" />
           </div>
           <span className="title">All Activity</span>
-          <select name="activity" id="activity" style={{padding:"0px !important"}}>
-            <option value="value1">Choose Activity</option>
-            <option value="value2">Daily</option>
-            <option value="value2">Monthly</option>
-          </select>
+          <FormInput
+            name="activity"
+            className="nice-select"
+            // register={register}
+            placeholder="Select Activity"
+            as="select"
+            border="none"
+            options={options}
+            // error={errors.activity}
+          />
         </div>
         <div className="filter-item clearfix">
           <div className="icon">
             <i className="fal fa-calendar-alt" />
           </div>
           <span className="title">Departure Date</span>
-          <select name="date" id="date" style={{padding:"0px !important"}}>
-            <option value="value1">Date from</option>
-            <option value="value2">10</option>
-            <option value="value2">20</option>
-          </select>
+          <FormInput
+            name="departure"
+            className="nice-select"
+            // register={register}
+            placeholder="Select Departure"
+            as="select"
+            border="none"
+            options={options}
+            // error={errors.departure}
+          />
         </div>
         <div className="filter-item clearfix">
           <div className="icon">
             <i className="fal fa-users" />
           </div>
           <span className="title">Guests</span>
-          <select name="cuests" id="cuests" style={{padding:"0px !important"}}>
-            <option value="value1">0</option>
-            <option value="value2">1</option>
-            <option value="value2">2</option>
-          </select>
+          <FormInput
+            name="guests"
+            className="nice-select"
+            // register={register}
+            placeholder="Select Guests"
+            as="select"
+            border="none"
+            options={options}
+            // error={errors.guests}
+          />
         </div>
         <div className="search-button">
           <button className="theme-btn">

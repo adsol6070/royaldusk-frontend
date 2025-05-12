@@ -9,7 +9,7 @@ import { useUpdateUser, useUserById } from "@/hooks/useUser";
 import { capitalizeFirstLetter } from "@/utils/capitalizeFirstLetter";
 import { useAuth } from "@/context/AuthContext";
 import { formatTimestamp } from "@/utils/formatTimestamp";
-import toast, { Toaster } from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 
 const Profile = () => {
   const { id } = useParams();
@@ -27,8 +27,8 @@ const Profile = () => {
   useEffect(() => {
     if (user) {
       setUserData({
-        name: capitalizeFirstLetter(user.name ?? "User"),
-        email: user.email || "user@example.com",
+        name: capitalizeFirstLetter(user.name ?? "John"),
+        email: user.email || "johndoe@gmail.com",
         profileCreated: user.created_at,
       });
     }
@@ -41,9 +41,7 @@ const Profile = () => {
         {
           onSuccess: () => {
             setEditing(false);
-            toast.success("Profile updated successfully!");
           },
-          onError: () => toast.error("Failed to update profile"),
         }
       );
     } else {

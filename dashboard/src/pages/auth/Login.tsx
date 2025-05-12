@@ -26,8 +26,8 @@ const Form = () => {
 
   const onSubmit = async (data: LoginPayload) => {
     try {
-      const response = await userLogin(data);
-      if (response) {
+      const { success, message } = await userLogin(data);
+      if (success) {
         toast.success("Login successful!");
         navigate(
           typeof ROUTES.PRIVATE.DASHBOARD === "string"
@@ -36,7 +36,7 @@ const Form = () => {
           { replace: true }
         );
       } else {
-        toast.error("Invalid credentials. Please try again.");
+        toast.error(message || "Invalid credentials. Please try again.");
       }
     } catch (err) {
       console.error("Internal error occurred. Please try again.");

@@ -18,6 +18,7 @@ import {
 import { ROUTES } from "@/config/route-paths.config";
 import { useNavigate } from "react-router-dom";
 import { useBlogs, useDeleteBlog, useUpdateBlogStatus } from "@/hooks/useBlog";
+import { capitalizeFirstLetter } from "@/utils/capitalizeFirstLetter";
 
 const BlogList = () => {
   const navigate = useNavigate();
@@ -28,7 +29,6 @@ const BlogList = () => {
   const { mutate: deleteBlog } = useDeleteBlog();
   const { mutate: updateBlogStatus } = useUpdateBlogStatus();
 
-  console.log("Blogs:", blogs);
   const handleDelete = async (id: number) => {
     deleteBlog(id);
   };
@@ -81,8 +81,8 @@ const BlogList = () => {
               {currentBlogs.map((blog, index) => (
                 <tr key={blog.id} className="align-middle">
                   <td className="fw-bold">{indexOfFirstBlog + index + 1}</td>
-                  <td>{blog.title}</td>
-                  <td>{blog.category_name}</td>
+                  <td>{capitalizeFirstLetter(blog.title)}</td>
+                  <td>{capitalizeFirstLetter(blog.category_name)}</td>
                   <td>
                     <Form.Select
                       value={blog.status}
