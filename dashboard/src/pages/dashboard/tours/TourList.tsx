@@ -19,12 +19,45 @@ import { ROUTES } from "@/config/route-paths.config";
 import { useTours, useDeleteTour } from "@/hooks/useTour";
 
 const TourList = () => {
+  const demoTours = [
+    {
+      id: 1,
+      name: "Majestic Himalayas",
+      location: "Manali, India",
+      created_at: "2025-04-01T10:30:00Z",
+    },
+    {
+      id: 2,
+      name: "Desert Safari",
+      location: "Dubai, UAE",
+      created_at: "2025-03-20T15:45:00Z",
+    },
+    {
+      id: 3,
+      name: "Romantic Paris",
+      location: "Paris, France",
+      created_at: "2025-02-14T09:00:00Z",
+    },
+    {
+      id: 4,
+      name: "Amazon Adventure",
+      location: "Brazil",
+      created_at: "2025-01-28T14:10:00Z",
+    },
+    {
+      id: 5,
+      name: "Northern Lights",
+      location: "Reykjavík, Iceland",
+      created_at: "2024-12-10T22:00:00Z",
+    },
+  ];
+  
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const toursPerPage = 10;
 
-  const { data: tours } = useTours();
-  const { mutate: deleteTour } = useDeleteTour();
+  const { data: fetchedTours } = useTours();
+  const tours = fetchedTours && fetchedTours.length > 0 ? fetchedTours : demoTours;
 
   const handleDelete = (id: number) => {
     deleteTour(id);

@@ -7,8 +7,6 @@ import {
   Button,
   OverlayTrigger,
   Tooltip,
-  Spinner,
-  Alert,
 } from "react-bootstrap";
 import { FaDownload } from "react-icons/fa";
 import jsPDF from "jspdf";

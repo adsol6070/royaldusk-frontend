@@ -4,12 +4,13 @@ import Banner from "@/components/Banner";
 import BlogSidebar from "@/components/Blogsidebar";
 import Loader from "@/components/loader";
 import ReveloLayout from "@/layout/ReveloLayout";
+import capitalizeFirstLetter from "@/utility/capitalizeFirstLetter";
 import slugToTitle from "@/utility/slugToTitleConverter";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 const page = ({ params }) => {
-  const category = params.category;
+  const categoryID = params.categoryID;
   const [blogs, setBlogs] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -18,9 +19,10 @@ const page = ({ params }) => {
     async function fetchBlogs() {
       try {
         setLoading(true);
-        const response = await blogApi.getPostByCategory(category);
+        const response = await blogApi.getPostByCategoryID(categoryID);
         const blogsData = response.data;
-        setBlogs(blogsData);
+        const publishedBlogs = blogsData.filter((blog) => blog.status === "published");
+        setBlogs(publishedBlogs);
       } catch (err) {
         setError(err);
         console.log(error);
@@ -32,7 +34,7 @@ const page = ({ params }) => {
 
     fetchBlogs();
   }, []);
-console.log("blog data", blogs);
+
   return (
     <ReveloLayout insta>
       <Banner pageTitle={"Blogs"} />
@@ -54,9 +56,12 @@ console.log("blog data", blogs);
                     <img src={blog.thumbnail} alt={blog.title} style={{ borderRadius: "20px" }} />
                   </div>
                   <div className="content">
-                    <Link href={`/blog-details/${blog.id}`} className="category">
-                      {slugToTitle(blog.category)}
-                    </Link>
+                     <Link
+                          href={`/blog-category/${blog.category_id}`}
+                          className="category"
+                        >
+                          {capitalizeFirstLetter(blog.category_name)}
+                        </Link>
                     <h5>
                       <Link href={`/blog-details/${blog.id}`}>{blog.title}</Link>
                     </h5>
@@ -65,12 +70,8 @@ console.log("blog data", blogs);
                         <i className="far fa-calendar-alt" />{" "}
                         <a href="#">{new Date(blog.created_at).toLocaleDateString()}</a>
                       </li>
-                      <li>
-                        <i className="far fa-comments" />{" "}
-                        <a href="#">Comments (0)</a>
-                      </li>
                     </ul>
-                    <p>{blog.content.substring(0, 100)}...</p>
+                    <p>{blog.excerpt.substring(0, 100)}...</p>
                     <Link href={`/blog-details/${blog.id}`} className="theme-btn style-two style-three">
                       <span data-hover="Read More">Read More</span>
                       <i className="fal fa-arrow-right" />

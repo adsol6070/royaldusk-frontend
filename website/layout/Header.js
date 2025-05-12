@@ -45,10 +45,9 @@ const Menu = () => {
             <li>
               <Link href="/tour-and-activities">Tour & Activites</Link>
             </li>
-            {/* <li>
-              <a href="gellery">Gallery</a>
+            <li>
+              <Link href="/holidays">Holidays</Link>
             </li>
-             */}
             <li>
               <Link href="/blog">blogs</Link>
             </li>
@@ -422,7 +421,7 @@ const Header3 = ({ sidebarClick }) => {
               </div>
               {/* Menu Button */}
               <div className="menu-btns py-10">
-                <Link href="" className="theme-btn p-2 style-one bgc-secondary">
+                <Link href="/cart" className="theme-btn p-2 style-one bgc-secondary">
                   <i className="fal fa-shopping-cart m-0" />
                 </Link>
                 {/* menu sidbar */}

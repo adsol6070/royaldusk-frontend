@@ -12,22 +12,33 @@
     "rebuild": "npm run build && npm run serve"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.0.1",
     "aos": "^2.3.4",
     "axios": "^1.8.1",
+    "bootstrap": "^5.3.5",
+    "classnames": "^2.5.1",
+    "i18n-iso-countries": "^7.14.0",
     "next": "14.2.7",
     "rc-slider": "^11.1.5",
     "react": "^18",
-    "react-bootstrap": "^1.6.1",
+    "react-bootstrap": "^1.6.8",
     "react-countup": "^6.5.3",
     "react-dom": "^18",
+    "react-hook-form": "^7.56.1",
+    "react-icons": "^5.5.0",
     "react-nice-select": "^1.0.6",
+    "react-phone-input-2": "^2.15.1",
+    "react-phone-number-input": "^3.4.12",
     "react-player": "^2.16.0",
+    "react-select": "^5.10.1",
     "react-slick": "^0.30.2",
     "react-visibility-sensor": "^5.1.1",
     "styled-components": "^6.1.15",
-    "sweetalert2": "^11.17.2"
+    "sweetalert2": "^11.17.2",
+    "yup": "^1.6.1"
   },
   "devDependencies": {
+    "babel-plugin-styled-components": "^2.1.4",
     "nodemon": "^3.1.9"
   }
 }

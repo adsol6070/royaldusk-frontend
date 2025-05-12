@@ -1,7 +1,5 @@
 import { HttpClient } from '../helpers';
 
-const Blog_Base_Url = "http://localhost:7200";
-
 // const accessTokenKey = 'access_token';
 
 // // Function to get authorization headers
@@ -26,20 +24,20 @@ function BlogService() {
 
     // Retrieve all blog posts
     getAllPosts: () => {
-      return HttpClient.get(`${Blog_Base_Url}/blogs`, { _skipAuth: true });
+      return HttpClient.get(`/blog-service/blogs`, { _skipAuth: true });
     },
 
     // Retrieve a single blog post by ID
     getPostById: (id) => {
-      return HttpClient.get(`${Blog_Base_Url}/blogs/${id}`, { _skipAuth: true });
+      return HttpClient.get(`/blog-service/blogs/${id}`, { _skipAuth: true });
     },
     
     getAllBlogCategories: () => {
-      return HttpClient.get(`${Blog_Base_Url}/blogCategories`, { _skipAuth: true });
+      return HttpClient.get(`/blog-service/blogCategories`, { _skipAuth: true });
     },
 
-    getPostByCategory: (category) => {
-      return HttpClient.get(`${Blog_Base_Url}/blogs/category/${category}`, { _skipAuth: true });
+    getPostByCategoryID: (categoryID) => {
+      return HttpClient.get(`/blog-service/blogs/category/${categoryID}`, { _skipAuth: true });
     },
 
   };

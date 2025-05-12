@@ -6,6 +6,7 @@ import HotDeals from "@/components/slider/HotDeals";
 import Subscribe from "@/components/Subscribe";
 import ReveloLayout from "@/layout/ReveloLayout";
 import Link from "next/link";
+
 const page = () => {
   return (
     <ReveloLayout>

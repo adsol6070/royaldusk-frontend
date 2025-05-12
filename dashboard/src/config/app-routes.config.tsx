@@ -18,7 +18,12 @@ import {
   ForgotPassword,
   ResetPassword,
   InvoicePreview,
-  InvoiceList
+  InvoiceList,
+  PackageList,
+  PackageDetails,
+  PackageForm,
+  PackageMeta,
+  PackageEnquiry,
 } from "@/pages";
 
 export const AUTH_ROUTES = [
@@ -50,5 +55,12 @@ export const PRIVATE_ROUTES = [
   { path: ROUTE_PATHS.TOUR_DETAILS(), element: <TourDetails /> },
   { path: ROUTE_PATHS.CREATE_TOUR, element: <TourForm /> },
   { path: ROUTE_PATHS.EDIT_TOUR(), element: <TourForm /> },
+  
+  { path: ROUTE_PATHS.PACKAGE_LIST, element: <PackageList /> },
+  { path: ROUTE_PATHS.PACKAGE_DETAILS(), element: <PackageDetails /> },
+  { path: ROUTE_PATHS.CREATE_PACKAGE, element: <PackageForm /> },
+  { path: ROUTE_PATHS.EDIT_PACKAGE(), element: <PackageForm /> },
+  { path: ROUTE_PATHS.PACKAGE_META, element: <PackageMeta /> },
+  { path: ROUTE_PATHS.PACKAGE_ENQUIRY, element: <PackageEnquiry /> },
 
 ];

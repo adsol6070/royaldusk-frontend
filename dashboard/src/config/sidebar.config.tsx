@@ -1,6 +1,6 @@
 import { FiHome } from "react-icons/fi";
 import { BiNews } from "react-icons/bi";
-import { FaMapMarkedAlt, FaFileAlt } from "react-icons/fa";
+import { FaMapMarkedAlt, FaFileAlt, FaSuitcaseRolling } from "react-icons/fa";
 import { ROUTES } from "@/config/route-paths.config";
 
 export const sidebarMenuItems = [
@@ -47,8 +47,34 @@ export const sidebarMenuItems = [
     ],
   },
   {
-    label: "Invoices",
-    icon: <FaFileAlt size="22" />,
-    path: ROUTES.PRIVATE.INVOICE_LIST,
+    label: "Packages",
+    icon: <FaSuitcaseRolling size={22} />,
+    subMenu: [
+      {
+        label: "All Packages",
+        icon: <span>-</span>,
+        path: ROUTES.PRIVATE.PACKAGE_LIST,
+      },
+      {
+        label: "Create Package",
+        icon: <span>-</span>,
+        path: ROUTES.PRIVATE.CREATE_PACKAGE,
+      },
+      {
+        label: "Package Essentials",
+        icon: <span>-</span>,
+        path: ROUTES.PRIVATE.PACKAGE_META,
+      },
+      {
+        label: "Package Enquiry",
+        icon: <span>-</span>,
+        path: ROUTES.PRIVATE.PACKAGE_ENQUIRY,
+      },
+    ],
   },
+  // {
+  //   label: "Invoices",
+  //   icon: <FaFileAlt size="22" />,
+  //   path: ROUTES.PRIVATE.INVOICE_LIST,
+  // },
 ];

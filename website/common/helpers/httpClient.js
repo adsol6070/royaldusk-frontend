@@ -7,7 +7,9 @@ const ErrorCodeMessages = {
 };
 
 const HttpClient = () => {
+  const baseURL = process.env.NEXT_PUBLIC_API_URL;
   const _httpClient = axios.create({
+    baseURL: baseURL,
     timeout: 6000,
     headers: {
       'Content-Type': 'application/json',

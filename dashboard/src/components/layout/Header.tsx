@@ -7,13 +7,28 @@ import { useAuth } from "@/context/AuthContext";
 import { capitalizeFirstLetter } from "@/utils/capitalizeFirstLetter";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/config/route-paths.config";
+import { useUserById } from "@/hooks/useUser";
 
 const Header = ({ onToggleSidebar }: any) => {
-  const { logoutUser } = useAuth();
+  const { logoutUser, userInfo } = useAuth();
+  const userId = userInfo?.custom_claims?.user_id;
+  const { data: user } = useUserById(String(userId));
   const navigate = useNavigate();
-  const userDetail: any = JSON.parse(localStorage.getItem("user") || "null");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+    const [userData, setUserData] = useState({
+      name: "",
+      email: "",
+    });
+
+  useEffect(() => {
+    if (user) {
+      setUserData({
+        name: capitalizeFirstLetter(user.name ?? "John"),
+        email: user.email || "johndoe@gmail.com",
+      });
+    }
+  }, [user]);
 
   const handleDropdownToggle = () => {
     setIsDropdownOpen(!isDropdownOpen);
@@ -40,19 +55,29 @@ const Header = ({ onToggleSidebar }: any) => {
       <HamburgerButton onClick={onToggleSidebar}>
         <RxHamburgerMenu />
       </HamburgerButton>
+
       <ProfileContainer ref={dropdownRef}>
-          <p>{userDetail.custom_claims.user_name}</p>
-          <ProfileButton onClick={handleDropdownToggle}>
-            <FaRegUserCircle color={theme.colors.white} size={24} />
-            <UserName>{capitalizeFirstLetter(userDetail?.custom_claims?.user_name) || "User"}</UserName>
-          </ProfileButton>
+        <p>{userData.name}</p>
+        <ProfileButton onClick={handleDropdownToggle}>
+          <FaRegUserCircle color={theme.colors.white} size={24} />
+          <UserName>{userData.name}</UserName>
+        </ProfileButton>
+
         {isDropdownOpen && (
           <DropdownMenu>
-            <DropdownItemButton onClick={() => 
-              {navigate(`${ROUTES.PRIVATE.PROFILE(userDetail.custom_claims.user_id)}`); 
-              setIsDropdownOpen(false);}
-            }>View Profile</DropdownItemButton>
-            <DropdownItemButton onClick={() => logoutUser()}>Logout</DropdownItemButton>
+            <DropdownItemButton
+              onClick={() => {
+                if (userId) {
+                  navigate(ROUTES.PRIVATE.PROFILE(userId));
+                  setIsDropdownOpen(false);
+                }
+              }}
+            >
+              View Profile
+            </DropdownItemButton>
+            <DropdownItemButton onClick={logoutUser}>
+              Logout
+            </DropdownItemButton>
           </DropdownMenu>
         )}
       </ProfileContainer>
@@ -72,14 +97,14 @@ const HeaderContainer = styled.header`
 `;
 
 const ProfileContainer = styled.div`
-  position: relative; /* Necessary for positioning the dropdown menu */
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
 
   @media (max-width: 768px) {
-    grid-column: 3; /* Place it in the right grid column */
-    justify-self: end; /* Align to the right in the grid */
+    grid-column: 3;
+    justify-self: end;
   }
 `;
 

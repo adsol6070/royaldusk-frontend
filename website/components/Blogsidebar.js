@@ -1,5 +1,6 @@
 "use client";
 import { blogApi } from "@/common/api";
+import capitalizeFirstLetter from "@/utility/capitalizeFirstLetter";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
@@ -65,8 +66,8 @@ const BlogSidebar = () => {
 				  )}
               {blogCategories.map((category) => (
                 <li>
-                  <Link href={`/blog-category/${category.slug}`}>
-                    {category.name}
+                  <Link href={`/blog-category/${category.id}`}>
+                    {capitalizeFirstLetter(category.name)}
                   </Link>
                 </li>
               ))}
