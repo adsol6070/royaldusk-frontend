@@ -75,7 +75,7 @@ const page = () => {
             <img src="/assets/images/shapes/hero4.png" alt="Shape" />
           </div>
         </div>
-        <SearchFilter />
+        {/* <SearchFilter /> */}
       </section>
       {/* Hero Area End */}
       {/* Features Area start */}

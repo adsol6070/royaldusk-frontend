@@ -8,6 +8,8 @@ import * as yup from "yup";
 import FormInput from "./ui/FormInput";
 import { Col, Row } from "react-bootstrap";
 import PhoneInputField from "./ui/PhoneInput";
+import { packageApi } from "@/common/api";
+import { toast } from "react-hot-toast";
 
 const schema = yup.object().shape({
   name: yup.string().required("Name is required"),
@@ -44,8 +46,8 @@ const Modal = ({ isOpen, onClose }) => {
         phoneNumber: ""
       },
       dob: "",
-      adults: "1 Adult",
-      children: "0 Child",
+      adults: "1",
+      children: "0",
       flightBooked: "No",
       remarks: "",
     },
@@ -54,15 +56,15 @@ const Modal = ({ isOpen, onClose }) => {
   const [show, setShow] = useState(isOpen);
   const today = new Date().toISOString().split("T")[0];
   const adultOptions = [
-    { value: "1 Adult", label: "1 Adult" },
-    { value: "2 Adult", label: "2 Adult" },
-    { value: "3 Adult", label: "3 Adult" },
+    { value: "1", label: "1" },
+    { value: "2", label: "2" },
+    { value: "3", label: "3" },
   ];
   const childOptions = [
-    { value: "0 Child", label: "0 Child" },
-    { value: "1 Child", label: "1 Child" },
-    { value: "2 Child", label: "2 Child" },
-    { value: "3 Child", label: "3 Child" },
+    { value: "0", label: "0" },
+    { value: "1", label: "1" },
+    { value: "2", label: "2" },
+    { value: "3", label: "3" },
   ];
 
   useEffect(() => {
@@ -79,9 +81,24 @@ const Modal = ({ isOpen, onClose }) => {
     };
   }, [isOpen]);
 
-  const onSubmit = (data) => {
-    console.log("Form Submitted:", data);
-    reset();
+  const onSubmit = async (data) => {
+     const payload = {
+    ...data,
+    isdCode: data.mobile.isdCode,
+    mobile: data.mobile.phoneNumber,
+    dob: new Date(data.dob).toISOString(),
+    packageID: "b27d5963-726d-4032-bc81-d567e6e242e7", 
+  };
+
+   try {
+      const response = await packageApi.sendEnquiry(payload);
+      toast.success(response.message);
+      reset();
+      onClose();
+    } catch (error) {
+      toast.error("Failed to submit enquiry. Please try again.");
+      console.error("Error submitting enquiry:", error);
+    }
   };
 
   if (!show) return null;

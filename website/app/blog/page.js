@@ -3,6 +3,7 @@ import { blogApi } from "@/common/api";
 import Banner from "@/components/Banner";
 import BlogSidebar from "@/components/Blogsidebar";
 import Loader from "@/components/loader";
+import SkeletonLoader from "@/components/SkeletonLoader";
 import ReveloLayout from "@/layout/ReveloLayout";
 import capitalizeFirstLetter from "@/utility/capitalizeFirstLetter";
 import Link from "next/link";
@@ -37,7 +38,7 @@ const Page = () => {
       <section className="blog-list-page py-100 rel z-1">
         <div className="container">
           {loading ? (
-            <Loader />
+              <SkeletonLoader count={5} width="100%" height="120px" />
           ) : (
             <div className="row">
               <div className="col-lg-8">

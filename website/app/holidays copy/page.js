@@ -1,27 +1,19 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import SkeletonLoader from "@/components/SkeletonLoader";
 import { packageApi } from "@/common/api";
 import ReveloLayout from "@/layout/ReveloLayout";
 import Banner from "@/components/Banner";
+import PackageSidebar from "@/components/PackageSidebar";
 import SortComponent from "@/components/SortComponent";
 import { activityIcons } from "@/utility/activityIcons";
-import FilterSidebar from "@/components/FilterSidebar";
-import styled from "styled-components";
-
-const SidebarContainer = styled.div`
-  @media (max-width: 1000px) {
-    display: none;
-  }
-`;
 
 const HolidayListPage = () => {
   const [packages, setPackages] = useState([]);
   const [filteredPackages, setFilteredPackages] = useState([]);
   const [loading, setLoading] = useState(true);
-  console.log("packages data ", packages)
 
   useEffect(() => {
     async function fetchPackages() {
@@ -34,7 +26,7 @@ const HolidayListPage = () => {
         );
 
         setPackages(availablePackages);
-        setFilteredPackages(availablePackages);
+        setFilteredPackages(availablePackages); // Set initial filtered data
       } catch (err) {
         console.error("Error fetching packages:", err);
       } finally {
@@ -44,34 +36,6 @@ const HolidayListPage = () => {
 
     fetchPackages();
   }, []);
-
-const handleFilterChange = useCallback(
-    ({ priceRange, categories, nights, searchTerm }) => {
-      let filtered = [...packages];
-
-      // Price Filtering
-      filtered = filtered.filter(
-        (pkg) => pkg.price >= priceRange[0] && pkg.price <= priceRange[1]
-      );
-
-      // Category Filtering
-      if (categories.length) {
-        filtered = filtered.filter((pkg) => categories.includes(pkg.category.name));
-      }
-
-      // Nights Filtering
-      if (nights.length) {
-      filtered = filtered.filter((pkg) => {
-        const nightMatch = pkg.duration.match(/(\d+)N/);
-        const nightCount = nightMatch ? parseInt(nightMatch[1]) : null;
-        return nights.includes(nightCount);
-      });
-    }
-
-      setFilteredPackages(filtered);
-    },
-    [packages]
-  );
 
   return (
     <ReveloLayout>
@@ -83,9 +47,7 @@ const handleFilterChange = useCallback(
             <SkeletonLoader count={4} width="100%" height="120px" />
           ) : (
             <div className="row">
-              <SidebarContainer className="col-lg-3 col-md-6 col-sm-10">
-                <FilterSidebar data={packages} onFilterChange={handleFilterChange} />
-              </SidebarContainer>
+              <PackageSidebar />
 
               <div className="col-lg-9">
                 <div className="d-flex justify-content-between align-items-center flex-wrap mb-4">

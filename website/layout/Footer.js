@@ -453,8 +453,11 @@ const Footer2 = ({ insta }) => {
                   <li>
                     <Link href="/about">About</Link>
                   </li>
-                  <li>
+                  {/* <li>
                     <Link href="/tour-and-activities">Tour & Activities</Link>
+                  </li> */}
+                   <li>
+                    <Link href="/holidays">Holidays</Link>
                   </li>
                   <li>
                     <Link href="/blog">Blogs</Link>

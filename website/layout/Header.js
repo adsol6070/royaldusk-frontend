@@ -42,9 +42,9 @@ const Menu = () => {
             <li>
               <Link href="/about">About</Link>
             </li>
-            <li>
+            {/* <li>
               <Link href="/tour-and-activities">Tour & Activites</Link>
-            </li>
+            </li> */}
             <li>
               <Link href="/holidays">Holidays</Link>
             </li>
