@@ -4,7 +4,7 @@ import { Button, Container, Form, Row, Col } from "react-bootstrap";
 import Select from "react-select";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
-import toast, { Toaster } from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 import { useParams } from "react-router-dom";
 import { generateSlug } from "@/utils/generateSlug";
 import {
@@ -16,6 +16,7 @@ import {
 import TagsInput from "react-tagsinput";
 import "react-tagsinput/react-tagsinput.css";
 import { capitalizeFirstLetter } from "@/utils/capitalizeFirstLetter";
+import { useUsers } from "@/hooks/useUser";
 
 const modules = {
   toolbar: [
@@ -59,6 +60,7 @@ const BlogForm = () => {
   const { mutate: createBlog } = useCreateBlog();
   const { mutate: updateBlog } = useUpdateBlog();
   const { data: categories = [] } = useBlogCategories();
+  const { data: users = [] } = useUsers();
   const { data: blog } = useBlogById(id);
   const [tags, setTags] = useState<string[]>([]);
   const [displayDate, setDisplayDate] = useState("");
@@ -77,7 +79,7 @@ const BlogForm = () => {
       );
       setDisplayDate(selectedDate);
       const utcDate = dateObj.toISOString();
-      setValue("published_at", utcDate);
+      setValue("publishedAt", utcDate);
     }
   };
 
@@ -88,27 +90,26 @@ const BlogForm = () => {
     const formData = new FormData();
     formData.append("title", data.title);
     formData.append("slug", data.slug);
-    formData.append("author", data.author);
-    formData.append("category_id", data.category_id);
+    formData.append("authorID", data.authorID);
+    formData.append("categoryID", data.categoryID);
     formData.append("content", content);
     formData.append("excerpt", data.excerpt);
-    formData.append("meta_title", data.meta_title);
-    formData.append("meta_description", data.meta_description);
+    formData.append("metaTitle", data.metaTitle);
+    formData.append("metaDescription", data.metaDescription);
     formData.append("status", data.status);
-    formData.append("published_at", data.published_at || "");
+    formData.append("publishedAt", data.publishedAt || "");
     formData.append("tags", JSON.stringify(tags));
 
     if (data.blogImage instanceof File) {
-      formData.append("blogImage", data.blogImage);
+      formData.append("thumbnail", data.blogImage);
     }
 
     if (isEditMode) {
       updateBlog({ id, blogData: formData });
     } else {
       createBlog(formData);
+      resetForm();
     }
-
-    // resetForm();
   };
 
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -120,7 +121,19 @@ const BlogForm = () => {
   };
 
   const resetForm = () => {
-    reset();
+    reset({
+      title: "",
+      slug: "",
+      authorID: "",
+      categoryID: "",
+      content: "",
+      excerpt: "",
+      metaTitle: "",
+      metaDescription: "",
+      status: "draft",
+      publishedAt: "",
+    });
+
     const editor = quillRef.current?.getEditor();
     if (editor) {
       editor.setText("");
@@ -137,10 +150,10 @@ const BlogForm = () => {
       const today = new Date();
       const formattedDate = today.toISOString().split("T")[0];
       setDisplayDate(formattedDate);
-      setValue("published_at", today.toISOString());
+      setValue("publishedAt", today.toISOString());
     } else if (status === "draft") {
       setDisplayDate("");
-      setValue("published_at", "");
+      setValue("publishedAt", "");
     }
   }, [status]);
 
@@ -155,17 +168,17 @@ const BlogForm = () => {
       reset({
         title: blog.title || "",
         slug: blog.slug || "",
-        author: blog.author || "",
-        category_id: blog.category_id || "",
+        authorID: blog.authorID || "",
+        categoryID: blog.categoryID || "",
         content: blog.content || "",
         excerpt: blog.excerpt || "",
-        meta_title: blog.meta_title || "",
-        meta_description: blog.meta_description || "",
+        metaTitle: blog.metaTitle || "",
+        metaDescription: blog.metaDescription || "",
         status: blog.status || "draft",
-        published_at: blog.published_at || "",
+        publishedAt: blog.publishedAt || "",
       });
     }
-    setDisplayDate(blog?.published_at ? blog?.published_at.split("T")[0] : "");
+    setDisplayDate(blog?.publishedAt ? blog?.publishedAt.split("T")[0] : "");
     setTags(blog?.tags || []);
 
     if (blog?.content && quillRef.current) {
@@ -174,9 +187,15 @@ const BlogForm = () => {
     }
   }, [blog]);
 
+  useEffect(() => {
+    if (!isEditMode) {
+      resetForm();
+    }
+  }, [id]);
+
   return (
     <>
-      <Toaster position="top-right" toastOptions={{duration: 2000}} />
+      <Toaster position="top-right" toastOptions={{ duration: 2000 }} />
       <Container className="p-5 shadow-lg rounded bg-white">
         <h2 className="mb-4 text-center fw-bold">
           {isEditMode ? "✏️ Edit Blog" : "📝 Create a Blog"}
@@ -225,20 +244,35 @@ const BlogForm = () => {
             <Col md={6}>
               <Form.Group className="mb-3">
                 <Form.Label>Author</Form.Label>
-                <Form.Control
-                  type="text"
-                  placeholder="Enter author name (max 10 characters)"
-                  {...register("author", {
-                    required: "Author is required",
-                    maxLength: {
-                      value: 10,
-                      message: "Author name cannot exceed 10 characters",
-                    },
-                  })}
+                <Controller
+                  name="authorID"
+                  control={control}
+                  rules={{ required: "Author is required" }}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      options={users.map((user) => ({
+                        value: user.id,
+                        label: capitalizeFirstLetter(user.name),
+                      }))}
+                      value={
+                        users
+                          .map((user) => ({
+                            value: user.id,
+                            label: capitalizeFirstLetter(user.name),
+                          }))
+                          .find((option) => option.value === field.value) ||
+                        null
+                      }
+                      onChange={(selectedOption) =>
+                        field.onChange(selectedOption?.value)
+                      }
+                    />
+                  )}
                 />
-                {errors.author && (
+                {errors.authorID && (
                   <small className="text-danger">
-                    {errors.author.message as string}
+                    {errors.authorID.message as string}
                   </small>
                 )}
               </Form.Group>
@@ -248,7 +282,7 @@ const BlogForm = () => {
               <Form.Group className="mb-3">
                 <Form.Label>Category</Form.Label>
                 <Controller
-                  name="category_id"
+                  name="categoryID"
                   control={control}
                   rules={{ required: "Category is required" }}
                   render={({ field }) => (
@@ -273,9 +307,9 @@ const BlogForm = () => {
                     />
                   )}
                 />
-                 {errors.category_id && (
+                {errors.categoryID && (
                   <small className="text-danger">
-                    {errors.category_id.message as string}
+                    {errors.categoryID.message as string}
                   </small>
                 )}
               </Form.Group>
@@ -336,7 +370,7 @@ const BlogForm = () => {
             <Form.Control
               type="text"
               placeholder="Enter SEO title (max 150 characters)"
-              {...register("meta_title", {
+              {...register("metaTitle", {
                 maxLength: {
                   value: 150,
                   message: "Meta title cannot exceed 150 characters",
@@ -351,7 +385,7 @@ const BlogForm = () => {
               as="textarea"
               rows={2}
               placeholder="Write an SEO-friendly description (max 300 characters)"
-              {...register("meta_description", {
+              {...register("metaDescription", {
                 maxLength: {
                   value: 300,
                   message: "Meta description cannot exceed 300 characters",

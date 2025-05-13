@@ -16,6 +16,7 @@
     "axios-mock-adapter": "^2.1.0",
     "bootstrap": "^5.3.3",
     "html2canvas": "^1.4.1",
+    "js-cookie": "^3.0.5",
     "jspdf": "^3.0.1",
     "jwt-decode": "^4.0.0",
     "react": "^18.2.0",
@@ -36,6 +37,7 @@
     "yup": "^1.6.1"
   },
   "devDependencies": {
+    "@types/js-cookie": "^3.0.6",
     "@types/node": "^22.13.10",
     "@types/react": "^18.2.55",
     "@types/react-dom": "^18.2.19",

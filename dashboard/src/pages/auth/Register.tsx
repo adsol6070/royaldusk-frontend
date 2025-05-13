@@ -11,8 +11,14 @@ import { RegisterPayload } from "@/api";
 
 const schema = yup.object().shape({
   name: yup.string().required("Username is required"),
-  email: yup.string().email("Invalid email format").required("Email is required"),
-  password: yup.string().min(6, "Password must be at least 6 characters").required("Password is required"),
+  email: yup
+    .string()
+    .email("Invalid email format")
+    .required("Email is required"),
+  password: yup
+    .string()
+    .min(6, "Password must be at least 6 characters")
+    .required("Password is required"),
   confirmPassword: yup
     .string()
     .oneOf([yup.ref("password"), undefined], "Passwords must match")
@@ -20,7 +26,7 @@ const schema = yup.object().shape({
 });
 
 const Form = () => {
-  const { userRegister } = useAuth();
+  const { register: authRegister } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
@@ -33,18 +39,13 @@ const Form = () => {
   const onSubmit = async (data: RegisterPayload) => {
     try {
       const { confirmPassword, ...finalData } = data;
-      const response = await userRegister(finalData);
-      if (response) {
-        toast.success("Registration and logged in successfully!");
-        navigate(
-          typeof ROUTES.PRIVATE.DASHBOARD === "string"
-            ? ROUTES.PRIVATE.DASHBOARD
-            : ROUTES.PRIVATE.DASHBOARD(),
-          { replace: true }
-        );
-      } else {
-        toast.error("Registration failed. Please try again!");
-      }
+      await authRegister(finalData);
+      navigate(
+        typeof ROUTES.PRIVATE.DASHBOARD === "string"
+          ? ROUTES.PRIVATE.DASHBOARD
+          : ROUTES.PRIVATE.DASHBOARD(),
+        { replace: true }
+      );
     } catch (err) {
       console.error("Internal error occurred. Please try again.");
       toast.error("An error occurred. Please try again later.");
@@ -53,7 +54,7 @@ const Form = () => {
 
   return (
     <StyledWrapper>
-    <Toaster position="top-right" />
+      <Toaster position="top-right" />
       <div>
         <form className="modern-form" onSubmit={handleSubmit(onSubmit)}>
           <div className="form-title">Sign Up</div>

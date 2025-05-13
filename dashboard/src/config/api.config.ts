@@ -2,30 +2,32 @@ export const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 export const API_ENDPOINTS = {
   AUTH: {
-    LOGIN: `/user-service/auth/login`,
-    REGISTER: `/user-service/auth/register`,
+    LOGIN: `/user-service/api/auth/login`,
+    REGISTER: `/user-service/api/auth/register`,
+    LOGOUT: `/user-service/api/auth/logout`,
     FORGOT_PASSWORD: `/user-service/auth/forgot-password`,
     RESET_PASSWORD: `/user-service/auth/reset-password`,
   },
   USER: {
-    GET_ALL: `/user-service/users/`,
-    GET_BY_ID: (id: string) => `/user-service/users/${id}`,
-    UPDATE: (id: string) => `/user-service/users/${id}`,
+    ME: `/user-service/api/users/me`,
+    GET_ALL: `/user-service/api/users/`,
+    GET_BY_ID: (id: string) => `/user-service/api/users/${id}`,
+    UPDATE: (id: string) => `/user-service/api/users/${id}`,
   },
   BLOG: {
-    GET_ALL: `/blog-service/blogs`,
-    GET_BY_ID: (id: string) => `/blog-service/blogs/${id}`,
-    CREATE: `/blog-service/blogs`,
-    UPDATE: (id: string) => `/blog-service/blogs/${id}`,
-    DELETE: (id: string) => `/blog-service/blogs/${id}`,
-    UPDATE_STATUS: (id: string) => `/blog-service/blogs/${id}/status`,
+    GET_ALL: `/blog-service/api/blogs`,
+    GET_BY_ID: (id: string) => `/blog-service/api/blogs/${id}`,
+    CREATE: `/blog-service/api/blogs`,
+    UPDATE: (id: string) => `/blog-service/api/blogs/${id}`,
+    DELETE: (id: string) => `/blog-service/api/blogs/${id}`,
+    UPDATE_STATUS: (id: string) => `/blog-service/api/blogs/${id}/status`,
   },
   BLOG_CATEGORY: {
-    GET_ALL: `/blog-service/blogCategories`,
-    GET_BY_ID: (id: string) => `/blog-service/blogCategory/${id}`,
-    CREATE: `/blog-service/blogCategory`,
-    UPDATE: (id: string) => `/blog-service/blogCategory/${id}`,
-    DELETE: (id: string) => `/blog-service/blogCategory/${id}`,
+    GET_ALL: `/blog-service/api/blog-categories`,
+    GET_BY_ID: (id: string) => `/blog-service/api/blog-categories/${id}`,
+    CREATE: `/blog-service/api/blog-categories`,
+    UPDATE: (id: string) => `/blog-service/api/blog-categories/${id}`,
+    DELETE: (id: string) => `/blog-service/api/blog-categories/${id}`,
   },
   TOUR: {
     GET_ALL: `/tour-service/tours`,
@@ -86,5 +88,5 @@ export const API_ENDPOINTS = {
     GET_ALL: "/invoice-service/invoice",
     GET_BY_ID: (id: string) => `/invoice-service/invoice/${id}`,
     DELETE: (id: string) => `/invoice-service/invoice/${id}`,
-  }
+  },
 };

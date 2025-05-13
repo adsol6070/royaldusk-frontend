@@ -8,87 +8,110 @@ import {
   createContext,
   ReactNode,
   useContext,
-  useState,
   useEffect,
+  useState,
 } from "react";
-import { jwtDecode } from "jwt-decode";
 import toast from "react-hot-toast";
-
-interface DecodedToken {
-  custom_claims: {
-    email: string;
-    user_id: string;
-  };
-  exp: number;
-}
+import { jwtDecode } from "jwt-decode";
+import { userApi } from "@/api/user/userApi";
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  userInfo?: DecodedToken | null;
-  userLogin: (
-    data: LoginPayload
-  ) => Promise<{ success: boolean; message?: string }>;
-  userRegister: (data: RegisterPayload) => Promise<boolean>;
-  logoutUser: () => void;
+  isAuthLoading: boolean;
+  register: (data: RegisterPayload) => Promise<void>;
+  login: (data: LoginPayload) => Promise<void>;
+  logout: () => void;
   forgotPassword: (email: string) => Promise<boolean>;
   resetPassword: (data: ResetPasswordPayload) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+let logoutTimer: ReturnType<typeof setTimeout> | null = null;
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [token, setToken] = useState<string | null>(
-    localStorage.getItem("token")
-  );
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true);
 
-  // Decode token only when needed
-  const getDecodedToken = (): DecodedToken | null => {
-    if (!token) return null;
+  const startAutoLogout = (token: string) => {
     try {
-      return jwtDecode(token);
-    } catch (error) {
-      console.error("Error decoding token:", error);
-      return null;
+      const decoded: { exp: number } = jwtDecode(token);
+      const expiresInMs = decoded.exp * 1000 - Date.now();
+
+      if (logoutTimer) clearTimeout(logoutTimer);
+
+      logoutTimer = setTimeout(() => {
+        logout();
+        toast.error("Session expired. Please log in again.");
+      }, expiresInMs - 5 * 1000); // 5 seconds buffer
+    } catch {
+      logout();
     }
   };
 
-  const storeUser = (token: string) => {
+  const checkLoggedIn = async () => {
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+      logout(false);
+      setIsAuthLoading(false);
+      return;
+    }
+
     try {
-      const decoded: DecodedToken = jwtDecode(token);
-      localStorage.setItem("token", token);
-      setToken(token);
-      scheduleAutoLogout(decoded.exp);
-    } catch (error) {
-      console.error("Error decoding JWT:", error);
-      logoutUser();
+      await userApi.me();
+      setIsAuthenticated(true);
+      startAutoLogout(token);
+    } catch {
+      logout(false);
+      toast.error("Session expired. Please log in again.");
+    } finally {
+      setIsAuthLoading(false);
     }
   };
 
-  const scheduleAutoLogout = (exp: number) => {
-    const currentTime = Math.floor(Date.now() / 1000); // seconds
-    const timeout = (exp - currentTime) * 1000; // milliseconds
-
-    if (timeout > 0) {
-      setTimeout(() => {
-        toast.error("Session expired. Logging out.");
-        logoutUser();
-      }, timeout);
-    } else {
-      logoutUser();
+  const register = async (data: RegisterPayload) => {
+    try {
+      const response = await authApi.register(data);
+      if (response.status) {
+        toast.success(response.message);
+      }
+    } catch {
+      toast.error("Registration failed");
     }
+  };
+
+  const login = async (data: LoginPayload) => {
+    try {
+      const response = await authApi.login(data);
+      if (response.status === "success") {
+        localStorage.setItem("access_token", response.access_token);
+        localStorage.setItem("refresh_token", response.refresh_token);
+        await checkLoggedIn();
+        toast.success("Login successful");
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Login failed");
+      throw error;
+    }
+  };
+
+  const logout = (showToast = true) => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    setIsAuthenticated(false);
+    if (logoutTimer) clearTimeout(logoutTimer);
+    if (showToast) toast.success("Logged out");
   };
 
   const forgotPassword = async (email: string): Promise<boolean> => {
     try {
       const response = await authApi.forgotPassword(email);
-      if (response.success) {
-        toast.success(response.message);
-      } else {
-        toast.error(response.message);
-      }
-      return true;
-    } catch (error) {
-      console.error("Forgot password failed", error);
+      response.success
+        ? toast.success(response.message)
+        : toast.error(response.message);
+      return response.success;
+    } catch {
       toast.error("Failed to send password reset email.");
       return false;
     }
@@ -99,98 +122,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   ): Promise<boolean> => {
     try {
       const response = await authApi.resetPassword(data);
-      if (response.success) {
-        toast.success(response.message);
-        return true;
-      } else {
-        toast.error("Password reset failed");
-        return false;
-      }
-    } catch (error) {
-      console.error("Reset password failed", error);
+      response.success
+        ? toast.success(response.message)
+        : toast.error("Password reset failed");
+      return response.success;
+    } catch {
       toast.error("Failed to reset password.");
       return false;
     }
   };
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-    if (storedToken) {
-      try {
-        const decoded: DecodedToken = jwtDecode(storedToken);
-        setToken(storedToken);
-        scheduleAutoLogout(decoded.exp);
-      } catch (error) {
-        console.error("Invalid stored token:", error);
-        logoutUser();
-      }
-    }
+    checkLoggedIn(); // Auto-check on mount
   }, []);
-
-  const userLogin = async (
-    data: LoginPayload
-  ): Promise<{ success: boolean; message?: string }> => {
-    try {
-      const response = await authApi.login(data);
-      storeUser(response.token);
-      return { success: true };
-    } catch (error) {
-      console.error("Login failed", error);
-      let message = "Login failed. Please try again.";
-
-      if (
-        typeof error === "object" &&
-        error !== null &&
-        "isAxiosError" in error
-      ) {
-        const axiosError = error as any;
-
-        if (!axiosError.response) {
-          message = "Network error. Please check your internet connection.";
-        } else {
-          const status = axiosError.response.status;
-          const errorMsg = axiosError.response.data?.message;
-
-          if (status === 401) {
-            message = "Invalid credentials. Please try again.";
-          } else if (status >= 500) {
-            message = "Server error. Please try again later.";
-          } else {
-            message = errorMsg || `Login failed with status code ${status}`;
-          }
-        }
-      } else if (error instanceof Error) {
-        message = error.message;
-      }
-
-      return { success: false, message };
-    }
-  };
-
-  const userRegister = async (data: RegisterPayload) => {
-    try {
-      const response = await authApi.register(data);
-      await userLogin({ email: data.email, password: data.password });
-      return true;
-    } catch (error) {
-      console.error("Registration failed", error);
-      return false;
-    }
-  };
-
-  const logoutUser = () => {
-    setToken(null);
-    localStorage.removeItem("token");
-  };
 
   return (
     <AuthContext.Provider
       value={{
-        isAuthenticated: !!getDecodedToken(),
-        userInfo: getDecodedToken(),
-        userLogin,
-        userRegister,
-        logoutUser,
+        isAuthenticated,
+        isAuthLoading,
+        register,
+        login,
+        logout,
         forgotPassword,
         resetPassword,
       }}
@@ -200,7 +153,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// Custom Hook
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

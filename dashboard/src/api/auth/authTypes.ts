@@ -21,12 +21,10 @@ export interface ResetPasswordPayload {
 }
 
 export interface AuthResponse {
-  token: string;
-  user?: {
-    id: string;
-    name: string;
-    email: string;
-  };
+  status: string;
+  message: string;
+  access_token: string;
+  refresh_token: string;
 }
 
 export interface ForgotPasswordResponse {

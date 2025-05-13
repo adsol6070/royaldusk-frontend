@@ -17,7 +17,7 @@ export const httpClient = axios.create({
 
 httpClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
 
     if (token && config.url && !AUTH_EXCLUDED_ENDPOINTS.includes(config.url)) {
       config.headers.Authorization = `Bearer ${token}`;

@@ -1,7 +1,7 @@
 import { userApi } from "@/api/user/userApi";
 import { User, UserPayload } from "@/api/user/userTypes";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from 'react-hot-toast';
+import { toast } from "react-hot-toast";
 
 const useCustomMutation = <T, V>(
   mutationFn: (variables: V) => Promise<T>,
@@ -50,6 +50,12 @@ export const useUpdateUser = () =>
     ["users"],
     "Profile updated successfully!"
   );
+
+export const useMe = () =>
+  useQuery<User, Error>({
+    queryKey: ["me"],
+    queryFn: userApi.me,
+  });
 
 // export const useDeleteUser = () =>
 //   useCustomMutation(

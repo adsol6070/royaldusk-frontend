@@ -7,19 +7,20 @@ import { useAuth } from "@/context/AuthContext";
 import { capitalizeFirstLetter } from "@/utils/capitalizeFirstLetter";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/config/route-paths.config";
-import { useUserById } from "@/hooks/useUser";
+import { useMe } from "@/hooks/useUser";
 
 const Header = ({ onToggleSidebar }: any) => {
-  const { logoutUser, userInfo } = useAuth();
-  const userId = userInfo?.custom_claims?.user_id;
-  const { data: user } = useUserById(String(userId));
+  const { logout } = useAuth();
+  const { data: user } = useMe();
+
+
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-    const [userData, setUserData] = useState({
-      name: "",
-      email: "",
-    });
+  const [userData, setUserData] = useState({
+    name: "",
+    email: "",
+  });
 
   useEffect(() => {
     if (user) {
@@ -57,7 +58,6 @@ const Header = ({ onToggleSidebar }: any) => {
       </HamburgerButton>
 
       <ProfileContainer ref={dropdownRef}>
-        <p>{userData.name}</p>
         <ProfileButton onClick={handleDropdownToggle}>
           <FaRegUserCircle color={theme.colors.white} size={24} />
           <UserName>{userData.name}</UserName>
@@ -67,17 +67,13 @@ const Header = ({ onToggleSidebar }: any) => {
           <DropdownMenu>
             <DropdownItemButton
               onClick={() => {
-                if (userId) {
-                  navigate(ROUTES.PRIVATE.PROFILE(userId));
-                  setIsDropdownOpen(false);
-                }
+                navigate(ROUTES.PRIVATE.PROFILE);
+                setIsDropdownOpen(false);
               }}
             >
               View Profile
             </DropdownItemButton>
-            <DropdownItemButton onClick={logoutUser}>
-              Logout
-            </DropdownItemButton>
+            <DropdownItemButton onClick={logout}>Logout</DropdownItemButton>
           </DropdownMenu>
         )}
       </ProfileContainer>

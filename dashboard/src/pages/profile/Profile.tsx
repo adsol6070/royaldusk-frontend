@@ -4,17 +4,15 @@ import { FaRightFromBracket } from "react-icons/fa6";
 import styled from "styled-components";
 import { Button } from "react-bootstrap";
 import { theme } from "@/config/theme.config";
-import { useParams } from "react-router-dom";
-import { useUpdateUser, useUserById } from "@/hooks/useUser";
+import { useMe, useUpdateUser } from "@/hooks/useUser";
 import { capitalizeFirstLetter } from "@/utils/capitalizeFirstLetter";
 import { useAuth } from "@/context/AuthContext";
 import { formatTimestamp } from "@/utils/formatTimestamp";
 import { Toaster } from "react-hot-toast";
 
 const Profile = () => {
-  const { id } = useParams();
-  const { logoutUser } = useAuth();
-  const { data: user } = useUserById(String(id));
+  const { logout } = useAuth();
+  const { data: user } = useMe();
   const [editing, setEditing] = useState(false);
   const { mutate: updateUser, isPending } = useUpdateUser();
 
@@ -29,7 +27,7 @@ const Profile = () => {
       setUserData({
         name: capitalizeFirstLetter(user.name ?? "John"),
         email: user.email || "johndoe@gmail.com",
-        profileCreated: user.created_at,
+        profileCreated: user.createdAt,
       });
     }
   }, [user]);
@@ -37,7 +35,7 @@ const Profile = () => {
   const handleEdit = () => {
     if (editing) {
       updateUser(
-        { id: String(id), userData: { name: userData.name } },
+        { id: String(user?.id), userData: { name: userData.name } },
         {
           onSuccess: () => {
             setEditing(false);
@@ -50,7 +48,11 @@ const Profile = () => {
   };
 
   if (!user) {
-    return <Centered><p>User data not found</p></Centered>;
+    return (
+      <Centered>
+        <p>User data not found</p>
+      </Centered>
+    );
   }
 
   return (
@@ -88,10 +90,14 @@ const Profile = () => {
         </Field>
 
         <ButtonGroup>
-          <StyledButton onClick={handleEdit} disabled={isPending} variant="outline-primary">
+          <StyledButton
+            onClick={handleEdit}
+            disabled={isPending}
+            variant="outline-primary"
+          >
             <FaUserEdit /> {editing ? "Save" : "Edit Profile"}
           </StyledButton>
-          <StyledButton onClick={logoutUser} variant="outline-danger">
+          <StyledButton onClick={logout} variant="outline-danger">
             <FaRightFromBracket /> Logout
           </StyledButton>
         </ButtonGroup>
@@ -132,7 +138,11 @@ const AvatarRing = styled.div`
   height: 100px;
   margin: 0 auto 15px auto;
   border-radius: 50%;
-  background: linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.secondary});
+  background: linear-gradient(
+    135deg,
+    ${theme.colors.primary},
+    ${theme.colors.secondary}
+  );
   display: flex;
   align-items: center;
   justify-content: center;
@@ -207,4 +217,3 @@ const StyledButton = styled(Button)`
   justify-content: center;
   gap: 8px;
 `;
-

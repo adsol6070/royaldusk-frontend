@@ -1,4 +1,4 @@
-import { HttpClient } from '../helpers';
+import { HttpClient } from "../helpers";
 
 // const accessTokenKey = 'access_token';
 
@@ -21,25 +21,25 @@ import { HttpClient } from '../helpers';
 // BlogService for managing blog operations
 function BlogService() {
   return {
-
-    // Retrieve all blog posts
     getAllPosts: () => {
       return HttpClient.get(`/blog-service/api/blogs`, { _skipAuth: true });
     },
-
-    // Retrieve a single blog post by ID
     getPostById: (id) => {
-      return HttpClient.get(`/blog-service/api/blogs/${id}`, { _skipAuth: true });
+      return HttpClient.get(`/blog-service/api/blogs/${id}`, {
+        _skipAuth: true,
+      });
     },
-    
+
     getAllBlogCategories: () => {
-      return HttpClient.get(`/blog-service/api/blogCategories`, { _skipAuth: true });
+      return HttpClient.get(`/blog-service/api/blog-categories`, {
+        _skipAuth: true,
+      });
     },
-
     getPostByCategoryID: (categoryID) => {
-      return HttpClient.get(`/blog-service/api/blogs/category/${categoryID}`, { _skipAuth: true });
+      return HttpClient.get(`/blog-service/api/blogs/category/${categoryID}`, {
+        _skipAuth: true,
+      });
     },
-
   };
 }
 

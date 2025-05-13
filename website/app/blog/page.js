@@ -62,10 +62,10 @@ const Page = () => {
                       </div>
                       <div className="content">
                         <Link
-                          href={`/blog-category/${blog.category_id}`}
+                          href={`/blog-category/${blog.categoryID}`}
                           className="category"
                         >
-                          {capitalizeFirstLetter(blog.category_name)}
+                          {capitalizeFirstLetter(blog.category.name)}
                         </Link>
                         <h5>
                           <Link href={`/blog-details/${blog.id}`}>
@@ -76,7 +76,7 @@ const Page = () => {
                           <li>
                             <i className="far fa-calendar-alt" />
                             <a href="#">
-                              {new Date(blog.created_at).toLocaleDateString()}
+                              {new Date(blog.createdAt).toLocaleDateString()}
                             </a>
                           </li>
                         </ul>
