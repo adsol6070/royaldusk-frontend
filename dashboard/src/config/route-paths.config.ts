@@ -6,7 +6,7 @@ const PREFIXES = {
 const ROUTE_PATHS = {
   HOME: "/",
   DASHBOARD: "/dashboard",
-  PROFILE: (userId = ":id") => `/profile/${userId}`,
+  PROFILE: "/profile",
   SETTINGS: "/settings",
   LOGIN: "/login",
   REGISTER: "/register",
@@ -25,7 +25,8 @@ const ROUTE_PATHS = {
   BLOG_CATEGORIES: `/dashboard/blogs/categories`,
 
   INVOICE_LIST: "/dashboard/invoice/list",
-  INVOICE_PREVIEW: (invoiceId = ":id") => `/dashboard/invoice/details/${invoiceId}`,
+  INVOICE_PREVIEW: (invoiceId = ":id") =>
+    `/dashboard/invoice/details/${invoiceId}`,
 
   TOUR_LIST: "/dashboard/tours/list",
   TOUR_DETAILS: (tourId = ":id") => `/dashboard/tours/details/${tourId}`,
@@ -33,7 +34,8 @@ const ROUTE_PATHS = {
   EDIT_TOUR: (tourId = ":id") => `/dashboard/tours/edit/${tourId}`,
 
   PACKAGE_LIST: "/dashboard/package/list",
-  PACKAGE_DETAILS: (packageId = ":id") => `/dashboard/package/details/${packageId}`,
+  PACKAGE_DETAILS: (packageId = ":id") =>
+    `/dashboard/package/details/${packageId}`,
   CREATE_PACKAGE: "/dashboard/package/create",
   EDIT_PACKAGE: (packageId = ":id") => `/dashboard/package/edit/${packageId}`,
   PACKAGE_META: `/dashboard/package/packagemeta`,
@@ -63,13 +65,22 @@ const ROUTES = {
         ...acc,
         [key]: getFullPath(PREFIXES.AUTH, ROUTE_PATHS[key]),
       }),
-      {} as Record<"LOGIN" | "REGISTER" | "FORGOT_PASSWORD" | "RESET_PASSWORD", string>
+      {} as Record<
+        "LOGIN" | "REGISTER" | "FORGOT_PASSWORD" | "RESET_PASSWORD",
+        string
+      >
     ),
 
   PRIVATE: Object.keys(ROUTE_PATHS)
     .filter(
       (key): key is keyof typeof ROUTE_PATHS =>
-        !["LOGIN", "REGISTER", "FORGOT_PASSWORD", "RESET_PASSWORD", "NOT_FOUND"].includes(key)
+        ![
+          "LOGIN",
+          "REGISTER",
+          "FORGOT_PASSWORD",
+          "RESET_PASSWORD",
+          "NOT_FOUND",
+        ].includes(key)
     )
     .reduce(
       (acc, key) => ({
@@ -77,7 +88,14 @@ const ROUTES = {
         [key]: getFullPath(PREFIXES.PRIVATE, ROUTE_PATHS[key]),
       }),
       {} as Record<
-        Exclude<keyof typeof ROUTE_PATHS, "LOGIN" | "REGISTER" | "FORGOT_PASSWORD" | "RESET_PASSWORD" | "NOT_FOUND">,
+        Exclude<
+          keyof typeof ROUTE_PATHS,
+          | "LOGIN"
+          | "REGISTER"
+          | "FORGOT_PASSWORD"
+          | "RESET_PASSWORD"
+          | "NOT_FOUND"
+        >,
         string | ((...args: any[]) => string)
       >
     ),

@@ -2,7 +2,7 @@ import { blogApi } from "@/api/blog/blogApi";
 import { Blog } from "@/api/blog/blogTypes";
 import { blogCategoryApi } from "@/api/blog/categories/blogCategoryApi";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from 'react-hot-toast';
+import { toast } from "react-hot-toast";
 
 const useCustomMutation = <T, V>(
   mutationFn: (variables: V) => Promise<T>,
@@ -18,7 +18,12 @@ const useCustomMutation = <T, V>(
       queryClient.invalidateQueries({ queryKey });
     },
     onError: (error) => {
-      toast.error(error.message || "Something went wrong!");
+      const message =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message ||
+        "Something went wrong!";
+      toast.error(message);
       console.log("Error:", error);
     },
   });

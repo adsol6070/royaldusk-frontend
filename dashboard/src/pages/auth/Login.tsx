@@ -10,12 +10,18 @@ import { useForm } from "react-hook-form";
 import { LoginPayload } from "@/api";
 
 const schema = yup.object().shape({
-  email: yup.string().email("Invalid email format").required("Email is required"),
-  password: yup.string().min(6, "Password must be least 6 characters").required("Password is required"),
+  email: yup
+    .string()
+    .email("Invalid email format")
+    .required("Email is required"),
+  password: yup
+    .string()
+    .min(6, "Password must be least 6 characters")
+    .required("Password is required"),
 });
 
 const Form = () => {
-  const { userLogin } = useAuth();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const {
@@ -26,21 +32,15 @@ const Form = () => {
 
   const onSubmit = async (data: LoginPayload) => {
     try {
-      const { success, message } = await userLogin(data);
-      if (success) {
-        toast.success("Login successful!");
-        navigate(
-          typeof ROUTES.PRIVATE.DASHBOARD === "string"
-            ? ROUTES.PRIVATE.DASHBOARD
-            : ROUTES.PRIVATE.DASHBOARD(),
-          { replace: true }
-        );
-      } else {
-        toast.error(message || "Invalid credentials. Please try again.");
-      }
+      await login(data);
+      navigate(
+        typeof ROUTES.PRIVATE.DASHBOARD === "string"
+          ? ROUTES.PRIVATE.DASHBOARD
+          : ROUTES.PRIVATE.DASHBOARD(),
+        { replace: true }
+      );
     } catch (err) {
       console.error("Internal error occurred. Please try again.");
-      toast.error("An error occurred. Please try again later.");
     }
   };
 
@@ -135,7 +135,11 @@ const Form = () => {
               )}
             </div>
             <div className="forgot-password-box">
-              <Link className="login-link" to={ROUTES.AUTH.FORGOT_PASSWORD} replace>
+              <Link
+                className="login-link"
+                to={ROUTES.AUTH.FORGOT_PASSWORD}
+                replace
+              >
                 <span>Forgot Password</span>
               </Link>
             </div>

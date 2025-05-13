@@ -12,15 +12,15 @@ const BlogDetails = () => {
         <Col md={{ span: 10, offset: 1 }}>
           <h1 className="fw-bold text-dark">{blog?.title}</h1>
           <p className="text-muted">
-            By <span className="fw-bold">{blog?.author}</span> |{" "}
-            {new Date(blog?.published_at).toLocaleDateString("en-US", {
+            By <span className="fw-bold">{blog?.author.name}</span> |{" "}
+            {new Date(blog?.publishedAt).toLocaleDateString("en-US", {
               year: "numeric",
               month: "long",
               day: "2-digit",
             })}
           </p>
           <Badge bg="primary" className="mb-3">
-            {blog?.category_name}
+            {blog?.category.name}
           </Badge>
         </Col>
       </Row>

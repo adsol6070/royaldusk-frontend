@@ -33,7 +33,8 @@ export const blogCategoryApi = {
     id: string,
     data: BlogCategoryPayload
   ): Promise<BlogCategory> => {
-    const response = await httpClient.put<ApiResponse<BlogCategory>>(
+    console.log("Data:", data);
+    const response = await httpClient.patch<ApiResponse<BlogCategory>>(
       API_ENDPOINTS.BLOG_CATEGORY.UPDATE(id),
       data
     );

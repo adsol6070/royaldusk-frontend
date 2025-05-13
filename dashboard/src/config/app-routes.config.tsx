@@ -35,7 +35,7 @@ export const AUTH_ROUTES = [
 
 export const PRIVATE_ROUTES = [
   { path: ROUTE_PATHS.DASHBOARD, element: <Dashboard /> },
-  { path: ROUTE_PATHS.PROFILE(), element: <Profile /> },
+  { path: ROUTE_PATHS.PROFILE, element: <Profile /> },
   { path: ROUTE_PATHS.SETTINGS, element: <Settings /> },
 
   { path: ROUTE_PATHS.USER_LIST, element: <UserList /> },

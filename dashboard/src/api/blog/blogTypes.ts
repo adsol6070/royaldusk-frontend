@@ -2,37 +2,43 @@ export interface Blog {
   id: string;
   title: string;
   slug: string;
-  author: string;
-  category_id: string;
-  category_name: string;
+  authorID: string;
+  categoryID: string;
   content: string;
   excerpt?: string;
-  meta_title?: string;
-  meta_description?: string;
+  metaTitle?: string;
+  metaDescription?: string;
   thumbnail?: string;
   tags?: string[];
   status: "draft" | "published" | "archived";
-  published_at?: string;
+  publishedAt?: string;
   scheduledAt?: string;
   createdAt: string;
   updatedAt: string;
-  deletedAt?: string | null;
+  author: {
+    id: string;
+    name: string;
+  };
+  category: {
+    id: string;
+    name: string;
+  };
 }
 
 export interface BlogPayload {
   title: string;
   slug: string;
+  categoryID: string;
   content: string;
   excerpt: string;
-  meta_title: string;
-  meta_description: string;
-  author: string;
-  category: string;
+  metaTitle: string;
+  metaDescription: string;
   tags: string[];
-  thumbnail: string;
   status: "draft" | "published" | "archived";
-  published_at: string;
-  scheduled_at?: string;
+  publishedAt: string;
+  scheduledAt?: string;
+  authorID: string;
+  thumbnail: string;
 }
 
 export interface ApiResponse<T> {

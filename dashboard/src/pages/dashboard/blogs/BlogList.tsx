@@ -26,23 +26,22 @@ const BlogList = () => {
   const blogsPerPage = 10;
 
   const { data: blogs } = useBlogs();
+
   const { mutate: deleteBlog } = useDeleteBlog();
   const { mutate: updateBlogStatus } = useUpdateBlogStatus();
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     deleteBlog(id);
   };
 
-  const handleStatusChange = (id: number, newStatus: string) => {
-    console.log("Id:", id);
-    console.log("New status:", newStatus);
+  const handleStatusChange = (id: string, newStatus: string) => {
     updateBlogStatus({ id, status: newStatus });
   };
 
   const indexOfLastBlog = currentPage * blogsPerPage;
   const indexOfFirstBlog = indexOfLastBlog - blogsPerPage;
   const currentBlogs = blogs?.slice(indexOfFirstBlog, indexOfLastBlog);
-  const totalPages = Math.ceil(blogs?.length / blogsPerPage);
+  const totalPages = Math.ceil((blogs?.length || 0) / blogsPerPage);
 
   return (
     <Container className="p-5 shadow-lg rounded bg-light">
@@ -58,7 +57,7 @@ const BlogList = () => {
           <FaPlus className="me-2" /> Create Blog
         </Button>
       </div>
-      {blogs?.length > 0 ? (
+      {blogs && blogs?.length > 0 ? (
         <>
           <Table
             striped
@@ -78,86 +77,87 @@ const BlogList = () => {
               </tr>
             </thead>
             <tbody className="text-center bg-white">
-              {currentBlogs.map((blog, index) => (
-                <tr key={blog.id} className="align-middle">
-                  <td className="fw-bold">{indexOfFirstBlog + index + 1}</td>
-                  <td>{capitalizeFirstLetter(blog.title)}</td>
-                  <td>{capitalizeFirstLetter(blog.category_name)}</td>
-                  <td>
-                    <Form.Select
-                      value={blog.status}
-                      onChange={(e) =>
-                        handleStatusChange(blog.id, e.target.value)
-                      }
-                      className={`fw-bold ${
-                        blog.status === "published"
-                          ? "text-success"
-                          : "text-warning"
-                      }`}
-                    >
-                      <option value="draft">Draft</option>
-                      <option value="published">Published</option>
-                    </Form.Select>
-                  </td>
+              {currentBlogs &&
+                currentBlogs.map((blog, index) => (
+                  <tr key={blog.id} className="align-middle">
+                    <td className="fw-bold">{indexOfFirstBlog + index + 1}</td>
+                    <td>{capitalizeFirstLetter(blog.title)}</td>
+                    <td>{capitalizeFirstLetter(blog.category.name)}</td>
+                    <td>
+                      <Form.Select
+                        value={blog.status}
+                        onChange={(e) =>
+                          handleStatusChange(blog.id, e.target.value)
+                        }
+                        className={`fw-bold ${
+                          blog.status === "published"
+                            ? "text-success"
+                            : "text-warning"
+                        }`}
+                      >
+                        <option value="draft">Draft</option>
+                        <option value="published">Published</option>
+                      </Form.Select>
+                    </td>
 
-                  <td>
-                    {blog?.published_at
-                      ? new Intl.DateTimeFormat("en-GB", {
-                          day: "2-digit",
-                          month: "2-digit",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          hour12: true,
-                        }).format(new Date(blog.published_at))
-                      : "N/A"}
-                  </td>
-                  <td>
-                    <OverlayTrigger
-                      placement="top"
-                      overlay={<Tooltip>Edit Blog</Tooltip>}
-                    >
-                      <Button
-                        variant="outline-primary"
-                        size="sm"
-                        className="me-2"
-                        onClick={() =>
-                          navigate(`${ROUTES.PRIVATE.EDIT_BLOG(blog.id)}`)
-                        }
+                    <td>
+                      {blog?.publishedAt
+                        ? new Intl.DateTimeFormat("en-GB", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true,
+                          }).format(new Date(blog.publishedAt))
+                        : "N/A"}
+                    </td>
+                    <td>
+                      <OverlayTrigger
+                        placement="top"
+                        overlay={<Tooltip>Edit Blog</Tooltip>}
                       >
-                        <FaEdit />
-                      </Button>
-                    </OverlayTrigger>
-                    <OverlayTrigger
-                      placement="top"
-                      overlay={<Tooltip>Preview Blog</Tooltip>}
-                    >
-                      <Button
-                        variant="outline-info"
-                        size="sm"
-                        className="me-2"
-                        onClick={() =>
-                          navigate(`${ROUTES.PRIVATE.BLOG_DETAILS(blog.id)}`)
-                        }
+                        <Button
+                          variant="outline-primary"
+                          size="sm"
+                          className="me-2"
+                          onClick={() =>
+                            navigate(`${ROUTES.PRIVATE.EDIT_BLOG(blog.id)}`)
+                          }
+                        >
+                          <FaEdit />
+                        </Button>
+                      </OverlayTrigger>
+                      <OverlayTrigger
+                        placement="top"
+                        overlay={<Tooltip>Preview Blog</Tooltip>}
                       >
-                        <FaEye />
-                      </Button>
-                    </OverlayTrigger>
-                    <OverlayTrigger
-                      placement="top"
-                      overlay={<Tooltip>Delete Blog</Tooltip>}
-                    >
-                      <Button
-                        variant="outline-danger"
-                        size="sm"
-                        onClick={() => handleDelete(blog.id)}
+                        <Button
+                          variant="outline-info"
+                          size="sm"
+                          className="me-2"
+                          onClick={() =>
+                            navigate(`${ROUTES.PRIVATE.BLOG_DETAILS(blog.id)}`)
+                          }
+                        >
+                          <FaEye />
+                        </Button>
+                      </OverlayTrigger>
+                      <OverlayTrigger
+                        placement="top"
+                        overlay={<Tooltip>Delete Blog</Tooltip>}
                       >
-                        <FaTrash />
-                      </Button>
-                    </OverlayTrigger>
-                  </td>
-                </tr>
-              ))}
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          onClick={() => handleDelete(blog.id)}
+                        >
+                          <FaTrash />
+                        </Button>
+                      </OverlayTrigger>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </Table>
 

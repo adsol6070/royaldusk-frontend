@@ -15,6 +15,8 @@ const BlogDetailPage = ({ params }) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
+  console.log("Blog Details page get rendered.");
+
   useEffect(() => {
     async function fetchBlogDetail(postId) {
       if (postId) {
@@ -54,21 +56,21 @@ const BlogDetailPage = ({ params }) => {
                   data-aos-duration={1000}
                   data-aos-offset={50}
                 >
-                  <Link href={`/blog-category/${blogDetail.category_id}`} className="category">
-                    {capitalizeFirstLetter(blogDetail.category_name)}
+                  <Link
+                    href={`/blog-category/${blogDetail.categoryID}`}
+                    className="category"
+                  >
+                    {capitalizeFirstLetter(blogDetail.category.name)}
                   </Link>
                   <ul className="blog-meta mb-30">
                     <li>
-                      <img
-                        src="/assets/images/blog/admin.jpg"
-                        alt="Admin"
-                      />{" "}
-                      <a href="#">{blogDetail.author}</a>
+                      <img src="/assets/images/blog/admin.jpg" alt="Admin" />{" "}
+                      <a href="#">{blogDetail.author.name}</a>
                     </li>
                     <li>
                       <i className="far fa-calendar-alt" />{" "}
                       <a href="#">
-                        {new Date(blogDetail.created_at).toDateString()}
+                        {new Date(blogDetail.createdAt).toDateString()}
                       </a>
                     </li>
                   </ul>
@@ -78,10 +80,7 @@ const BlogDetailPage = ({ params }) => {
                     data-aos-duration={1000}
                     data-aos-offset={50}
                   >
-                    <img
-                      src={blogDetail.thumbnail}
-                      alt="Blog Details"
-                    />
+                    <img src={blogDetail.thumbnail} alt="Blog Details" />
                   </div>
                   <div
                     dangerouslySetInnerHTML={{ __html: blogDetail.content }}
