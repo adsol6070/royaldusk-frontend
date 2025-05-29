@@ -15,7 +15,7 @@ export interface ForgotPasswordPayload {
 }
 
 export interface ResetPasswordPayload {
-  newPassword: string;
+  password: string;
   confirmPassword?: string;
   token: string;
 }
@@ -28,6 +28,6 @@ export interface AuthResponse {
 }
 
 export interface ForgotPasswordResponse {
-  success: boolean;
+  status: string;
   message: string;
 }

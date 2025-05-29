@@ -24,6 +24,8 @@ import {
   PackageForm,
   PackageMeta,
   PackageEnquiry,
+  ResendVerification,
+  VerifyEmail,
 } from "@/pages";
 
 export const AUTH_ROUTES = [
@@ -31,6 +33,8 @@ export const AUTH_ROUTES = [
   { path: ROUTE_PATHS.REGISTER, element: <Register /> },
   { path: ROUTE_PATHS.FORGOT_PASSWORD, element: <ForgotPassword /> },
   { path: ROUTE_PATHS.RESET_PASSWORD, element: <ResetPassword /> },
+  { path: ROUTE_PATHS.RESEND_VERIFICATION, element: <ResendVerification /> },
+  { path: ROUTE_PATHS.VERIFY_EMAIL, element: <VerifyEmail /> },
 ];
 
 export const PRIVATE_ROUTES = [
@@ -55,12 +59,11 @@ export const PRIVATE_ROUTES = [
   { path: ROUTE_PATHS.TOUR_DETAILS(), element: <TourDetails /> },
   { path: ROUTE_PATHS.CREATE_TOUR, element: <TourForm /> },
   { path: ROUTE_PATHS.EDIT_TOUR(), element: <TourForm /> },
-  
+
   { path: ROUTE_PATHS.PACKAGE_LIST, element: <PackageList /> },
   { path: ROUTE_PATHS.PACKAGE_DETAILS(), element: <PackageDetails /> },
   { path: ROUTE_PATHS.CREATE_PACKAGE, element: <PackageForm /> },
   { path: ROUTE_PATHS.EDIT_PACKAGE(), element: <PackageForm /> },
   { path: ROUTE_PATHS.PACKAGE_META, element: <PackageMeta /> },
   { path: ROUTE_PATHS.PACKAGE_ENQUIRY, element: <PackageEnquiry /> },
-
 ];

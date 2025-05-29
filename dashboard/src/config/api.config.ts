@@ -5,8 +5,10 @@ export const API_ENDPOINTS = {
     LOGIN: `/user-service/api/auth/login`,
     REGISTER: `/user-service/api/auth/register`,
     LOGOUT: `/user-service/api/auth/logout`,
-    FORGOT_PASSWORD: `/user-service/auth/forgot-password`,
-    RESET_PASSWORD: `/user-service/auth/reset-password`,
+    FORGOT_PASSWORD: `/user-service/api/auth/forgot-password`,
+    RESET_PASSWORD: `/user-service/api/auth/reset-password`,
+    RESEND_VERIFICATION: `/user-service/api/auth/resend-verification-email`,
+    VERIFY_EMAIL: `/user-service/api/auth/verify-email`,
   },
   USER: {
     ME: `/user-service/api/users/me`,

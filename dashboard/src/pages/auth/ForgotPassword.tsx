@@ -2,14 +2,17 @@ import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { ROUTES } from "@/config/route-paths.config";
 import { useAuth } from "@/context/AuthContext";
-import toast, { Toaster } from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useForm } from "react-hook-form";
 import { ForgotPasswordPayload } from "@/api";
 
 const schema = yup.object().shape({
-  email: yup.string().email("Invalid email format").required("Email is required"),
+  email: yup
+    .string()
+    .email("Invalid email format")
+    .required("Email is required"),
 });
 
 const Form = () => {
@@ -20,18 +23,16 @@ const Form = () => {
     handleSubmit,
     formState: { errors },
     reset,
-    } = useForm<{ email: string }>({ resolver: yupResolver(schema) });
+  } = useForm<{ email: string }>({ resolver: yupResolver(schema) });
 
   const onSubmit = async (data: ForgotPasswordPayload) => {
     try {
       const response = await forgotPassword(data.email);
-      console.log("response", response);
-      if(response){
+      if (response) {
         reset();
       }
     } catch (err: any) {
       console.error(err);
-      toast.error(err?.response?.data?.message || "Something went wrong!");
     }
   };
 

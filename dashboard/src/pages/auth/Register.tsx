@@ -40,15 +40,9 @@ const Form = () => {
     try {
       const { confirmPassword, ...finalData } = data;
       await authRegister(finalData);
-      navigate(
-        typeof ROUTES.PRIVATE.DASHBOARD === "string"
-          ? ROUTES.PRIVATE.DASHBOARD
-          : ROUTES.PRIVATE.DASHBOARD(),
-        { replace: true }
-      );
+      navigate(ROUTES.AUTH.LOGIN, { replace: true });
     } catch (err) {
       console.error("Internal error occurred. Please try again.");
-      toast.error("An error occurred. Please try again later.");
     }
   };
 
