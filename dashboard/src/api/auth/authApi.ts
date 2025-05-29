@@ -50,4 +50,22 @@ export const authApi = {
     );
     return response.data;
   },
+
+  resendVerificationEmail: async (email: string) => {
+    const response = await httpClient.post(
+      API_ENDPOINTS.AUTH.RESEND_VERIFICATION,
+      { email }
+    );
+    return response.data;
+  },
+
+  verifyEmail: async (verificationCode: string) => {
+    const response = await httpClient.post<{ status: string; message: string }>(
+      API_ENDPOINTS.AUTH.VERIFY_EMAIL,
+      {
+        verificationCode,
+      }
+    );
+    return response.data;
+  },
 };

@@ -1,4 +1,4 @@
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
 import { ROUTES } from "@/config/route-paths.config";
 import { useAuth } from "@/context/AuthContext";
@@ -9,10 +9,13 @@ import * as yup from "yup";
 import { useForm } from "react-hook-form";
 
 const schema = yup.object().shape({
-  newPassword: yup.string().min(6, "Password must be at least 6 characters").required("Password is required"),
+  password: yup
+    .string()
+    .min(6, "Password must be at least 6 characters")
+    .required("Password is required"),
   confirmPassword: yup
     .string()
-    .oneOf([yup.ref("newPassword"), undefined], "Passwords must match")
+    .oneOf([yup.ref("password"), undefined], "Passwords must match")
     .required("Confirm password is required"),
 });
 
@@ -21,8 +24,7 @@ const Form = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const token = searchParams.get("token");
+  const { token } = useParams();
 
   useEffect(() => {
     if (!token) {
@@ -37,17 +39,17 @@ const Form = () => {
     formState: { errors },
   } = useForm({ resolver: yupResolver(schema) });
 
-  const onSubmit = async (data: { newPassword: string; confirmPassword: string }) => {
+  const onSubmit = async (data: {
+    password: string;
+    confirmPassword: string;
+  }) => {
     if (!token) return;
     try {
       const { confirmPassword, ...finalData } = data;
-      const response = await resetPassword({ ...finalData, token });
-      if (response) {
-        navigate(ROUTES.AUTH.LOGIN, { replace: true });
-      }
+      await resetPassword({ ...finalData, token });
+      navigate(ROUTES.AUTH.LOGIN, { replace: true });
     } catch (err) {
       console.error("Internal error occurred. Please try again.");
-      toast.error("An error occurred. Please try again later.");
     }
   };
 
@@ -71,7 +73,7 @@ const Form = () => {
                   placeholder="New Password"
                   className="form-input"
                   type={showPassword ? "text" : "password"}
-                  {...register("newPassword")}
+                  {...register("password")}
                 />
                 <button
                   className="password-toggle"
@@ -113,9 +115,9 @@ const Form = () => {
                   </svg>
                 </button>
               </div>
-              {errors.newPassword && (
+              {errors.password && (
                 <small className="text-danger">
-                  {errors.newPassword.message as string}
+                  {errors.password.message as string}
                 </small>
               )}
             </div>
@@ -223,14 +225,14 @@ const StyledWrapper = styled.div`
     text-align: center;
     letter-spacing: -0.01em;
   }
-    
+
   .input-wrapper {
     position: relative;
     display: flex;
     align-items: center;
   }
-       .field-full-wrapper {
-      margin-bottom: 16px;
+  .field-full-wrapper {
+    margin-bottom: 16px;
   }
 
   .form-input {

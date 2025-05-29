@@ -11,7 +11,9 @@ const ROUTE_PATHS = {
   LOGIN: "/login",
   REGISTER: "/register",
   FORGOT_PASSWORD: "/forgotpassword",
-  RESET_PASSWORD: "/resetpassword",
+  RESET_PASSWORD: "/resetpassword/:token",
+  RESEND_VERIFICATION: "/resendverification",
+  VERIFY_EMAIL: "/verifyemail/:token",
   NOT_FOUND: "*",
 
   USER_LIST: "/dashboard/users/list",
@@ -58,7 +60,14 @@ const getFullPath = <T extends string | ((...args: any[]) => string)>(
 const ROUTES = {
   AUTH: Object.keys(ROUTE_PATHS)
     .filter((key): key is keyof typeof ROUTE_PATHS =>
-      ["LOGIN", "REGISTER", "FORGOT_PASSWORD", "RESET_PASSWORD"].includes(key)
+      [
+        "LOGIN",
+        "REGISTER",
+        "FORGOT_PASSWORD",
+        "RESET_PASSWORD",
+        "RESEND_VERIFICATION",
+        "VERIFY_EMAIL",
+      ].includes(key)
     )
     .reduce(
       (acc, key) => ({
@@ -66,7 +75,12 @@ const ROUTES = {
         [key]: getFullPath(PREFIXES.AUTH, ROUTE_PATHS[key]),
       }),
       {} as Record<
-        "LOGIN" | "REGISTER" | "FORGOT_PASSWORD" | "RESET_PASSWORD",
+        | "LOGIN"
+        | "REGISTER"
+        | "FORGOT_PASSWORD"
+        | "RESET_PASSWORD"
+        | "RESEND_VERIFICATION"
+        | "VERIFY_EMAIL",
         string
       >
     ),
@@ -79,6 +93,8 @@ const ROUTES = {
           "REGISTER",
           "FORGOT_PASSWORD",
           "RESET_PASSWORD",
+          "RESEND_VERIFICATION",
+          "VERIFY_EMAIL",
           "NOT_FOUND",
         ].includes(key)
     )
@@ -94,6 +110,8 @@ const ROUTES = {
           | "REGISTER"
           | "FORGOT_PASSWORD"
           | "RESET_PASSWORD"
+          | "RESEND_VERIFICATION"
+          | "VERIFY_EMAIL"
           | "NOT_FOUND"
         >,
         string | ((...args: any[]) => string)
