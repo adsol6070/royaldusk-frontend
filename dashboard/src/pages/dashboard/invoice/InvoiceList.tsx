@@ -16,7 +16,7 @@ import {
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/config/route-paths.config";
-import { useDeleteInvoice } from "@/hooks/useInvoice"; // you can keep this if you want to simulate delete
+import { useDeleteInvoice } from "@/hooks/useInvoice";
 
 const InvoiceList = () => {
   const navigate = useNavigate();

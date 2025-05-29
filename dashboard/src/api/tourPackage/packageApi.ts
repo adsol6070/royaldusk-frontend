@@ -38,6 +38,14 @@ export const packageApi = {
     return response.data;
   },
 
+  updatePackageAvailability: async (id: string, availability: string): Promise<Package> => {
+    const response = await httpClient.patch<Package>(
+      API_ENDPOINTS.PACKAGES.UPDATE_AVAILABILITY(id),
+      { availability }
+    );
+    return response.data;
+  },
+
   deletePackage: async (id: string): Promise<void> => {
     await httpClient.delete(API_ENDPOINTS.PACKAGES.DELETE(id));
   },

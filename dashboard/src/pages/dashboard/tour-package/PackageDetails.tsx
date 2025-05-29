@@ -1,40 +1,107 @@
-import { useTourById } from "@/hooks/useTour";
+import { usePackageById } from "@/hooks/usePackage";
 import { formatTimestamp } from "@/utils/formatTimestamp";
-import { Container, Row, Col, Image } from "react-bootstrap";
+import { Container, Row, Col, Image, Badge, ListGroup, Card } from "react-bootstrap";
 import { useParams } from "react-router-dom";
 
 const PackageDetails = () => {
   const { id } = useParams();
-  const { data: tour } = useTourById(String(id));
+  const { data: packageData } = usePackageById(String(id));
+  console.log("Package Data:", packageData);
 
   return (
     <Container className="py-5 bg-white">
-      <Row>
+      <Row className="mb-4">
         <Col md={{ span: 10, offset: 1 }}>
-          <h1 className="fw-bold text-dark">{tour?.name}</h1>
+          <h1 className="fw-bold text-dark">{packageData?.name}</h1>
           <p className="text-muted">
-            Created At
-            {formatTimestamp(tour?.createdAt || "")}
+            Created At: {formatTimestamp(packageData?.createdAt || "")}
           </p>
+          <Badge bg="secondary" className="me-2">
+            Location: {packageData?.location}
+          </Badge>
+          <Badge bg="info" className="me-2">
+            Duration: {packageData?.duration} days
+          </Badge>
+          <Badge bg="success" className="me-2">
+            Price: {packageData?.currency} {packageData?.price}
+          </Badge>
+          <Badge bg="warning" text="dark">
+            Availability: {packageData?.availability}
+          </Badge>
         </Col>
       </Row>
 
-      <Row>
+      <Row className="mb-4">
         <Col md={{ span: 10, offset: 1 }}>
           <Image
-            src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b"
-            alt={tour?.name}
+            src={`${packageData?.imageUrl}`}
+            alt={packageData?.name}
             fluid
             className="rounded shadow"
           />
         </Col>
       </Row>
 
-      <Row className="mt-4">
-        <Col md={{ span: 8, offset: 1 }}>
-          <div
-            className="fs-5 text-dark"
-          >{tour?.description}</div>
+      <Row className="mb-4">
+        <Col md={{ span: 10, offset: 1 }}>
+          <h4>Description</h4>
+          <p className="fs-5 text-dark">{packageData?.description}</p>
+
+          <h5 className="mt-4">Important Info</h5>
+          <p>{packageData?.importantInfo}</p>
+        </Col>
+      </Row>
+
+      <Row className="mb-4">
+        <Col md={{ span: 5, offset: 1 }}>
+          <Card className="mb-3">
+            <Card.Header>Inclusions</Card.Header>
+            <ListGroup variant="flush">
+              {packageData?.inclusions?.map((inc) => (
+                <ListGroup.Item key={inc.id}>{inc.name}</ListGroup.Item>
+              ))}
+            </ListGroup>
+          </Card>
+        </Col>
+        <Col md={5}>
+          <Card className="mb-3">
+            <Card.Header>Exclusions</Card.Header>
+            <ListGroup variant="flush">
+              {packageData?.exclusions?.map((exc) => (
+                <ListGroup.Item key={exc.id}>{exc.name}</ListGroup.Item>
+              ))}
+            </ListGroup>
+          </Card>
+        </Col>
+      </Row>
+
+      <Row className="mb-4">
+        <Col md={{ span: 10, offset: 1 }}>
+          <h4>Features</h4>
+          <div className="d-flex flex-wrap gap-2">
+            {packageData?.features?.map((f) => (
+              <Badge bg="primary" key={f.id}>{f.name}</Badge>
+            ))}
+          </div>
+
+          <h4 className="mt-4">Itinerary</h4>
+          <ListGroup>
+            {packageData?.itineraries?.map((it) => (
+              <ListGroup.Item key={it.id}>
+                <strong>{it.title}</strong>: {it.description}
+              </ListGroup.Item>
+            ))}
+          </ListGroup>
+        </Col>
+      </Row>
+
+      <Row className="mb-4">
+        <Col md={{ span: 10, offset: 1 }}>
+          <h4>Policy</h4>
+          <p><strong>Booking:</strong> {packageData?.policy?.bookingPolicy}</p>
+          <p><strong>Cancellation:</strong> {packageData?.policy?.cancellationPolicy}</p>
+          <p><strong>Payment Terms:</strong> {packageData?.policy?.paymentTerms}</p>
+          <p><strong>Visa:</strong> {packageData?.policy?.visaDetail}</p>
         </Col>
       </Row>
     </Container>

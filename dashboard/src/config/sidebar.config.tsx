@@ -30,22 +30,22 @@ export const sidebarMenuItems = [
       },
     ],
   },
-  {
-    label: "Tours",
-    icon: <FaMapMarkedAlt size="22" />,
-    subMenu: [
-      {
-        label: "All Tours",
-        icon: <span>-</span>,
-        path: ROUTES.PRIVATE.TOUR_LIST,
-      },
-      {
-        label: "Create Tour",
-        icon: <span>-</span>,
-        path: ROUTES.PRIVATE.CREATE_TOUR,
-      },
-    ],
-  },
+  // {
+  //   label: "Tours",
+  //   icon: <FaMapMarkedAlt size="22" />,
+  //   subMenu: [
+  //     {
+  //       label: "All Tours",
+  //       icon: <span>-</span>,
+  //       path: ROUTES.PRIVATE.TOUR_LIST,
+  //     },
+  //     {
+  //       label: "Create Tour",
+  //       icon: <span>-</span>,
+  //       path: ROUTES.PRIVATE.CREATE_TOUR,
+  //     },
+  //   ],
+  // },
   {
     label: "Packages",
     icon: <FaSuitcaseRolling size={22} />,

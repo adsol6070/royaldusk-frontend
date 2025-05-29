@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       logoutTimer = setTimeout(() => {
         logout();
         toast.error("Session expired. Please log in again.");
-      }, expiresInMs - 5 * 1000); // 5 seconds buffer
+      }, expiresInMs - 5 * 1000);
     } catch {
       logout();
     }

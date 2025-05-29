@@ -16,6 +16,8 @@ const page = ({ params }) => {
   const packageId = params.packageId;
   // const packageId = "cbf394b2-20fa-4699-8545-1f79741980c0";
   const [packageDetail, setPackagedetail] = useState(null);
+
+  console.log("Package Detail:", packageDetail);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -105,10 +107,14 @@ const page = ({ params }) => {
                     <span class="text-warning">
                       &#9733;&#9733;&#9733;&#9733;&#9734;
                     </span>
-                    <span class="text-muted small ms-2">{packageDetail.review} Reviews</span>
+                    <span class="text-muted small ms-2">
+                      {packageDetail.review} Reviews
+                    </span>
                   </div>
                   <div class="border p-3 text-center mt-3">
-                    <small class="text-muted d-block">From {packageDetail.currency}</small>
+                    <small class="text-muted d-block">
+                      From {packageDetail.currency}
+                    </small>
                     <div class="h3 fw-bold mb-1">{packageDetail.price}</div>
                     <small class="text-muted">Per Person</small>
                   </div>
@@ -133,10 +139,14 @@ const page = ({ params }) => {
                   <span class="text-warning">
                     &#9733;&#9733;&#9733;&#9733;&#9734;
                   </span>
-                  <span class="text-muted small ms-2">{packageDetail.review} Reviews</span>
+                  <span class="text-muted small ms-2">
+                    {packageDetail.review} Reviews
+                  </span>
                 </div>
                 <div class="border p-3 text-center mt-3">
-                  <small class="text-muted d-block">From {packageDetail.currency}</small>
+                  <small class="text-muted d-block">
+                    From {packageDetail.currency}
+                  </small>
                   <div class="h3 fw-bold mb-1">{packageDetail.price}</div>
                   <small class="text-muted">Per Person</small>
                 </div>
@@ -244,26 +254,38 @@ const page = ({ params }) => {
                       <h3 className="fw-bold mb-5">Itinerary</h3>
                       <div className="position-relative">
                         <div className="timeline-line position-absolute top-0 start-0 h-100 bg-secondary"></div>
-                        {packageDetail.itineraries.length > 0 ? (
-                          packageDetail.itineraries.map((item, index) => (
-                            <div className="timeline-item d-flex flex-column flex-md-row align-items-start align-items-md-center mb-5 position-relative">
+
+                        {packageDetail.timeline &&
+                        packageDetail.timeline.length > 0 ? (
+                          packageDetail.timeline.map((dayItem, index) => (
+                            <div
+                              key={index}
+                              className="timeline-item d-flex flex-column flex-md-row align-items-start align-items-md-center mb-5 position-relative"
+                            >
                               <div className="timeline-day text-center mb-3 mb-md-0 me-md-4 position-relative">
                                 <div className="bg-white border border-2 rounded-pill px-3 py-1 text-secondary fw-semibold shadow-sm z-2">
-                                  Day {index + 1}
+                                  Day {dayItem.day}
                                 </div>
                                 <div className="timeline-dot position-absolute top-50 start-0 translate-middle bg-secondary rounded-circle"></div>
                               </div>
+
                               <div className="timeline-content m-2 p-4 bg-light rounded w-100">
-                                <h5 className="fw-semibold">{item.title}</h5>
-                                <p className="text-muted mb-0">
-                                  {item.description}
-                                </p>
+                                {dayItem.entries.map((entry, entryIndex) => (
+                                  <div key={entryIndex} className="mb-3">
+                                    <h5 className="fw-semibold mb-1">
+                                      {entry.title}
+                                    </h5>
+                                    <p className="text-muted mb-0">
+                                      {entry.description}
+                                    </p>
+                                  </div>
+                                ))}
                               </div>
                             </div>
                           ))
                         ) : (
                           <div className="tour-activity-item">
-                            <b>No features available.</b>
+                            <b>No itinerary available.</b>
                           </div>
                         )}
                       </div>

@@ -61,6 +61,14 @@ export const useUpdatePackage = () =>
     "Package updated successfully!"
   );
 
+  export const useUpdatePackageAvailability = () =>
+    useCustomMutation(
+      ({ id, availability }: { id: string; availability: string }) =>
+        packageApi.updatePackageAvailability(id, availability),
+      ["packages"],
+      "Package availability updated successfully!"
+    );
+
 export const useDeletePackage = () =>
   useCustomMutation(
     (id: string) => packageApi.deletePackage(id),

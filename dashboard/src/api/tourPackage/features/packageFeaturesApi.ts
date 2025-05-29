@@ -35,7 +35,7 @@ export const packageFeatureApi = {
     id: string,
     data: PackageFeaturePayload
   ): Promise<PackageFeature> => {
-    const response = await httpClient.put<ApiResponse<PackageFeature>>(
+    const response = await httpClient.patch<ApiResponse<PackageFeature>>(
       API_ENDPOINTS.PACKAGE_FEATURE.UPDATE(id),
       data
     );

@@ -45,20 +45,67 @@ const PackageForm = () => {
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
-  const [inclusions, setInclusions] = useState<{ id: string; name: string }[]>(
-    []
-  );
-  const [exclusions, setExclusions] = useState<{ id: string; name: string }[]>(
-    []
-  );
+  // Modified: Store IDs instead of strings for inclusions and exclusions
+  const [inclusionIDs, setInclusionIDs] = useState<string[]>([]);
+  const [exclusionIDs, setExclusionIDs] = useState<string[]>([]);
+  // Modified: Store selected itinerary IDs
   const [itineraryIDs, setItineraryIDs] = useState<string[]>([]);
 
   const selectOptions = itineraries.map((item, index) => ({
-    value: item.id,
+    value: item.id, // Modified: Use actual ID instead of index
     label: item.title,
   }));
 
-  const [timelines, setTimelines] = useState([{ day: 1, entries: [] }]);
+  const [timelines, setTimelines] = useState([
+    { day: 1, title: "", description: "", selectedOptions: [] },
+  ]);
+
+  const onSubmit = async (data: any) => {
+    console.log("data", data);
+    console.log("inclusionIDs", inclusionIDs);
+    console.log("exclusionIDs", exclusionIDs);
+    console.log("itineraryIDs", itineraryIDs);
+
+    const formData = new FormData();
+    formData.append("name", data.name);
+    formData.append("slug", data.slug);
+    formData.append("description", data.description);
+    formData.append("importantInfo", data.importantInfo);
+    formData.append("location", data.location);
+    formData.append("price", data.price);
+    formData.append("duration", data.duration);
+    formData.append("categoryID", data.categoryID);
+    formData.append("availability", data.availability);
+    formData.append("hotels", data.hotels);
+
+    // Modified: Use the proper ID arrays
+    data.features.forEach((id: string) => formData.append("featureIDs", id));
+    inclusionIDs.forEach((id: string) => formData.append("inclusionIDs", id));
+    exclusionIDs.forEach((id: string) => formData.append("exclusionIDs", id));
+    itineraryIDs.forEach((id: string) => formData.append("itineraryIDs", id));
+
+    formData.append("policyID", data.policyID);
+
+    console.log("formData", formData);
+    if (data.packageImage instanceof File) {
+      formData.append("imageUrl", data.packageImage);
+    }
+
+    // Convert to JSON object
+    const jsonObject: Record<string, any> = {};
+    formData.forEach((value, key) => {
+      jsonObject[key] = value;
+    });
+    console.log("jsonObject", jsonObject);
+
+    if (isEditMode) {
+      updatePackage({ id, packageData: formData });
+    } else {
+      const response = createPackage(formData);
+    }
+
+    // resetForm();
+  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -70,8 +117,8 @@ const PackageForm = () => {
 
   const resetForm = () => {
     reset();
-    setInclusions([]);
-    setExclusions([]);
+    setInclusionIDs([]);
+    setExclusionIDs([]);
     setItineraryIDs([]);
     setSelectedServices([]);
     setTimelines([{ day: 1, title: "", description: "", selectedOptions: [] }]);
@@ -92,33 +139,42 @@ const PackageForm = () => {
         description: packageData.description || "",
         importantInfo: packageData.importantInfo || "",
         location: packageData.location || "",
-        hotels: packageData.hotels || "",
         price: packageData.price || "",
         duration: packageData.duration || "",
         categoryID: packageData.categoryID || "",
         policyID: packageData.policyID || "",
         availability: packageData.availability || "",
-        features: packageData.features.map((inc) => inc.id) || [],
+        features: packageData.feature_ids || [],
       });
 
-      if (packageData.inclusions && Array.isArray(packageData.inclusions)) {
-        setInclusions(packageData.inclusions);
+      // Modified: Set the ID arrays directly
+      if (
+        packageData.inclusion_ids &&
+        Array.isArray(packageData.inclusion_ids)
+      ) {
+        setInclusionIDs(packageData.inclusion_ids);
       }
 
-      if (packageData.exclusions && Array.isArray(packageData.exclusions)) {
-        setExclusions(packageData.exclusions);
+      if (
+        packageData.exclusion_ids &&
+        Array.isArray(packageData.exclusion_ids)
+      ) {
+        setExclusionIDs(packageData.exclusion_ids);
       }
 
-      if (packageData.itineraries && Array.isArray(packageData.itineraries)) {
-        setItineraryIDs(packageData.itineraries.map((it) => it.id));
+      if (
+        packageData.itinerary_ids &&
+        Array.isArray(packageData.itinerary_ids)
+      ) {
+        setItineraryIDs(packageData.itinerary_ids);
       }
 
       if (packageData.imageUrl) {
         setImagePreview(packageData.imageUrl);
       }
 
-      if (packageData.timeline && Array.isArray(packageData.timeline)) {
-        setTimelines(packageData.timeline);
+      if (packageData.timeline_ids && Array.isArray(packageData.timeline_ids)) {
+        setTimelines(packageData.timeline_ids);
       }
     }
   }, [packageData]);
@@ -133,208 +189,149 @@ const PackageForm = () => {
     }
   };
 
+  // Modified: Add to inclusion with IDs
   const addToInclusion = () => {
-    const selected = services.filter((service) =>
+    // Find the service objects that match the selected services
+    const selectedServiceObjects = services.filter((service) =>
       selectedServices.includes(service.name)
     );
 
-    const alreadyIncluded = selected.filter((s) =>
-      inclusions.some((incl) => incl.id === s.id)
-    );
-    const alreadyExcluded = selected.filter((s) =>
-      exclusions.some((exc) => exc.id === s.id)
+    // Extract the IDs from the service objects
+    const selectedServiceIDs = selectedServiceObjects.map(
+      (service) => service.id
     );
 
-    if (alreadyIncluded.length || alreadyExcluded.length) {
-      const messages = [];
-      if (alreadyIncluded.length) messages.push("some already included");
-      if (alreadyExcluded.length) messages.push("some in exclusion list");
-      return toast.error(`Cannot add: ${messages.join(" and ")}.`);
+    const duplicateInclusion = selectedServiceIDs.some((serviceID) =>
+      inclusionIDs.includes(serviceID)
+    );
+
+    if (duplicateInclusion) {
+      toast.error("Services are already in the inclusion list.");
+      return;
     }
 
-    if (selected.length === 0) {
-      return toast.error("No valid services selected.");
+    const conflictingExclusion = selectedServiceIDs.some((serviceID) =>
+      exclusionIDs.includes(serviceID)
+    );
+
+    if (conflictingExclusion) {
+      toast.error("Services are already in the exclusion list.");
+      return;
     }
 
-    setInclusions((prev) => [...prev, ...selected]);
+    setInclusionIDs((prev) => [
+      ...prev,
+      ...selectedServiceIDs.filter((serviceID) => !prev.includes(serviceID)),
+    ]);
     setSelectedServices([]);
   };
 
+  // Modified: Add to exclusion with IDs
   const addToExclusion = () => {
-    const selected = services.filter((service) =>
+    // Find the service objects that match the selected services
+    const selectedServiceObjects = services.filter((service) =>
       selectedServices.includes(service.name)
     );
 
-    const alreadyExcluded = selected.filter((s) =>
-      exclusions.some((exc) => exc.id === s.id)
-    );
-    const alreadyIncluded = selected.filter((s) =>
-      inclusions.some((incl) => incl.id === s.id)
+    // Extract the IDs from the service objects
+    const selectedServiceIDs = selectedServiceObjects.map(
+      (service) => service.id
     );
 
-    if (alreadyExcluded.length || alreadyIncluded.length) {
-      const messages = [];
-      if (alreadyExcluded.length) messages.push("some already excluded");
-      if (alreadyIncluded.length) messages.push("some in inclusion list");
-      return toast.error(`Cannot add: ${messages.join(" and ")}.`);
+    const duplicateExclusion = selectedServiceIDs.some((serviceID) =>
+      exclusionIDs.includes(serviceID)
+    );
+
+    if (duplicateExclusion) {
+      toast.error("Services are already in the exclusion list.");
+      return;
     }
 
-    if (selected.length === 0) {
-      return toast.error("No valid services selected.");
+    const conflictingInclusion = selectedServiceIDs.some((serviceID) =>
+      inclusionIDs.includes(serviceID)
+    );
+
+    if (conflictingInclusion) {
+      toast.error("Services are already in the inclusion list.");
+      return;
     }
 
-    setExclusions((prev) => [...prev, ...selected]);
+    setExclusionIDs((prev) => [
+      ...prev,
+      ...selectedServiceIDs.filter((serviceID) => !prev.includes(serviceID)),
+    ]);
     setSelectedServices([]);
   };
 
+  // Modified: Remove inclusion by ID
   const removeInclusion = (index: number) => {
-    setInclusions((prev) => prev.filter((_, i) => i !== index));
+    setInclusionIDs((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // Modified: Remove exclusion by ID
   const removeExclusion = (index: number) => {
-    setExclusions((prev) => prev.filter((_, i) => i !== index));
+    setExclusionIDs((prev) => prev.filter((_, i) => i !== index));
   };
 
   const isServiceSelected = (service: string) =>
     selectedServices.includes(service);
 
-  const getNextAvailableDay = () => {
-    const usedDays = timelines.map((t) => t.day);
-    let day = 1;
-    while (usedDays.includes(day)) day++;
-    return day;
+  const updateTimeline = (index: number, field: string, value: any) => {
+    const newTimelines = [...timelines];
+    (newTimelines[index] as any)[field] = value;
+    setTimelines(newTimelines);
   };
 
   const addTimeline = () => {
-    setTimelines((prev) => [
-      ...prev,
+    setTimelines([
+      ...timelines,
       {
-        day: getNextAvailableDay(),
-        entries: [],
+        day: timelines.length + 1,
+        title: "",
+        description: "",
+        selectedOptions: [],
       },
     ]);
   };
 
-  const updateTimelineDay = (index: number, newDay: number) => {
-    let adjustedDay = Math.max(1, newDay);
-
-    const usedDays = timelines
-      .map((t, i) => (i !== index ? t.day : null))
-      .filter((d): d is number => typeof d === "number");
-
-    if (usedDays.includes(adjustedDay)) {
-      const original = adjustedDay;
-      const maxDay = Math.max(...usedDays, adjustedDay) + 10;
-      let available = adjustedDay;
-      let offset = 1;
-
-      while (offset < maxDay) {
-        if (
-          !usedDays.includes(adjustedDay - offset) &&
-          adjustedDay - offset >= 1
-        ) {
-          available = adjustedDay - offset;
-          break;
-        }
-        if (!usedDays.includes(adjustedDay + offset)) {
-          available = adjustedDay + offset;
-          break;
-        }
-        offset++;
-      }
-
-      adjustedDay = available;
-      toast.error(
-        `Day ${original} already exists. Auto-corrected to Day ${adjustedDay}.`
-      );
-    }
-
-    setTimelines((prev) =>
-      prev.map((t, i) => (i === index ? { ...t, day: adjustedDay } : t))
-    );
-  };
-
   const removeTimeline = (index: number) => {
-    setTimelines((prev) => prev.filter((_, i) => i !== index));
+    const newTimelines = [...timelines];
+    newTimelines.splice(index, 1);
+    setTimelines(newTimelines);
   };
 
+  // Modified: Handle multi-select change to work with IDs
   const handleMultiSelectChange = (selected: any, index: number) => {
-    const entries = selected
-      .map((opt: any) => {
-        const found = itineraries.find((it) => it.id === opt.value);
-        if (!found) return null;
-        return {
-          itineraryId: found.id,
-          title: found.title,
-          description: found.description,
-        };
-      })
+    const selectedItineraryObjects = selected
+      .map((opt: any) =>
+        itineraries.find((itinerary) => itinerary.id === opt.value)
+      )
       .filter(Boolean);
 
-    setTimelines((prev) =>
-      prev.map((item, i) => (i === index ? { ...item, entries } : item))
-    );
+    // Update itineraryIDs with the selected IDs
+    const selectedIDs = selectedItineraryObjects.map((item: any) => item.id);
+    setItineraryIDs((prev) => {
+      const newIDs = [...prev];
+      // Replace any existing IDs for this timeline with the new selection
+      return [...new Set([...newIDs, ...selectedIDs])];
+    });
+
+    const newTitle = selectedItineraryObjects
+      .map((item: any) => item.title)
+      .join(", ");
+    const newDescription = selectedItineraryObjects
+      .map((item: any) => item.description)
+      .join("\n");
+
+    const newTimelines = [...timelines];
+    newTimelines[index].selectedOptions = selected;
+    newTimelines[index].title = newTitle;
+    newTimelines[index].description = newDescription;
+
+    setTimelines(newTimelines);
   };
 
-  const onSubmit = async (data: any) => {
-    const formData = new FormData();
-
-    const appendField = (key: string, value: any) => {
-      if (value !== undefined && value !== null) {
-        formData.append(key, value);
-      }
-    };
-
-    const simpleFields = [
-      "name",
-      "slug",
-      "description",
-      "importantInfo",
-      "location",
-      "price",
-      "duration",
-      "categoryID",
-      "availability",
-      "hotels",
-      "policyID",
-    ];
-    simpleFields.forEach((field) => appendField(field, data[field]));
-
-    appendField("timeline", JSON.stringify(timelines));
-    appendField(
-      "inclusionIDs",
-      JSON.stringify(inclusions.map((inc) => inc.id))
-    );
-    appendField(
-      "exclusionIDs",
-      JSON.stringify(exclusions.map((exc) => exc.id))
-    );
-    appendField("featureIDs", JSON.stringify(data.features));
-
-    if (data.packageImage instanceof File) {
-      formData.append("imageUrl", data.packageImage);
-    }
-
-    if (process.env.NODE_ENV === "development") {
-      const jsonObject: Record<string, any> = {};
-      formData.forEach((value, key) => {
-        jsonObject[key] = value;
-      });
-      console.log("Submitting package:", jsonObject);
-    }
-
-    try {
-      if (isEditMode) {
-        updatePackage({ id, packageData: formData });
-      } else {
-        createPackage(formData);
-        // resetForm();
-      }
-    } catch (error) {
-      console.error("Package submission failed:", error);
-    }
-  };
-
+  // Rest of the component remains the same...
   return (
     <>
       <Toaster position="top-right" toastOptions={{ duration: 2000 }} />
@@ -526,8 +523,8 @@ const PackageForm = () => {
                   })}
                 >
                   <option value="">Select</option>
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
                 </Form.Control>
                 {errors.hotels && (
                   <small className="text-danger">
@@ -622,12 +619,12 @@ const PackageForm = () => {
               <Col md={6}>
                 <h6 className="fw-bold">Inclusions</h6>
                 <ul>
-                  {inclusions.map((service, index) => (
+                  {inclusionIDs.map((item, index) => (
                     <li
                       key={index}
                       className="d-flex justify-content-between align-items-center"
                     >
-                      <span>{capitalizeFirstLetter(service.name)}</span>
+                      <span>{capitalizeFirstLetter(item)}</span>
                       <Button
                         variant="outline-danger"
                         size="sm"
@@ -643,12 +640,12 @@ const PackageForm = () => {
               <Col md={6}>
                 <h6 className="fw-bold">Exclusions</h6>
                 <ul>
-                  {exclusions.map((service, index) => (
+                  {exclusionIDs.map((item, index) => (
                     <li
                       key={index}
                       className="d-flex justify-content-between align-items-center"
                     >
-                      <span>{capitalizeFirstLetter(service.name)}</span>
+                      <span>{capitalizeFirstLetter(item)}</span>
                       <Button
                         variant="outline-danger"
                         size="sm"
@@ -663,7 +660,7 @@ const PackageForm = () => {
               </Col>
             </Row>
           </div>
-          {/* <div className="p-3 mb-4 border rounded">
+          <div className="p-3 mb-4 border rounded">
             <h5 className="fw-bold">Itinerary (Timeline)</h5>
 
             {timelines.map((timeline, index) => (
@@ -676,7 +673,7 @@ const PackageForm = () => {
                         type="number"
                         value={timeline.day}
                         onChange={(e) =>
-                          updateTimelineDay(index, parseInt(e.target.value))
+                          updateTimeline(index, "day", parseInt(e.target.value))
                         }
                         min={1}
                       />
@@ -685,14 +682,11 @@ const PackageForm = () => {
 
                   <Col md={10}>
                     <Form.Group>
-                      <Form.Label>Select Itineraries (Multi-Select)</Form.Label>
+                      <Form.Label>Select Itinerary (Multi-Select)</Form.Label>
                       <Select
                         options={selectOptions}
                         isMulti
-                        value={timeline.entries.map((entry) => ({
-                          value: entry.itineraryId,
-                          label: entry.title,
-                        }))}
+                        value={timeline.selectedOptions}
                         onChange={(selected) =>
                           handleMultiSelectChange(selected, index)
                         }
@@ -702,31 +696,36 @@ const PackageForm = () => {
                   </Col>
                 </Row>
 
-                {timeline.entries.map((entry, eIdx) => (
-                  <Row key={eIdx} className="mb-2">
-                    <Col md={6}>
-                      <Form.Group>
-                        <Form.Label>Title</Form.Label>
-                        <Form.Control
-                          type="text"
-                          value={entry.title}
-                          readOnly
-                        />
-                      </Form.Group>
-                    </Col>
-                    <Col md={6}>
-                      <Form.Group>
-                        <Form.Label>Description</Form.Label>
-                        <Form.Control
-                          as="textarea"
-                          rows={3}
-                          value={entry.description}
-                          readOnly
-                        />
-                      </Form.Group>
-                    </Col>
-                  </Row>
-                ))}
+                <Row className="mb-2">
+                  <Col md={6}>
+                    <Form.Group>
+                      <Form.Label>Title</Form.Label>
+                      <Form.Control
+                        type="text"
+                        value={timeline.title}
+                        onChange={(e) =>
+                          updateTimeline(index, "title", e.target.value)
+                        }
+                        placeholder="Enter title"
+                      />
+                    </Form.Group>
+                  </Col>
+
+                  <Col md={6}>
+                    <Form.Group>
+                      <Form.Label>Description</Form.Label>
+                      <Form.Control
+                        as="textarea"
+                        rows={3}
+                        value={timeline.description}
+                        onChange={(e) =>
+                          updateTimeline(index, "description", e.target.value)
+                        }
+                        placeholder="Enter description"
+                      />
+                    </Form.Group>
+                  </Col>
+                </Row>
 
                 <Button variant="danger" onClick={() => removeTimeline(index)}>
                   <AiOutlineClose /> Remove
@@ -737,114 +736,157 @@ const PackageForm = () => {
             <Button variant="primary" onClick={addTimeline}>
               <AiOutlinePlus /> Add Day
             </Button>
-          </div> */}
-
-          <div className="p-4 mb-5 border rounded bg-white shadow-sm">
-            <h4 className="fw-bold mb-4">Itinerary Timeline</h4>
-
-            {timelines.map((timeline, index) => (
-              <div
-                key={index}
-                className="mb-4 p-4 border rounded bg-light-subtle"
-              >
-                <Row className="align-items-center mb-3">
-                  <Col md={2}>
-                    <Form.Group controlId={`timeline-day-${index}`}>
-                      <Form.Label className="fw-semibold">Day</Form.Label>
-                      <Form.Control
-                        type="number"
-                        value={timeline.day}
-                        onChange={(e) =>
-                          updateTimelineDay(index, parseInt(e.target.value))
-                        }
-                        min={1}
-                      />
-                    </Form.Group>
-                  </Col>
-
-                  <Col md={10}>
-                    <Form.Group controlId={`timeline-select-${index}`}>
-                      <Form.Label className="fw-semibold">
-                        Select Itineraries
-                      </Form.Label>
-                      <Select
-                        options={selectOptions}
-                        isMulti
-                        value={timeline.entries.map((entry) => ({
-                          value: entry.itineraryId,
-                          label: entry.title,
-                        }))}
-                        onChange={(selected) =>
-                          handleMultiSelectChange(selected, index)
-                        }
-                        placeholder="Choose itineraries..."
-                        className="basic-multi-select"
-                        classNamePrefix="select"
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
-
-                {timeline.entries.length > 0 && (
-                  <>
-                    <h6 className="fw-semibold text-muted mb-3">
-                      Selected Entries
-                    </h6>
-                    {timeline.entries.map((entry, eIdx) => (
-                      <Row key={eIdx} className="mb-3">
-                        <Col md={6}>
-                          <Form.Group
-                            controlId={`entry-title-${index}-${eIdx}`}
-                          >
-                            <Form.Label>Title</Form.Label>
-                            <Form.Control
-                              type="text"
-                              value={entry.title}
-                              readOnly
-                              plaintext
-                              className="bg-white"
-                            />
-                          </Form.Group>
-                        </Col>
-                        <Col md={6}>
-                          <Form.Group controlId={`entry-desc-${index}-${eIdx}`}>
-                            <Form.Label>Description</Form.Label>
-                            <Form.Control
-                              as="textarea"
-                              rows={2}
-                              value={entry.description}
-                              readOnly
-                              plaintext
-                              className="bg-white"
-                            />
-                          </Form.Group>
-                        </Col>
-                      </Row>
-                    ))}
-                  </>
-                )}
-
-                <div className="d-flex justify-content-end">
-                  <Button
-                    variant="outline-danger"
-                    size="sm"
-                    onClick={() => removeTimeline(index)}
-                  >
-                    <AiOutlineClose className="me-1" />
-                    Remove Day
-                  </Button>
-                </div>
-              </div>
-            ))}
-
-            <div className="text-end">
-              <Button variant="primary" onClick={addTimeline}>
-                <AiOutlinePlus className="me-1" />
-                Add Day
-              </Button>
-            </div>
           </div>
-
+          {/* <Row>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Booking Policy</Form.Label>
+                <Controller
+                  name="bookingPolicy"
+                  control={control}
+                  rules={{ required: "Booking Policy is required" }}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      options={policies.map((policy) => ({
+                        value: policy.bookingPolicy,
+                        label: capitalizeFirstLetter(policy.bookingPolicy),
+                      }))}
+                      value={
+                        policies
+                          .map((policy) => ({
+                            value: policy.bookingPolicy,
+                            label: capitalizeFirstLetter(policy.bookingPolicy),
+                          }))
+                          .find((option) => option.value === field.value) ||
+                        null
+                      }
+                      onChange={(selectedOption) =>
+                        field.onChange(selectedOption?.value)
+                      }
+                    />
+                  )}
+                />
+                {errors.bookingPolicy && (
+                  <small className="text-danger">
+                    {errors.bookingPolicy.message as string}
+                  </small>
+                )}
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Cancellation Policy</Form.Label>
+                <Controller
+                  name="cancellationPolicy"
+                  control={control}
+                  rules={{ required: "Cancellation Policy is required" }}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      options={policies.map((policy) => ({
+                        value: policy.cancellationPolicy,
+                        label: capitalizeFirstLetter(policy.cancellationPolicy),
+                      }))}
+                      value={
+                        policies
+                          .map((policy) => ({
+                            value: policy.cancellationPolicy,
+                            label: capitalizeFirstLetter(
+                              policy.cancellationPolicy
+                            ),
+                          }))
+                          .find((option) => option.value === field.value) ||
+                        null
+                      }
+                      onChange={(selectedOption) =>
+                        field.onChange(selectedOption?.value)
+                      }
+                    />
+                  )}
+                />
+                {errors.cancellationPolicy && (
+                  <small className="text-danger">
+                    {errors.cancellationPolicy.message as string}
+                  </small>
+                )}
+              </Form.Group>
+            </Col>
+          </Row>
+          <Row>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Payment Terms</Form.Label>
+                <Controller
+                  name="paymentTerms"
+                  control={control}
+                  rules={{ required: "Payment Terms is required" }}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      options={policies.map((policy) => ({
+                        value: policy.paymentTerms,
+                        label: capitalizeFirstLetter(policy.paymentTerms),
+                      }))}
+                      value={
+                        policies
+                          .map((policy) => ({
+                            value: policy.paymentTerms,
+                            label: capitalizeFirstLetter(policy.paymentTerms),
+                          }))
+                          .find((option) => option.value === field.value) ||
+                        null
+                      }
+                      onChange={(selectedOption) =>
+                        field.onChange(selectedOption?.value)
+                      }
+                    />
+                  )}
+                />
+                {errors.paymentTerms && (
+                  <small className="text-danger">
+                    {errors.paymentTerms.message as string}
+                  </small>
+                )}
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Visa Details</Form.Label>
+                <Controller
+                  name="visaDetails"
+                  control={control}
+                  rules={{ required: "Visa Details is required" }}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      options={policies.map((policy) => ({
+                        value: policy.visaDetail,
+                        label: capitalizeFirstLetter(policy.visaDetail),
+                      }))}
+                      value={
+                        policies
+                          .map((policy) => ({
+                            value: policy.visaDetail,
+                            label: capitalizeFirstLetter(policy.visaDetail),
+                          }))
+                          .find((option) => option.value === field.value) ||
+                        null
+                      }
+                      onChange={(selectedOption) =>
+                        field.onChange(selectedOption?.value)
+                      }
+                    />
+                  )}
+                />
+                {errors.visaDetails && (
+                  <small className="text-danger">
+                    {errors.visaDetails.message as string}
+                  </small>
+                )}
+              </Form.Group>
+            </Col>
+          </Row> */}
           <Row>
             <Col md={12}>
               <Form.Group className="mb-3">

@@ -6,6 +6,7 @@ import {
   Pagination,
   OverlayTrigger,
   Tooltip,
+  Form,
 } from "react-bootstrap";
 import {
   FaPlus,
@@ -16,24 +17,48 @@ import {
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/config/route-paths.config";
-import { useTours, useDeleteTour } from "@/hooks/useTour";
+import { usePackages, useUpdatePackageAvailability, useDeletePackage } from "@/hooks/usePackage";
+import { capitalizeFirstLetter } from "@/utils/capitalizeFirstLetter";
+import Swal from "sweetalert2";
 
 const PackageList = () => {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
-  const toursPerPage = 10;
+  const packagesPerPage = 10;
 
-  const { data: tours } = useTours();
-  const { mutate: deleteTour } = useDeleteTour();
+  const { data: customPackages } = usePackages();
+  const { mutate: deletePackage } = useDeletePackage();
+  const { mutate: updatePackageAvailability } = useUpdatePackageAvailability();
+console.log("Custom Packages:", customPackages);
 
-  const handleDelete = (id: number) => {
-    deleteTour(id);
+const handleDelete = (id: string) => {
+  Swal.fire({
+    title: "Are you sure?",
+    text: "This package will be permanently deleted!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#3085d6",
+    confirmButtonText: "Yes, delete it!",
+  }).then((result: any) => {
+    if (result.isConfirmed) {
+      deletePackage(id);
+      Swal.fire("Deleted!", "The package has been deleted.", "success");
+    }
+  });
+};
+
+  const handleAvailabilityChange = (id: string, newAvailability: string) => {
+    updatePackageAvailability({ id, availability: newAvailability });
   };
 
-  const indexOfLastTour = currentPage * toursPerPage;
-  const indexOfFirstTour = indexOfLastTour - toursPerPage;
-  const currentTours = tours?.slice(indexOfFirstTour, indexOfLastTour);
-  const totalPages = Math.ceil((tours?.length || 0) / toursPerPage);
+  const indexOfLastPackage = currentPage * packagesPerPage;
+  const indexOfFirstPackage = indexOfLastPackage - packagesPerPage;
+  const currentPackages = customPackages?.slice(
+    indexOfFirstPackage,
+    indexOfLastPackage
+  );
+  const totalPages = Math.ceil((customPackages?.length || 0) / packagesPerPage);
 
   return (
     <Container className="p-5 shadow-lg rounded bg-light">
@@ -49,7 +74,7 @@ const PackageList = () => {
           <FaPlus className="me-2" /> Create Package
         </Button>
       </div>
-      {tours?.length > 0 ? (
+      {currentPackages && currentPackages?.length > 0 ? (
         <>
           <Table
             striped
@@ -60,77 +85,111 @@ const PackageList = () => {
           >
             <thead className="table-dark text-center">
               <tr>
-                <th>#</th>
+                <th>S.No</th>
                 <th>Name</th>
                 <th>Location</th>
+                <th>Category</th>
+                <th>Status</th>
                 <th>Created At</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody className="text-center bg-white">
-              {currentTours.map((tour, index) => (
-                <tr key={tour.id} className="align-middle">
-                  <td className="fw-bold">{indexOfFirstTour + index + 1}</td>
-                  <td>{tour.name}</td>
-                  <td>{tour.location}</td>
-                  <td>
-                    {tour.created_at
-                      ? new Intl.DateTimeFormat("en-GB", {
-                          day: "2-digit",
-                          month: "2-digit",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          hour12: true,
-                        }).format(new Date(tour.created_at))
-                      : "N/A"}
-                  </td>
-                  <td>
-                    <OverlayTrigger
-                      placement="top"
-                      overlay={<Tooltip>Edit Tour</Tooltip>}
-                    >
-                      <Button
-                        variant="outline-primary"
-                        size="sm"
-                        className="me-2"
-                        onClick={() =>
-                          navigate(`${ROUTES.PRIVATE.EDIT_TOUR(tour.id)}`)
+              {currentPackages &&
+                currentPackages.map((customPackage, index) => (
+                  <tr key={customPackage.id} className="align-middle">
+                    <td className="fw-bold">
+                      {indexOfFirstPackage + index + 1}
+                    </td>
+                    <td>{capitalizeFirstLetter(customPackage.name)}</td>
+                    <td>{capitalizeFirstLetter(customPackage.location)}</td>
+                    <td>{capitalizeFirstLetter(customPackage.category.name)}</td>
+                    <td>
+                      <Form.Select
+                        value={customPackage.availability}
+                        onChange={(e: any) =>
+                          handleAvailabilityChange(
+                            customPackage.id,
+                            e.target.value
+                          )
                         }
+                        className={`fw-bold ${
+                          customPackage.availability === "Available"
+                            ? "text-success"
+                            : customPackage.availability === "SoldOut"
+                            ? "text-danger"
+                            : "text-warning"
+                        }`}
                       >
-                        <FaEdit />
-                      </Button>
-                    </OverlayTrigger>
-                    <OverlayTrigger
-                      placement="top"
-                      overlay={<Tooltip>Preview Tour</Tooltip>}
-                    >
-                      <Button
-                        variant="outline-info"
-                        size="sm"
-                        className="me-2"
-                        onClick={() =>
-                          navigate(`${ROUTES.PRIVATE.TOUR_DETAILS(tour.id)}`)
-                        }
+                        <option value="Available">Available</option>
+                        <option value="SoldOut">Sold Out</option>
+                        <option value="ComingSoon">Coming Soon</option>
+                      </Form.Select>
+                    </td>
+                    <td>
+                      {customPackage.createdAt
+                        ? new Intl.DateTimeFormat("en-GB", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true,
+                          }).format(new Date(customPackage.createdAt))
+                        : "N/A"}
+                    </td>
+                    <td>
+                      <OverlayTrigger
+                        placement="top"
+                        overlay={<Tooltip>Edit Package</Tooltip>}
                       >
-                        <FaEye />
-                      </Button>
-                    </OverlayTrigger>
-                    <OverlayTrigger
-                      placement="top"
-                      overlay={<Tooltip>Delete Tour</Tooltip>}
-                    >
-                      <Button
-                        variant="outline-danger"
-                        size="sm"
-                        onClick={() => handleDelete(tour.id)}
+                        <Button
+                          variant="outline-primary"
+                          size="sm"
+                          className="me-2"
+                          onClick={() =>
+                            navigate(
+                              `${ROUTES.PRIVATE.EDIT_PACKAGE(customPackage.id)}`
+                            )
+                          }
+                        >
+                          <FaEdit />
+                        </Button>
+                      </OverlayTrigger>
+                      <OverlayTrigger
+                        placement="top"
+                        overlay={<Tooltip>Preview Package</Tooltip>}
                       >
-                        <FaTrash />
-                      </Button>
-                    </OverlayTrigger>
-                  </td>
-                </tr>
-              ))}
+                        <Button
+                          variant="outline-info"
+                          size="sm"
+                          className="me-2"
+                          onClick={() =>
+                            navigate(
+                              `${ROUTES.PRIVATE.PACKAGE_DETAILS(
+                                customPackage.id
+                              )}`
+                            )
+                          }
+                        >
+                          <FaEye />
+                        </Button>
+                      </OverlayTrigger>
+                      <OverlayTrigger
+                        placement="top"
+                        overlay={<Tooltip>Delete Package</Tooltip>}
+                      >
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          onClick={() => handleDelete(customPackage.id)}
+                        >
+                          <FaTrash />
+                        </Button>
+                      </OverlayTrigger>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </Table>
 
@@ -167,7 +226,7 @@ const PackageList = () => {
       ) : (
         <div className="text-center text-muted p-4">
           <FaExclamationCircle size={50} className="mb-3 text-secondary" />
-          <p className="fw-bold">No tours found. Start by creating one!</p>
+          <p className="fw-bold">No packages found. Start by creating one!</p>
         </div>
       )}
     </Container>

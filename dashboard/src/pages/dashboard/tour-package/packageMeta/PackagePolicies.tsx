@@ -125,7 +125,7 @@ const PackagePolicyList = () => {
                         <Button
                           variant="outline-primary"
                           size="sm"
-                          className="me-2"
+                          className="m-1"
                           onClick={() => handleEdit(policy)}
                         >
                           <FaEdit />
@@ -135,6 +135,7 @@ const PackagePolicyList = () => {
                         <Button
                           variant="outline-danger"
                           size="sm"
+                          className="m-1"
                           onClick={() => handleDelete(policy.id)}
                         >
                           <FaTrash />

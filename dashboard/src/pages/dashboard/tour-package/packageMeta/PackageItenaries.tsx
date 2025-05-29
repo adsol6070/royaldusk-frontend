@@ -111,7 +111,7 @@ const PackageItineraryList = () => {
                         <Button
                           variant="outline-primary"
                           size="sm"
-                          className="me-2"
+                          className="m-1"
                           onClick={() => handleEditItinerary(itinerary)}
                         >
                           <FaEdit />
@@ -124,6 +124,7 @@ const PackageItineraryList = () => {
                         <Button
                           variant="outline-danger"
                           size="sm"
+                          className="m-1"
                           onClick={() => handleDelete(itinerary.id)}
                         >
                           <FaTrash />

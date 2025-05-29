@@ -35,7 +35,7 @@ export const packageItineraryApi = {
     id: string,
     data: PackageItineraryPayload
   ): Promise<PackageItinerary> => {
-    const response = await httpClient.put<ApiResponse<PackageItinerary>>(
+    const response = await httpClient.patch<ApiResponse<PackageItinerary>>(
       API_ENDPOINTS.PACKAGE_ITINERARY.UPDATE(id),
       data
     );

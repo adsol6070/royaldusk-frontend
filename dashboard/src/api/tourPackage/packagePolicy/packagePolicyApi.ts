@@ -35,7 +35,7 @@ export const packagePolicyApi = {
     id: string,
     data: PackagePolicyPayload
   ): Promise<PackagePolicy> => {
-    const response = await httpClient.put<ApiResponse<PackagePolicy>>(
+    const response = await httpClient.patch<ApiResponse<PackagePolicy>>(
       API_ENDPOINTS.PACKAGE_POLICY.UPDATE(id),
       data
     );

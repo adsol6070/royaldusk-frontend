@@ -35,7 +35,7 @@ export const packageCategoryApi = {
     id: string,
     data: PackageCategoryPayload
   ): Promise<PackageCategory> => {
-    const response = await httpClient.put<ApiResponse<PackageCategory>>(
+    const response = await httpClient.patch<ApiResponse<PackageCategory>>(
       API_ENDPOINTS.PACKAGE_CATEGORY.UPDATE(id),
       data
     );
