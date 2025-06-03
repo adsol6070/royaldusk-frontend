@@ -1,6 +1,6 @@
 import { FiHome } from "react-icons/fi";
 import { BiNews } from "react-icons/bi";
-import { FaMapMarkedAlt, FaFileAlt, FaSuitcaseRolling } from "react-icons/fa";
+import { FaSuitcaseRolling, FaClipboardList } from "react-icons/fa";
 import { ROUTES } from "@/config/route-paths.config";
 
 export const sidebarMenuItems = [
@@ -30,22 +30,6 @@ export const sidebarMenuItems = [
       },
     ],
   },
-  // {
-  //   label: "Tours",
-  //   icon: <FaMapMarkedAlt size="22" />,
-  //   subMenu: [
-  //     {
-  //       label: "All Tours",
-  //       icon: <span>-</span>,
-  //       path: ROUTES.PRIVATE.TOUR_LIST,
-  //     },
-  //     {
-  //       label: "Create Tour",
-  //       icon: <span>-</span>,
-  //       path: ROUTES.PRIVATE.CREATE_TOUR,
-  //     },
-  //   ],
-  // },
   {
     label: "Packages",
     icon: <FaSuitcaseRolling size={22} />,
@@ -72,9 +56,9 @@ export const sidebarMenuItems = [
       },
     ],
   },
-  // {
-  //   label: "Invoices",
-  //   icon: <FaFileAlt size="22" />,
-  //   path: ROUTES.PRIVATE.INVOICE_LIST,
-  // },
+  {
+    label: "Bookings",
+    icon: <FaClipboardList size={22} />,
+    path: ROUTES.PRIVATE.BOOKING_LIST,
+  },
 ];

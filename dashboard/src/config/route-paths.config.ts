@@ -42,6 +42,10 @@ const ROUTE_PATHS = {
   EDIT_PACKAGE: (packageId = ":id") => `/dashboard/package/edit/${packageId}`,
   PACKAGE_META: `/dashboard/package/packagemeta`,
   PACKAGE_ENQUIRY: `/dashboard/package/packageenquiry`,
+
+  BOOKING_LIST: "/dashboard/bookings/list",
+  BOOKING_DETAILS: (bookingId = ":id") =>
+    `/dashboard/bookings/details/${bookingId}`,
 };
 
 const getFullPath = <T extends string | ((...args: any[]) => string)>(

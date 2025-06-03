@@ -26,6 +26,8 @@ import {
   PackageEnquiry,
   ResendVerification,
   VerifyEmail,
+  BookingList,
+  BookingDetail,
 } from "@/pages";
 
 export const AUTH_ROUTES = [
@@ -66,4 +68,7 @@ export const PRIVATE_ROUTES = [
   { path: ROUTE_PATHS.EDIT_PACKAGE(), element: <PackageForm /> },
   { path: ROUTE_PATHS.PACKAGE_META, element: <PackageMeta /> },
   { path: ROUTE_PATHS.PACKAGE_ENQUIRY, element: <PackageEnquiry /> },
+
+  { path: ROUTE_PATHS.BOOKING_LIST, element: <BookingList /> },
+  { path: ROUTE_PATHS.BOOKING_DETAILS(), element: <BookingDetail /> },
 ];
