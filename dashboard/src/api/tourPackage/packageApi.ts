@@ -33,12 +33,20 @@ export const packageApi = {
   updatePackage: async (id: string, data: FormData): Promise<Package> => {
     const response = await httpClient.patch<Package>(
       API_ENDPOINTS.PACKAGES.UPDATE(id),
-      data
+      data,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
     );
     return response.data;
   },
 
-  updatePackageAvailability: async (id: string, availability: string): Promise<Package> => {
+  updatePackageAvailability: async (
+    id: string,
+    availability: string
+  ): Promise<Package> => {
     const response = await httpClient.patch<Package>(
       API_ENDPOINTS.PACKAGES.UPDATE_AVAILABILITY(id),
       { availability }

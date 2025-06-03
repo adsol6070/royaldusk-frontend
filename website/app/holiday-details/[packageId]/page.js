@@ -5,16 +5,20 @@ import ReveloLayout from "@/layout/ReveloLayout";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
-import { Toaster } from "react-hot-toast";
+import { Toaster, toast } from "react-hot-toast";
 import { packageApi } from "@/common/api";
 import SkeletonLoader from "@/components/SkeletonLoader";
 import { activityIcons } from "@/utility/activityIcons";
+import { useCart } from "@/common/context/CartContext";
+import { useRouter } from "next/navigation";
+import capitalizeFirstLetter from "@/utility/capitalizeFirstLetter";
 
-const page = ({ params }) => {
+const Page = ({ params }) => {
   const [showModal, setShowModal] = useState(false);
+  const { addToCart, cartItems } = useCart();
+  const router = useRouter();
 
   const packageId = params.packageId;
-  // const packageId = "cbf394b2-20fa-4699-8545-1f79741980c0";
   const [packageDetail, setPackagedetail] = useState(null);
 
   console.log("Package Detail:", packageDetail);
@@ -41,6 +45,17 @@ const page = ({ params }) => {
     fetchPackageDetail(packageId);
   }, [packageId]);
 
+  const handleAddToCart = () => {
+    addToCart(packageDetail);
+    toast.success('Package added to cart!');
+  };
+
+  const handleViewCart = () => {
+    router.push('/cart');
+  };
+
+  const isInCart = cartItems.some(item => item.id === packageDetail?.id);
+
   return (
     <ReveloLayout>
       <Modal isOpen={showModal} onClose={() => setShowModal(false)} />
@@ -51,76 +66,100 @@ const page = ({ params }) => {
       ) : (
         <div>
           <div
-            class="pt-3 pb-4 text-center"
+            className="pt-3 pb-4 text-center"
             data-aos="fade-up"
             data-aos-duration="1500"
             data-aos-offset="50"
           >
-            <Toaster position="top-right" toastOptions={{ duration: 2000 }} />
-            <h2 class="mb-3">Package Detail</h2>
+            <h2 className="mb-3">Package Detail</h2>
             <nav aria-label="breadcrumb">
-              <ol class="breadcrumb justify-content-center mb-0">
-                <li class="breadcrumb-item">
-                  <a href="/">Home</a>
+              <ol className="breadcrumb justify-content-center mb-0">
+                <li className="breadcrumb-item">
+                  <Link href="/">Home</Link>
                 </li>
-                <li class="breadcrumb-item">
-                  <a href="#">Holidays</a>
+                <li className="breadcrumb-item">
+                  <Link href="/holidays">Holidays</Link>
                 </li>
-                <li class="breadcrumb-item">
-                  <a href="#">{packageDetail.location}</a>
+                <li className="breadcrumb-item">
+                  <Link href="#">{capitalizeFirstLetter(packageDetail.location.name)}</Link>
                 </li>
-                <li class="breadcrumb-item active" aria-current="page">
+                <li className="breadcrumb-item active" aria-current="page">
                   {packageDetail.name}
                 </li>
               </ol>
             </nav>
           </div>
+
           <section
-            class="bg-light"
+            className="bg-light"
             data-aos="fade-up"
             data-aos-duration="1500"
             data-aos-offset="50"
           >
-            <div class="container">
-              <div class="position-relative">
-                <div class="ratio ratio-16x9">
+            <div className="container">
+              <div className="position-relative">
+                <div className="ratio ratio-16x9">
                   <img
-                    src={`${packageDetail.imageUrl}`}
+                    src={packageDetail.imageUrl}
                     alt={packageDetail.name}
-                    class="w-100 img-fluid object-fit-cover"
+                    className="w-100 img-fluid object-fit-cover"
                   />
                 </div>
 
                 <div
-                  class="position-absolute top-0 start-0 text-white px-2 py-1 small fw-bold"
+                  className="position-absolute top-0 start-0 text-white px-2 py-1 small fw-bold"
                   style={{ backgroundColor: "#ee8b50" }}
                 >
-                  {packageDetail.duration}
+                  {`${packageDetail.duration}D / ${packageDetail.duration - 1}N`}
                 </div>
 
                 <div
-                  class="d-none d-md-block position-absolute top-50 end-0 translate-middle-y bg-white shadow p-4 me-4"
-                  style={{ width: "300px;", zIndex: "10;" }}
+                  className="d-none d-md-block position-absolute top-50 end-0 translate-middle-y bg-white shadow p-4 me-4"
+                  style={{ width: "300px", zIndex: "10" }}
                 >
                   <h4>{packageDetail.name}</h4>
-                  <div class="mb-2">
-                    <span class="text-warning">
+                  <div className="mb-2">
+                    <span className="text-warning">
                       &#9733;&#9733;&#9733;&#9733;&#9734;
                     </span>
-                    <span class="text-muted small ms-2">
+                    <span className="text-muted small ms-2">
                       {packageDetail.review} Reviews
                     </span>
                   </div>
-                  <div class="border p-3 text-center mt-3">
-                    <small class="text-muted d-block">
+                  <div className="border p-3 text-center mt-3">
+                    <small className="text-muted d-block">
                       From {packageDetail.currency}
                     </small>
-                    <div class="h3 fw-bold mb-1">{packageDetail.price}</div>
-                    <small class="text-muted">Per Person</small>
+                    <div className="h3 fw-bold mb-1">{packageDetail.price}</div>
+                    <small className="text-muted">Per Person</small>
                   </div>
-                  <div class="d-grid mt-3">
+                  <div className="d-grid gap-2 mt-3">
+                    {isInCart ? (
+                      <button
+                        className="btn text-white fw-bold"
+                        style={{
+                          backgroundColor: "#28a745",
+                          border: "1px solid #28a745",
+                        }}
+                        onClick={handleViewCart}
+                      >
+                        <i className="fal fa-shopping-cart me-2"></i>
+                        VIEW CART
+                      </button>
+                    ) : (
+                      <button
+                        className="btn text-white fw-bold"
+                        style={{
+                          backgroundColor: "#ee8b50",
+                          border: "1px solid #ee8b50",
+                        }}
+                        onClick={handleAddToCart}
+                      >
+                        ADD TO CART
+                      </button>
+                    )}
                     <button
-                      class="btn text-white fw-bold"
+                      className="btn text-white fw-bold"
                       style={{
                         backgroundColor: "#ee8b50",
                         border: "1px solid #ee8b50",
@@ -133,26 +172,50 @@ const page = ({ params }) => {
                 </div>
               </div>
 
-              <div class="d-block d-md-none bg-white shadow p-4 mt-3">
+              <div className="d-block d-md-none bg-white shadow p-4 mt-3">
                 <h4>{packageDetail.name}</h4>
-                <div class="mb-2">
-                  <span class="text-warning">
+                <div className="mb-2">
+                  <span className="text-warning">
                     &#9733;&#9733;&#9733;&#9733;&#9734;
                   </span>
-                  <span class="text-muted small ms-2">
+                  <span className="text-muted small ms-2">
                     {packageDetail.review} Reviews
                   </span>
                 </div>
-                <div class="border p-3 text-center mt-3">
-                  <small class="text-muted d-block">
+                <div className="border p-3 text-center mt-3">
+                  <small className="text-muted d-block">
                     From {packageDetail.currency}
                   </small>
-                  <div class="h3 fw-bold mb-1">{packageDetail.price}</div>
-                  <small class="text-muted">Per Person</small>
+                  <div className="h3 fw-bold mb-1">{packageDetail.price}</div>
+                  <small className="text-muted">Per Person</small>
                 </div>
-                <div class="d-grid mt-3">
+                <div className="d-grid gap-2 mt-3">
+                  {isInCart ? (
+                    <button
+                      className="btn text-white fw-bold"
+                      style={{
+                        backgroundColor: "#28a745",
+                        border: "1px solid #28a745",
+                      }}
+                      onClick={handleViewCart}
+                    >
+                      <i className="fal fa-shopping-cart me-2"></i>
+                      VIEW CART
+                    </button>
+                  ) : (
+                    <button
+                      className="btn text-white fw-bold"
+                      style={{
+                        backgroundColor: "#ee8b50",
+                        border: "1px solid #ee8b50",
+                      }}
+                      onClick={handleAddToCart}
+                    >
+                      ADD TO CART
+                    </button>
+                  )}
                   <button
-                    class="btn text-white fw-bold"
+                    className="btn text-white fw-bold"
                     style={{
                       backgroundColor: "#ee8b50",
                       border: "1px solid #ee8b50",
@@ -230,7 +293,7 @@ const page = ({ params }) => {
                           "fas fa-map-marked-alt";
 
                         return (
-                          <div className="tour-activity-item">
+                          <div className="tour-activity-item" key={item.id}>
                             <i
                               className={iconClass}
                               style={{ marginRight: "8px" }}
@@ -350,9 +413,9 @@ const page = ({ params }) => {
               </div>
             </div>
           </section>
+          {/* Tour Details Area end */}
         </div>
       )}
-      {/* Tour Details Area end */}
     </ReveloLayout>
   );
 };
@@ -374,4 +437,4 @@ export const TimelineContainer = styled.div`
   }
 `;
 
-export default page;
+export default Page;

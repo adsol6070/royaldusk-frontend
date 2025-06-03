@@ -5,6 +5,7 @@ import PackageFeatureList from "./PackageFeatures";
 import PackageItineraryList from "./PackageItenaries";
 import PackageServiceList from "./PackageServices";
 import PackagePolicyList from "./PackagePolicies";
+import PackageLocationList from "./PackageLocation";
 
 const TABS = [
   { key: "categories", label: "📦 Categories", Component: PackageCategoryList },
@@ -12,6 +13,7 @@ const TABS = [
   { key: "services", label: "🛎️ Services", Component: PackageServiceList },
   { key: "itineraries", label: "🗺️ Itineraries", Component: PackageItineraryList },
   { key: "policies", label: "📜 Policies", Component: PackagePolicyList },
+  { key: "locations", label: "📍 Locations", Component: PackageLocationList },
 ];
 
 const PackageManagementPage = () => {

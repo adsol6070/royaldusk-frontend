@@ -1,3 +1,4 @@
+// helpers/HttpClient.js
 import axios from 'axios';
 
 const ErrorCodeMessages = {
@@ -6,34 +7,34 @@ const ErrorCodeMessages = {
   404: 'Resource or page not found',
 };
 
-const HttpClient = () => {
-  const baseURL = process.env.NEXT_PUBLIC_API_URL;
-  const _httpClient = axios.create({
-    baseURL: baseURL,
-    timeout: 6000,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+// Create a single instance (not inside a function)
+const HttpClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  timeout: 6000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
-  // Request Interceptor
-  _httpClient.interceptors.request.use(
-    async (config) => {
-      // Allow unauthenticated access for blogs
-      if (!config._skipAuth) {
-        const token = localStorage.getItem('access_token');
-        if (token) {
-          config.headers = config.headers || {};
-          config.headers['Authorization'] = `Bearer ${token}`;
-        }
+// Request Interceptor for Authorization header
+HttpClient.interceptors.request.use(
+  (config) => {
+    if (!config._skipAuth) {
+      const token = localStorage.getItem('access_token');
+      if (token) {
+        config.headers = config.headers || {};
+        config.headers['Authorization'] = `Bearer ${token}`;
       }
-      return config;
-    },
-    (error) => Promise.reject(error)
-  );
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
-  // Error Handler
-  const _errorHandler = async (error) => {
+// Response Interceptor with error formatting
+HttpClient.interceptors.response.use(
+  (response) => response.data, // Only return the actual data
+  (error) => {
     const errorMessage =
       error.response && typeof error.response.data === 'object'
         ? error.response.data.message
@@ -42,22 +43,16 @@ const HttpClient = () => {
     return Promise.reject(
       ErrorCodeMessages[error.response?.status] || errorMessage
     );
-  };
+  }
+);
 
-  // Response Interceptor
-  _httpClient.interceptors.response.use(
-    (response) => response.data,
-    _errorHandler
-  );
-
-  // HTTP methods
-  return {
-    get: (url, config = {}) => _httpClient.get(url, config),
-    post: (url, data, config = {}) => _httpClient.post(url, data, config),
-    patch: (url, data, config = {}) => _httpClient.patch(url, data, config),
-    put: (url, data, config = {}) => _httpClient.put(url, data, config),
-    delete: (url, config = {}) => _httpClient.delete(url, config),
-  };
+// Export standard HTTP methods
+const HttpClientWrapper = {
+  get: (url, config = {}) => HttpClient.get(url, config),
+  post: (url, data, config = {}) => HttpClient.post(url, data, config),
+  patch: (url, data, config = {}) => HttpClient.patch(url, data, config),
+  put: (url, data, config = {}) => HttpClient.put(url, data, config),
+  delete: (url, config = {}) => HttpClient.delete(url, config),
 };
 
-export default HttpClient();
+export default HttpClientWrapper;

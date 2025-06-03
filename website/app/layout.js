@@ -8,17 +8,22 @@ import "@css/style.css";
 import "./globals.css";
 import 'rc-slider/assets/index.css';
 import 'react-phone-number-input/style.css';
+import ClientLayout from './client-layout';
 
 export const metadata = {
   title: "Royal Dusk Tour & Travels",
-  description:
-    "Your Gateway to Unforgettable Journeys",
+  description: "Your Gateway to Unforgettable Journeys",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <head>
+        <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.15.4/css/all.css" />
+      </head>
+      <body>
+        <ClientLayout>{children}</ClientLayout>
+      </body>
     </html>
   );
 }

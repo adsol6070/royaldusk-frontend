@@ -16,6 +16,7 @@ import {
   usePackageItineraries,
   usePackageFeatures,
   usePackagePolicies,
+  usePackageLocations,
 } from "@/hooks/usePackage";
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 
@@ -38,6 +39,7 @@ const PackageForm = () => {
   const { mutate: updatePackage } = useUpdatePackage();
   const { data: packageData } = usePackageById(id);
   const { data: categories = [] } = usePackageCategories();
+  const { data: locations = [] } = usePackageLocations();
   const { data: features = [] } = usePackageFeatures();
   const { data: services = [] } = usePackageServices();
   const { data: itineraries = [] } = usePackageItineraries();
@@ -51,9 +53,7 @@ const PackageForm = () => {
   const [exclusions, setExclusions] = useState<{ id: string; name: string }[]>(
     []
   );
-  const [itineraryIDs, setItineraryIDs] = useState<string[]>([]);
-
-  const selectOptions = itineraries.map((item, index) => ({
+  const selectOptions = itineraries.map((item, _index) => ({
     value: item.id,
     label: item.title,
   }));
@@ -69,12 +69,26 @@ const PackageForm = () => {
   };
 
   const resetForm = () => {
-    reset();
+    reset({
+      name: "",
+      slug: "",
+      description: "",
+      importantInfo: "",
+      locationId: "",
+      price: "",
+      duration: "",
+      categoryID: "",
+      availability: "",
+      hotels: "",
+      policyID: "",
+      features: [],
+      packageImage: null,
+    });
     setInclusions([]);
     setExclusions([]);
-    setItineraryIDs([]);
     setSelectedServices([]);
-    setTimelines([{ day: 1, title: "", description: "", selectedOptions: [] }]);
+    setTimelines([{ day: 1, entries: [] }]);
+    setValue("packageImage", null);
     setImagePreview(null);
   };
 
@@ -91,11 +105,11 @@ const PackageForm = () => {
         slug: packageData.slug || "",
         description: packageData.description || "",
         importantInfo: packageData.importantInfo || "",
-        location: packageData.location || "",
         hotels: packageData.hotels || "",
         price: packageData.price || "",
         duration: packageData.duration || "",
         categoryID: packageData.categoryID || "",
+        locationId: packageData.locationId || "",
         policyID: packageData.policyID || "",
         availability: packageData.availability || "",
         features: packageData.features.map((inc) => inc.id) || [],
@@ -109,10 +123,6 @@ const PackageForm = () => {
         setExclusions(packageData.exclusions);
       }
 
-      if (packageData.itineraries && Array.isArray(packageData.itineraries)) {
-        setItineraryIDs(packageData.itineraries.map((it) => it.id));
-      }
-
       if (packageData.imageUrl) {
         setImagePreview(packageData.imageUrl);
       }
@@ -123,7 +133,6 @@ const PackageForm = () => {
     }
   }, [packageData]);
 
-  // Modified: Handle service selection to work with IDs
   const handleServiceSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     if (e.target.checked) {
@@ -290,7 +299,7 @@ const PackageForm = () => {
       "slug",
       "description",
       "importantInfo",
-      "location",
+      "locationId",
       "price",
       "duration",
       "categoryID",
@@ -328,12 +337,18 @@ const PackageForm = () => {
         updatePackage({ id, packageData: formData });
       } else {
         createPackage(formData);
-        // resetForm();
+        resetForm();
       }
     } catch (error) {
       console.error("Package submission failed:", error);
     }
   };
+
+  useEffect(() => {
+    if (!isEditMode) {
+      resetForm();
+    }
+  }, [id]);
 
   return (
     <>
@@ -406,18 +421,37 @@ const PackageForm = () => {
           </Form.Group>
           <Row>
             <Col md={6}>
-              <Form.Group className="mb-3">
+               <Form.Group className="mb-3">
                 <Form.Label>Location</Form.Label>
-                <Form.Control
-                  type="text"
-                  placeholder="Enter location"
-                  {...register("location", {
-                    required: "Location is required",
-                  })}
+                <Controller
+                  name="locationId"
+                  control={control}
+                  rules={{ required: "Location is required" }}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      options={locations.map((location) => ({
+                        value: location.id,
+                        label: capitalizeFirstLetter(location.name),
+                      }))}
+                      value={
+                        locations
+                          .map((location) => ({
+                            value: location.id,
+                            label: capitalizeFirstLetter(location.name),
+                          }))
+                          .find((option) => option.value === field.value) ||
+                        null
+                      }
+                      onChange={(selectedOption) =>
+                        field.onChange(selectedOption?.value)
+                      }
+                    />
+                  )}
                 />
-                {errors.location && (
+                {errors.locationId && (
                   <small className="text-danger">
-                    {errors.location.message as string}
+                    {errors.locationId.message as string}
                   </small>
                 )}
               </Form.Group>
@@ -663,82 +697,6 @@ const PackageForm = () => {
               </Col>
             </Row>
           </div>
-          {/* <div className="p-3 mb-4 border rounded">
-            <h5 className="fw-bold">Itinerary (Timeline)</h5>
-
-            {timelines.map((timeline, index) => (
-              <div key={index} className="mb-3 p-3 border rounded">
-                <Row className="mb-2">
-                  <Col md={2}>
-                    <Form.Group>
-                      <Form.Label>Day</Form.Label>
-                      <Form.Control
-                        type="number"
-                        value={timeline.day}
-                        onChange={(e) =>
-                          updateTimelineDay(index, parseInt(e.target.value))
-                        }
-                        min={1}
-                      />
-                    </Form.Group>
-                  </Col>
-
-                  <Col md={10}>
-                    <Form.Group>
-                      <Form.Label>Select Itineraries (Multi-Select)</Form.Label>
-                      <Select
-                        options={selectOptions}
-                        isMulti
-                        value={timeline.entries.map((entry) => ({
-                          value: entry.itineraryId,
-                          label: entry.title,
-                        }))}
-                        onChange={(selected) =>
-                          handleMultiSelectChange(selected, index)
-                        }
-                        placeholder="Select itineraries..."
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
-
-                {timeline.entries.map((entry, eIdx) => (
-                  <Row key={eIdx} className="mb-2">
-                    <Col md={6}>
-                      <Form.Group>
-                        <Form.Label>Title</Form.Label>
-                        <Form.Control
-                          type="text"
-                          value={entry.title}
-                          readOnly
-                        />
-                      </Form.Group>
-                    </Col>
-                    <Col md={6}>
-                      <Form.Group>
-                        <Form.Label>Description</Form.Label>
-                        <Form.Control
-                          as="textarea"
-                          rows={3}
-                          value={entry.description}
-                          readOnly
-                        />
-                      </Form.Group>
-                    </Col>
-                  </Row>
-                ))}
-
-                <Button variant="danger" onClick={() => removeTimeline(index)}>
-                  <AiOutlineClose /> Remove
-                </Button>
-              </div>
-            ))}
-
-            <Button variant="primary" onClick={addTimeline}>
-              <AiOutlinePlus /> Add Day
-            </Button>
-          </div> */}
-
           <div className="p-4 mb-5 border rounded bg-white shadow-sm">
             <h4 className="fw-bold mb-4">Itinerary Timeline</h4>
 

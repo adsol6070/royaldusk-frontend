@@ -167,7 +167,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    checkLoggedIn(); // Auto-check on mount
+    checkLoggedIn();
   }, []);
 
   return (

@@ -1,3 +1,4 @@
+"use client";
 import Counter from "@/components/Counter";
 import SearchFilter from "@/components/SearchFilter";
 import SectionTitle from "@/components/SectionTitle";
@@ -6,8 +7,82 @@ import HotDeals from "@/components/slider/HotDeals";
 import Subscribe from "@/components/Subscribe";
 import ReveloLayout from "@/layout/ReveloLayout";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { packageApi } from "@/common/api";
+import SkeletonLoader from "@/components/SkeletonLoader";
+import { useCart } from "@/common/context/CartContext";
+import { toast } from "react-hot-toast";
+import { useRouter } from "next/navigation";
+import styled, { keyframes } from "styled-components";
+
+const addToCartAnimation = keyframes`
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+`;
+
+const ActionButton = styled.button`
+  padding: 10px 18px;
+  font-weight: 500;
+  border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.3s ease;
+
+  &.add-to-cart {
+    background-color: #ee8b50;
+    color: white;
+    &:hover { background-color: #e56d1f; }
+    &.animate { animation: ${addToCartAnimation} 0.5s ease; }
+  }
+
+  &.view-cart {
+    background-color: #28a745;
+    color: white;
+    &:hover { background-color: #218838; }
+  }
+
+  i { font-size: 15px; }
+`;
 
 const page = () => {
+  const [featuredPackages, setFeaturedPackages] = useState([]);
+  const [loading, setLoading] = useState(true);
+ const [animatingId, setAnimatingId] = useState(null);
+  const { addToCart, cartItems } = useCart();
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchFeatured = async () => {
+      try {
+        const response = await packageApi.getAllPackages();
+        const availablePackages = response.data.filter(pkg => pkg.availability !== "ComingSoon");
+        setFeaturedPackages(availablePackages.slice(0, 4));
+      } catch (err) {
+        console.error("Failed to load featured packages", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFeatured();
+  }, []);
+
+  const handleAddToCart = (packageItem) => {
+    setAnimatingId(packageItem.id);
+    addToCart(packageItem);
+    toast.success("Package added to cart!");
+    setTimeout(() => setAnimatingId(null), 500);
+  };
+
+  const isInCart = (id) => cartItems.some(item => item.id === id);
+
+  const handleViewCart = () => router.push("/cart");
+
   return (
     <ReveloLayout>
       {/* Hero Area Start */}
@@ -212,7 +287,7 @@ const page = () => {
                     />
                   </div>
                   <Link
-                    href="tour-and-activities"
+                    href="holidays"
                     className="theme-btn style-two bgc-secondary"
                   >
                     <span data-hover="Explore Tours">Explore Tours</span>
@@ -243,113 +318,67 @@ const page = () => {
       </section>
       {/* CTA Three Area end */}
       {/* Features Tours Area start */}
-      <section className="features-tour-area pt-100 rel z-1">
+       <section className="features-tour-area pt-100 rel z-1">
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-lg-12">
-              <div
-                className="section-title text-center counter-text-wrap mb-50"
-                data-aos="fade-up"
-                data-aos-duration={1500}
-                data-aos-offset={50}
-              >
+              <div className="section-title text-center counter-text-wrap mb-50">
                 <SectionTitle
-                  title={"Unveil the World with Our Exclusive Tour Packages"}
+                  title="Unveil the World with Our Exclusive Tour Packages"
                   subtitle2="Journey Beyond Borders with Unmatched Comfort & Care"
                 />
               </div>
             </div>
           </div>
           <div className="row justify-content-center">
-            <div className="col-xl-3 col-lg-4 col-md-6">
-              <div
-                className="destination-item style-four no-border"
-                data-aos="flip-left"
-                data-aos-duration={1500}
-                data-aos-offset={50}
-              >
-                <div className="image">
-                  {/* <span className="badge">10% Off</span> */}
-                  <a href="contact" className="heart">
-                    <i className="fas fa-heart" />
-                  </a>
-                  <img
-                    src="/assets/images/destinations/zoo-image.jpg"
-                    alt="Tour"
-                  />
+            {loading && featuredPackages.length === 0 ? (
+              Array.from({ length: 4 }).map((_, idx) => (
+                <div key={idx} className="col-xl-3 col-lg-4 col-md-6 mb-4">
+                  <SkeletonLoader height="300px" width="100%" style={{ borderRadius: "10px" }} />
                 </div>
-                <div className="content">
-                  <span className="location">
-                    <i className="fal fa-map-marker-alt" /> Dubai
-                  </span>
-                  <h6>
-                    <Link href="#">Emirates Park Zoo</Link>
-                  </h6>
-                </div>
-                <div className="destination-footer">
-                  <span className="price">
-                    <span>AED 45.00</span>/person
-                  </span>
-                  <div className="ratting">
-                    <i className="fas fa-star" />
-                    <i className="fas fa-star" />
-                    <i className="fas fa-star" />
-                    <i className="fas fa-star" />
-                    <i className="fas fa-star-half-alt" />
+              ))
+            ) : featuredPackages.length === 0 ? (
+              <div className="text-center fs-3">No featured packages available</div>
+            ) : (
+              featuredPackages.map(pkg => (
+                <div key={pkg.id} className="col-xl-3 col-lg-4 col-md-6 mb-4">
+                  <div className="destination-item style-four no-border">
+                    <div className="image">
+                      <img src={pkg.imageUrl} alt={pkg.name} />
+                    </div>
+                    <div className="content">
+                      <span className="location">
+                        <i className="fal fa-map-marker-alt" /> {pkg.location?.name}
+                      </span>
+                      <h6>
+                        <Link href={`/holiday-details/${pkg.id}`}>{pkg.name}</Link>
+                      </h6>
+                    </div>
+                    <div className="destination-footer d-flex justify-content-between align-items-center">
+                      <span className="price">
+                        {pkg.currency} {pkg.price} <small>/person</small>
+                      </span>
+                      {isInCart(pkg.id) ? (
+                        <ActionButton className="view-cart" onClick={handleViewCart}>
+                          <i className="fal fa-shopping-cart" /> View Cart
+                        </ActionButton>
+                      ) : (
+                        <ActionButton
+                          className={`add-to-cart ${animatingId === pkg.id ? "animate" : ""}`}
+                          onClick={() => handleAddToCart(pkg)}
+                        >
+                          <i className="fal fa-shopping-cart" /> Add to Cart
+                        </ActionButton>
+                      )}
+                    </div>
                   </div>
                 </div>
-                <Link href="contact" className="theme-btn style-three">
-                  <span data-hover="Explore">Explore</span>
-                  <i className="fal fa-arrow-right" />
-                </Link>
-              </div>
-            </div>
-            <div className="col-xl-3 col-lg-4 col-md-6">
-              <div
-                className="destination-item style-four no-border"
-                data-aos="flip-left"
-                data-aos-delay={50}
-                data-aos-duration={1500}
-                data-aos-offset={50}
-              >
-                <div className="image">
-                  <a href="contact" className="heart">
-                    <i className="fas fa-heart" />
-                  </a>
-                  <img
-                    src="/assets/images/destinations/desert-safari.jpg"
-                    alt="Tour"
-                  />
-                </div>
-                <div className="content">
-                  <span className="location">
-                    <i className="fal fa-map-marker-alt" /> Dubai
-                  </span>
-                  <h6>
-                    <Link href="contact">Desert Safari Abu Dhabi</Link>
-                  </h6>
-                </div>
-                <div className="destination-footer">
-                  <span className="price">
-                    <span>AED 195.00</span>/person
-                  </span>
-                  <div className="ratting">
-                    <i className="fas fa-star" />
-                    <i className="fas fa-star" />
-                    <i className="fas fa-star" />
-                    <i className="fas fa-star-half-alt" />
-                    <i className="fas fa-star-half-alt" />
-                  </div>
-                </div>
-                <Link href="contact" className="theme-btn style-three">
-                  <span data-hover="Explore">Explore</span>
-                  <i className="fal fa-arrow-right" />
-                </Link>
-              </div>
-            </div>
+              ))
+            )}
           </div>
         </div>
       </section>
+
       {/* Features Tours Area end */}
       {/* CTA Area start */}
       <section className="cta-area pt-50 rel z-1">
@@ -370,7 +399,7 @@ const page = () => {
                 <span className="category">Desert</span>
                 <h2>Unveil the Mystique of Golden Sands!</h2>
                 <Link
-                  href="tour-and-activities"
+                  href="holidays"
                   className="theme-btn style-two bgc-secondary"
                 >
                   <span data-hover="Book Now">Explore Tours</span>
@@ -391,10 +420,7 @@ const page = () => {
               >
                 <span className="category">City</span>
                 <h2>Discover the Heartbeat of Urban Adventures!</h2>
-                <Link
-                  href="tour-and-activities"
-                  className="theme-btn style-two"
-                >
+                <Link href="holidays" className="theme-btn style-two">
                   <span data-hover="Book Now">Explore Tours</span>
                   <i className="fal fa-arrow-right" />
                 </Link>
@@ -416,7 +442,7 @@ const page = () => {
                 <span className="category">Aquarium</span>
                 <h2>Dive into a World of Marine Wonders!</h2>
                 <Link
-                  href="tour-and-activities"
+                  href="holidays"
                   className="theme-btn style-two bgc-secondary"
                 >
                   <span data-hover="Book Now">Explore Tours</span>

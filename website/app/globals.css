@@ -48,3 +48,114 @@ img.mfp-img {
   top: -110px;
   right: -24px;
 }
+
+/* User Menu Styles */
+.user-menu {
+  position: relative;
+  margin-left: 15px;
+}
+
+.user-menu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  min-width: 200px;
+  z-index: 1000;
+  padding: 8px;
+}
+
+.user-dropdown .dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 15px;
+  color: #666;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: all 0.2s;
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-size: 14px;
+}
+
+.user-dropdown .dropdown-item:hover {
+  background: #f8f9fa;
+  color: #ee8b50;
+}
+
+.user-dropdown .dropdown-item i {
+  font-size: 16px;
+  width: 20px;
+}
+
+/* Mobile Menu Auth Styles */
+.mobile-nav .user-menu {
+  margin: 15px 0;
+  width: 100%;
+}
+
+.mobile-nav .user-dropdown {
+  position: static;
+  box-shadow: none;
+  margin-top: 10px;
+  background: #f8f9fa;
+}
+
+@media (max-width: 768px) {
+  .user-menu {
+    display: none;
+  }
+}
+
+/* Menu Button Styles */
+.menu-btns {
+  display: flex !important;
+  align-items: center !important;
+}
+
+.menu-btns .theme-btn {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 20px;
+}
+
+.menu-btns .theme-btn i {
+  margin: 0;
+}
+
+/* Override any mobile hiding */
+@media (max-width: 768px) {
+  .menu-btns {
+    display: flex !important;
+  }
+  
+  .menu-btns .theme-btn {
+    display: flex !important;
+  }
+
+  .user-menu {
+    display: block !important;
+  }
+}
+
+/* Ensure dropdown is properly positioned on mobile */
+@media (max-width: 768px) {
+  .user-dropdown {
+    right: auto;
+    left: 0;
+    width: 200px;
+  }
+}

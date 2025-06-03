@@ -99,7 +99,7 @@ const BlogSidebar = () => {
                       </h6>
                       <span className="date">
                         <i className="far fa-calendar-alt" />{" "}
-                        {new Date(blog.created_at).toLocaleDateString("en-US", {
+                        {new Date(blog.createdAt).toLocaleDateString("en-US", {
                           day: "numeric",
                           month: "short",
                           year: "numeric",

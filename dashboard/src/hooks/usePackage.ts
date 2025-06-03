@@ -8,9 +8,17 @@ import { packageServicesApi } from "@/api/tourPackage/packageServices/packageSer
 import { Package } from "@/api/tourPackage/packageTypes";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
-import { PackagePolicy, PackagePolicyPayload } from "@/api/tourPackage/packagePolicy/packagePolicyTypes";
-import { Enquiry, EnquiryPayload } from "@/api/tourPackage/enquires/packageEnquiryTypes";
+import {
+  PackagePolicy,
+  PackagePolicyPayload,
+} from "@/api/tourPackage/packagePolicy/packagePolicyTypes";
+import {
+  Enquiry,
+  EnquiryPayload,
+} from "@/api/tourPackage/enquires/packageEnquiryTypes";
 import { packageEnquiryApi } from "@/api/tourPackage/enquires/packageEnquiryApi";
+import { PackageLocation } from "@/api/tourPackage/packageLocation/packageLocationTypes";
+import { packageLocationApi } from "@/api/tourPackage/packageLocation/packageLocationApi";
 
 // Reusable custom mutation hook
 const useCustomMutation = <T, V>(
@@ -32,7 +40,7 @@ const useCustomMutation = <T, V>(
     },
   });
 };
-// Package Hooks 
+// Package Hooks
 export const usePackages = () =>
   useQuery<Package[], Error>({
     queryKey: ["packages"],
@@ -61,13 +69,13 @@ export const useUpdatePackage = () =>
     "Package updated successfully!"
   );
 
-  export const useUpdatePackageAvailability = () =>
-    useCustomMutation(
-      ({ id, availability }: { id: string; availability: string }) =>
-        packageApi.updatePackageAvailability(id, availability),
-      ["packages"],
-      "Package availability updated successfully!"
-    );
+export const useUpdatePackageAvailability = () =>
+  useCustomMutation(
+    ({ id, availability }: { id: string; availability: string }) =>
+      packageApi.updatePackageAvailability(id, availability),
+    ["packages"],
+    "Package availability updated successfully!"
+  );
 
 export const useDeletePackage = () =>
   useCustomMutation(
@@ -76,67 +84,67 @@ export const useDeletePackage = () =>
     "Package deleted successfully!"
   );
 
-// Package Category Hooks 
-  export const usePackageCategories = () =>
-    useQuery({
-      queryKey: ["packageCategories"],
-      queryFn: packageCategoryApi.getAllCategories,
-    });
-  
-  export const useCreatePackageCategory = () =>
-    useCustomMutation(
-      (newCategory: { name: string }) =>
-        packageCategoryApi.createCategory(newCategory),
-      ["packageCategories"],
-      "Category added successfully!"
-    );
-  
-  export const useUpdatePackageCategory = () =>
-    useCustomMutation(
-      ({ id, name }: { id: string; name: string }) =>
-        packageCategoryApi.updateCategory(id, { name }),
-      ["packageCategories"],
-      "Category updated successfully!"
-    );
-  
-  export const useDeletePackageCategory = () =>
-    useCustomMutation(
-      (id: string) => packageCategoryApi.deleteCategory(id),
-      ["packageCategories"],
-      "Category deleted successfully!"
-    );
-  
-  // Package Services Hooks 
-  export const usePackageServices = () =>
-    useQuery({
-      queryKey: ["packageServices"],
-      queryFn: packageServicesApi.getAllActivities,
-    });
-  
-  export const useCreatePackageServices = () =>
-    useCustomMutation(
-      (newActivity: { name: string }) =>
-        packageServicesApi.createActivity(newActivity),
-      ["packageServices"],
-      "Services added successfully!"
-    );
-  
-  export const useUpdatePackageServices = () =>
-    useCustomMutation(
-      ({ id, name }: { id: string; name: string }) =>
-        packageServicesApi.updateActivity(id, { name }),
-      ["packageServices"],
-      "Services updated successfully!"
-    );
-  
-  export const useDeletePackageServices = () =>
-    useCustomMutation(
-      (id: string) => packageServicesApi.deleteActivity(id),
-      ["packageServices"],
-      "Services deleted successfully!"
-    );
-  
-// Package Features Hooks 
+// Package Category Hooks
+export const usePackageCategories = () =>
+  useQuery({
+    queryKey: ["packageCategories"],
+    queryFn: packageCategoryApi.getAllCategories,
+  });
+
+export const useCreatePackageCategory = () =>
+  useCustomMutation(
+    (newCategory: { name: string }) =>
+      packageCategoryApi.createCategory(newCategory),
+    ["packageCategories"],
+    "Category added successfully!"
+  );
+
+export const useUpdatePackageCategory = () =>
+  useCustomMutation(
+    ({ id, name }: { id: string; name: string }) =>
+      packageCategoryApi.updateCategory(id, { name }),
+    ["packageCategories"],
+    "Category updated successfully!"
+  );
+
+export const useDeletePackageCategory = () =>
+  useCustomMutation(
+    (id: string) => packageCategoryApi.deleteCategory(id),
+    ["packageCategories"],
+    "Category deleted successfully!"
+  );
+
+// Package Services Hooks
+export const usePackageServices = () =>
+  useQuery({
+    queryKey: ["packageServices"],
+    queryFn: packageServicesApi.getAllActivities,
+  });
+
+export const useCreatePackageServices = () =>
+  useCustomMutation(
+    (newActivity: { name: string }) =>
+      packageServicesApi.createActivity(newActivity),
+    ["packageServices"],
+    "Services added successfully!"
+  );
+
+export const useUpdatePackageServices = () =>
+  useCustomMutation(
+    ({ id, name }: { id: string; name: string }) =>
+      packageServicesApi.updateActivity(id, { name }),
+    ["packageServices"],
+    "Services updated successfully!"
+  );
+
+export const useDeletePackageServices = () =>
+  useCustomMutation(
+    (id: string) => packageServicesApi.deleteActivity(id),
+    ["packageServices"],
+    "Services deleted successfully!"
+  );
+
+// Package Features Hooks
 export const usePackageFeatures = () =>
   useQuery({
     queryKey: ["packageFeatures"],
@@ -165,48 +173,50 @@ export const useDeletePackageFeatures = () =>
     ["packageFeatures"],
     "Feature deleted successfully!"
   );
-  
-  // Package Itineraries Hooks 
-  export const usePackageItineraries = () =>
-    useQuery<PackageItinerary[], Error>({
-      queryKey: ["packageItineraries"],
-      queryFn: packageItineraryApi.getAllItinerary,
-    });
-  
-  export const usePackageItineraryById = (id: string) =>
-    useQuery<PackageItinerary, Error>({
-      queryKey: ["packageItinerary", id],
-      queryFn: () => packageItineraryApi.getItineraryById(id),
-      enabled: !!id,
-    });
-  
-  export const useCreatePackageItinerary = () =>
-    useCustomMutation(
-      (itineraryData: { title: string; description: string; }) =>
-        packageItineraryApi.createItinerary(itineraryData),
-      ["packageItineraries"],
-      "Package itinerary created successfully!"
-    );
-  
-  export const useUpdatePackageItinerary = () =>
-    useCustomMutation(
-      ({
-        id,
-        itineraryData,
-      }: { id: string; itineraryData: { title: string; description: string } }) =>
-        packageItineraryApi.updateItinerary(id, itineraryData),
-      ["packageItineraries"],
-      "Package itinerary updated successfully!"
-    );
-  
-  export const useDeletePackageItinerary = () =>
-    useCustomMutation(
-      (id: string) => packageItineraryApi.deleteItinerary(id),
-      ["packageItineraries"],
-      "Package itinerary deleted successfully!"
-    );
 
-  // Package Policy Hooks
+// Package Itineraries Hooks
+export const usePackageItineraries = () =>
+  useQuery<PackageItinerary[], Error>({
+    queryKey: ["packageItineraries"],
+    queryFn: packageItineraryApi.getAllItinerary,
+  });
+
+export const usePackageItineraryById = (id: string) =>
+  useQuery<PackageItinerary, Error>({
+    queryKey: ["packageItinerary", id],
+    queryFn: () => packageItineraryApi.getItineraryById(id),
+    enabled: !!id,
+  });
+
+export const useCreatePackageItinerary = () =>
+  useCustomMutation(
+    (itineraryData: { title: string; description: string }) =>
+      packageItineraryApi.createItinerary(itineraryData),
+    ["packageItineraries"],
+    "Package itinerary created successfully!"
+  );
+
+export const useUpdatePackageItinerary = () =>
+  useCustomMutation(
+    ({
+      id,
+      itineraryData,
+    }: {
+      id: string;
+      itineraryData: { title: string; description: string };
+    }) => packageItineraryApi.updateItinerary(id, itineraryData),
+    ["packageItineraries"],
+    "Package itinerary updated successfully!"
+  );
+
+export const useDeletePackageItinerary = () =>
+  useCustomMutation(
+    (id: string) => packageItineraryApi.deleteItinerary(id),
+    ["packageItineraries"],
+    "Package itinerary deleted successfully!"
+  );
+
+// Package Policy Hooks
 
 export const usePackagePolicies = () =>
   useQuery<PackagePolicy[], Error>({
@@ -231,10 +241,7 @@ export const useCreatePackagePolicy = () =>
 
 export const useUpdatePackagePolicy = () =>
   useCustomMutation(
-    ({
-      id,
-      policyData,
-    }: { id: string; policyData: PackagePolicyPayload }) =>
+    ({ id, policyData }: { id: string; policyData: PackagePolicyPayload }) =>
       packagePolicyApi.updatePolicy(id, policyData),
     ["packagePolicies"],
     "Package policy updated successfully!"
@@ -247,7 +254,7 @@ export const useDeletePackagePolicy = () =>
     "Package policy deleted successfully!"
   );
 
-  // 📌 GET All Enquiries
+// 📌 GET All Enquiries
 export const usePackageEnquiries = () =>
   useQuery<Enquiry[], Error>({
     queryKey: ["packageEnquiries"],
@@ -276,4 +283,33 @@ export const useDeletePackageEnquiry = () =>
     (id: string) => packageEnquiryApi.deleteEnquiry(id),
     ["packageEnquiries"],
     "Enquiry deleted successfully!"
+  );
+
+  // 📦 Package Location Hooks
+export const usePackageLocations = () =>
+  useQuery<PackageLocation[], Error>({
+    queryKey: ["packageLocations"],
+    queryFn: packageLocationApi.getAllLocations,
+  });
+
+export const useCreatePackageLocation = () =>
+  useCustomMutation(
+    (data: FormData) => packageLocationApi.createLocation(data),
+    ["packageLocations"],
+    "Location added successfully!"
+  );
+
+export const useUpdatePackageLocation = () =>
+  useCustomMutation(
+    ({ id, data }: { id: string; data: FormData }) =>
+      packageLocationApi.updateLocation(id, data),
+    ["packageLocations"],
+    "Location updated successfully!"
+  );
+
+export const useDeletePackageLocation = () =>
+  useCustomMutation(
+    (id: string) => packageLocationApi.deleteLocation(id),
+    ["packageLocations"],
+    "Location deleted successfully!"
   );

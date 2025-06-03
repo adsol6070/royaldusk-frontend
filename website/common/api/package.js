@@ -32,6 +32,13 @@ function PackageService() {
       return HttpClient.get(`/package-service/api/package/${id}`, { _skipAuth: true });
     },
 
+    getPackageLocations: () => {
+      return HttpClient.get(`/package-service/api/package-location`, { _skipAuth: true });
+    },
+
+    getPackageByLocationId: (locationId) => {
+      return HttpClient.get(`/package-service/api/package/location/${locationId}`, { _skipAuth: true });
+    },
   };
 }
 

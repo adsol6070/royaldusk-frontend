@@ -3,6 +3,7 @@ import useClickOutside from "@/utility/useClickOutside";
 import Link from "next/link";
 import { Fragment, useState } from "react";
 import { Accordion } from "react-bootstrap";
+import { useAuth } from '@/common/context/AuthContext';
 
 const Menu = () => {
   return (
@@ -33,7 +34,7 @@ const Menu = () => {
         </div>
         <Accordion.Collapse
           eventKey="collapse"
-          className="navbar-collapse  clearfix"
+          className="navbar-collapse clearfix"
         >
           <ul className="navigation clearfix">
             <li>
@@ -42,9 +43,6 @@ const Menu = () => {
             <li>
               <Link href="/about">About</Link>
             </li>
-            {/* <li>
-              <Link href="/tour-and-activities">Tour & Activites</Link>
-            </li> */}
             <li>
               <Link href="/holidays">Holidays</Link>
             </li>
@@ -61,6 +59,54 @@ const Menu = () => {
   );
 };
 
+const AuthMenu = () => {
+  const { userInfo, logout } = useAuth();
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useClickOutside(() => setShowDropdown(false));
+
+  if (!userInfo) {
+    return (
+      <div className="d-flex align-items-center">
+        <Link href="/booking-lookup" className="theme-btn style-three me-3">
+          <i className="fal fa-ticket me-2" />
+          View Booking
+        </Link>
+        <Link href="/login" className="theme-btn style-one">
+          <i className="fal fa-user me-2" />
+          Login
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="user-menu" ref={dropdownRef}>
+      <button
+        className="theme-btn style-two"
+        onClick={() => setShowDropdown(!showDropdown)}
+      >
+        {userInfo.name?.split(" ")[0] || "User"}
+      </button>
+      {showDropdown && (
+        <div className="user-dropdown">
+          <Link href="/dashboard" className="dropdown-item">
+            <i className="fal fa-user" /> Dashboard
+          </Link>
+          <Link href="/dashboard?tab=bookings" className="dropdown-item">
+            <i className="fal fa-calendar-alt" /> My Bookings
+          </Link>
+          <Link href="/cart" className="dropdown-item">
+            <i className="fal fa-shopping-cart" /> Cart
+          </Link>
+          <button className="dropdown-item" onClick={logout}>
+            <i className="fal fa-sign-out" /> Logout
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const Header = ({ header }) => {
   const sidebarClick = () =>
     document.querySelector("body").classList.toggle("side-content-visible");
@@ -70,9 +116,8 @@ const Header = ({ header }) => {
       return <Header1 sidebarClick={sidebarClick} />;
     case 2:
       return <Header2 sidebarClick={sidebarClick} />;
-
     default:
-      return <Header3 sidebarClick={sidebarClick} />;
+      return <Header3 />;
   }
 };
 export default Header;
@@ -130,12 +175,13 @@ const Header1 = ({ sidebarClick }) => {
                 </form>
               </div>
               {/* Menu Button */}
-              <div className="menu-btns py-10">
-                <Link href="" className="theme-btn style-two bgc-secondary">
+              <div className="menu-btns py-10 d-flex align-items-center">
+                <Link href="/cart" className="theme-btn style-three me-3">
                   <i className="fal fa-shopping-cart" />
                 </Link>
+                <AuthMenu />
                 {/* menu sidbar */}
-                <div className="menu-sidebar" onClick={() => sidebarClick()}>
+                <div className="menu-sidebar ms-3" onClick={() => sidebarClick()}>
                   <button className="bg-transparent">
                     <span className="icon-bar" />
                     <span className="icon-bar" />
@@ -394,63 +440,41 @@ const Header2 = ({ sidebarClick }) => {
   );
 };
 
-const Header3 = ({ sidebarClick }) => {
+const Header3 = () => {
   return (
-    <Fragment>
-      <header className="main-header header-one">
-        {/*Header-Upper*/}
-        <div className="header-upper bg-white py-30 rpy-0">
-          <div className="container-fluid clearfix">
-            <div className="header-inner rel d-flex align-items-center">
-              <div className="logo-outer">
-                <div className="logo">
-                  <Link href="/">
-                    <img
-                      src="/assets/images/logos/rdusk-logo.png"
-                      alt="Logo"
-                      title="Logo"
-                      width={160}
-                    />
-                  </Link>
-                </div>
-              </div>
-              <div className="nav-outer mx-lg-auto ps-xxl-5 clearfix">
-                {/* Main Menu */}
-                <Menu />
-                {/* Main Menu End*/}
-              </div>
-              {/* Menu Button */}
-              <div className="menu-btns py-10">
-                <Link href="/cart" className="theme-btn p-2 style-one bgc-secondary">
-                  <i className="fal fa-shopping-cart m-0" />
+    <header className="main-header header-one">
+      <div className="header-upper bg-white py-30 rpy-0">
+        <div className="container-fluid clearfix">
+          <div className="header-inner rel d-flex align-items-center">
+            <div className="logo-outer">
+              <div className="logo">
+                <Link href="/">
+                  <img
+                    src="/assets/images/logos/rdusk-logo.png"
+                    alt="Logo"
+                    title="Logo"
+                    width={160}
+                  />
                 </Link>
-                {/* menu sidbar */}
-                <div>
-                  <button
-                    className="bg-transparent"
-                    onClick={() => sidebarClick()}
-                  >
-                    <i className="fal fa-user" /> Log In
-                  </button>
-                </div>
               </div>
+            </div>
+            <div className="nav-outer mx-lg-auto ps-xxl-5 clearfix">
+              <Menu />
+            </div>
+            <div className="menu-btns py-10 d-flex align-items-center">
+              <Link href="/cart" className="style-three me-3">
+                <i className="fal fa-shopping-cart" />
+              </Link>
+              <AuthMenu />
             </div>
           </div>
         </div>
-        {/*End Header Upper*/}
-      </header>
-      <Sidebar sidebarClick={sidebarClick} />
-    </Fragment>
+      </div>
+    </header>
   );
 };
 
 const Sidebar = ({ sidebarClick }) => {
-  // State to toggle between login and signup forms
-  const [isLogin, setIsLogin] = useState(true);
-
-  // Toggle form view
-  const toggleForm = () => setIsLogin(!isLogin);
-
   return (
     <Fragment>
       {/* Form Backdrop */}
@@ -462,104 +486,47 @@ const Sidebar = ({ sidebarClick }) => {
           <div className="cross-icon" onClick={sidebarClick}>
             <span className="fa fa-times" />
           </div>
-          {/* Title */}
-          <div className="title">
-            <h4>{isLogin ? "Login" : "Sign Up"}</h4>
+          {/* Logo */}
+          <div className="logo text-lg-center">
+            <Link href="/">
+              <img src="/assets/images/logos/rdusk-logo.png" alt="Logo" width={160}/>
+            </Link>
           </div>
-
-          {/* Form */}
-          <div className="form-container">
-            <form method="post">
-              {isLogin ? (
-                // Login Form
-                <>
-                  <div className="form-group">
-                    <input
-                      type="email"
-                      name="email"
-                      placeholder="Email Address"
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <input
-                      type="password"
-                      name="password"
-                      placeholder="Password"
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <button type="submit" className="theme-btn style-two">
-                      <span data-hover="Login">Login</span>
-                      <i className="fal fa-arrow-right" />
-                    </button>
-                  </div>
-                  <p className="form-footer">
-                    Don't have an account?{" "}
-                    <span
-                      onClick={toggleForm}
-                      className="form-switcher"
-                      style={{
-                        cursor: "pointer",
-                        color: "#fff",
-                        margin: "5px",
-                      }}
-                    >
-                      Sign Up
-                    </span>
-                  </p>
-                </>
-              ) : (
-                // Signup Form
-                <>
-                  <div className="form-group">
-                    <input
-                      type="text"
-                      name="name"
-                      placeholder="Name"
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <input
-                      type="email"
-                      name="email"
-                      placeholder="Email Address"
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <input
-                      type="password"
-                      name="password"
-                      placeholder="Password"
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <button type="submit" className="theme-btn style-two">
-                      <span data-hover="Sign Up">Sign Up</span>
-                      <i className="fal fa-arrow-right" />
-                    </button>
-                  </div>
-                  <p className="form-footer">
-                    Already have an account?{" "}
-                    <span
-                      onClick={toggleForm}
-                      className="form-switcher"
-                      style={{
-                        cursor: "pointer",
-                        color: "#fff",
-                        margin: "5px",
-                      }}
-                    >
-                      Login
-                    </span>
-                  </p>
-                </>
-              )}
-            </form>
+          <hr className="my-40" />
+          {/* Navigation Menu */}
+          <ul className="sidebar-menu">
+            <li>
+              <Link href="/">Home</Link>
+            </li>
+            <li>
+              <Link href="/about">About</Link>
+            </li>
+            <li>
+              <Link href="/holidays">Holidays</Link>
+            </li>
+            <li>
+              <Link href="/blog">Blogs</Link>
+            </li>
+            <li>
+              <Link href="/contact">Contact Us</Link>
+            </li>
+          </ul>
+          <hr className="mb-65" />
+          <h6>Social Media</h6>
+          {/*Social Icons*/}
+          <div className="social-style-two mt-10">
+            <Link href="contact">
+              <i className="fab fa-twitter" />
+            </Link>
+            <Link href="contact">
+              <i className="fab fa-facebook-f" />
+            </Link>
+            <Link href="contact">
+              <i className="fab fa-instagram" />
+            </Link>
+            <a href="#">
+              <i className="fab fa-pinterest-p" />
+            </a>
           </div>
         </div>
       </section>

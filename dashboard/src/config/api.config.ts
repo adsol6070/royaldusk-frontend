@@ -46,6 +46,13 @@ export const API_ENDPOINTS = {
     UPDATE_AVAILABILITY: (id: string) => `/package-service/api/package/${id}/availability`,
     DELETE: (id: string) => `/package-service/api/package/${id}`,
   },
+  PACKAGE_LOCATION: {
+    GET_ALL: `/package-service/api/package-location`,
+    GET_BY_ID: (id: string) => `/package-service/api/package-location/${id}`,
+    CREATE: `/package-service/api/package-location`,
+    UPDATE: (id: string) => `/package-service/api/package-location/${id}`,
+    DELETE: (id: string) => `/package-service/api/package-location/${id}`,
+  },
   PACKAGE_CATEGORY: {
     GET_ALL: `/package-service/api/package-essentials/categories/`,
     GET_BY_ID: (id: string) => `/package-service/api/package-essentials/categories/${id}`,

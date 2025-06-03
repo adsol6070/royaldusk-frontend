@@ -5,6 +5,7 @@ import { roveloUtility } from "@/utility";
 import { useEffect } from "react";
 import Footer from "./Footer";
 import Header from "./Header";
+import React from 'react';
 
 const ReveloLayout = ({ children, header, footer, insta, sideBar }) => {
   useEffect(() => {
@@ -17,9 +18,10 @@ const ReveloLayout = ({ children, header, footer, insta, sideBar }) => {
       <EmbedPopup />
       <ImageView />
       <Header header={header} />
-      {children}
-      <Footer footer={footer} />
+      <main>{children}</main>
+      <Footer footer={footer} insta={insta} />
     </div>
   );
 };
+
 export default ReveloLayout;

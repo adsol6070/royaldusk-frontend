@@ -5,7 +5,11 @@ export interface Package {
   description: string;
   currency: string;
   importantInfo: string;
-  location: string;
+  locationId: string;
+  location: {
+    id: string;
+    name: string;
+  };
   price: number;
   duration: number; 
   availability: "Available" | "SoldOut" | "ComingSoon";
@@ -84,7 +88,7 @@ export interface PackagePayload {
   slug: string;
   description: string;
   importantInfo: string;
-  location: string;
+  locationId: string;
   price: string; 
   duration: string;
   availability: "Available" | "SoldOut" | "ComingSoon";

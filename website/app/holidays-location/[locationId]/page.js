@@ -90,7 +90,8 @@ const Price = styled.div`
   }
 `;
 
-const HolidayListPage = () => {
+const HolidayByLocationsListPage = ({ params }) => {
+  const id = params.locationId;
   const [packages, setPackages] = useState([]);
   const [filteredPackages, setFilteredPackages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -102,8 +103,10 @@ const HolidayListPage = () => {
   useEffect(() => {
     async function fetchPackages() {
       try {
-        const response = await packageApi.getAllPackages();
+        const response = await packageApi.getPackageByLocationId(id);
+        console.log("response ", response);
         const packagesData = response.data;
+        console.log("packagesData ", packagesData);
 
         const availablePackages = packagesData.filter(
           (packageItem) => packageItem.availability !== "ComingSoon"
@@ -328,4 +331,4 @@ const HolidayListPage = () => {
   );
 };
 
-export default HolidayListPage;
+export default HolidayByLocationsListPage;

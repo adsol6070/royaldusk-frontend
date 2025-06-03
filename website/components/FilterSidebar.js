@@ -5,37 +5,27 @@ import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 import capitalizeFirstLetter from "@/utility/capitalizeFirstLetter";
 
-const FilterSidebar = ({ data, onFilterChange }) => {
-  console.log("FilterSidebar data:", data);
+const FilterSidebar = ({ data = [], onFilterChange }) => {
   const [priceRange, setPriceRange] = useState([0, 1000]);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedNights, setSelectedNights] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Compute maximum values dynamically based on data
-  const maxPrice = Math.max(...data.map((item) => item.price), 1000);
+  // Max price from data
+  const maxPrice = data.length > 0 ? Math.max(...data.map((item) => item.price)) : 1000;
 
-  // Extract nights from duration and create a unique set
-  const nightsSet = new Set();
+  // Set of unique categories
+  const categories = Array.from(new Set(data.map((item) => item.category?.name))).filter(Boolean);
 
-  data.forEach((item) => {
-    const durationStr = String(item.duration || ""); // safely convert to string
-    const match = durationStr.match(/(\d+)N/);
-    if (match) {
-      nightsSet.add(parseInt(match[1]));
-    }
-  });
-
-  const nightsOptions = Array.from(nightsSet).sort((a, b) => a - b);
-  const categories = Array.from(
-    new Set(data.map((item) => item.category.name))
-  );
+  // Unique nights based on duration (nights = duration - 1)
+  const nightsOptions = Array.from(
+    new Set(data.map((item) => Math.max(1, item.duration - 1)))
+  ).sort((a, b) => a - b);
 
   useEffect(() => {
     setPriceRange([0, maxPrice]);
   }, [maxPrice]);
 
-  // Emit filter changes
   useEffect(() => {
     onFilterChange({
       priceRange,
@@ -43,13 +33,7 @@ const FilterSidebar = ({ data, onFilterChange }) => {
       nights: selectedNights,
       searchTerm,
     });
-  }, [
-    priceRange,
-    selectedCategories,
-    selectedNights,
-    searchTerm,
-    onFilterChange,
-  ]);
+  }, [priceRange, selectedCategories, selectedNights, searchTerm, onFilterChange]);
 
   const handleCategoryChange = (category) => {
     setSelectedCategories((prev) =>
@@ -70,13 +54,7 @@ const FilterSidebar = ({ data, onFilterChange }) => {
   return (
     <div className="shop-sidebar sidebar-widget">
       {/* Price Range */}
-      <div
-        className="widget mb-4"
-        data-aos="fade-up"
-        data-aos-delay={50}
-        data-aos-duration={1500}
-        data-aos-offset={50}
-      >
+      <div className="widget mb-4" data-aos="fade-up">
         <h6 className="widget-title">Filter by Price</h6>
         <Slider
           range
@@ -90,22 +68,16 @@ const FilterSidebar = ({ data, onFilterChange }) => {
         />
         <div className="price mt-2">
           <p>
-            ${priceRange[0]} - ${priceRange[1]}
+            AED {priceRange[0]} - AED {priceRange[1]}
           </p>
         </div>
       </div>
 
       {/* Category Filter */}
-      <div
-        className="widget mb-4"
-        data-aos="fade-up"
-        data-aos-delay={50}
-        data-aos-duration={1500}
-        data-aos-offset={50}
-      >
+      <div className="widget mb-4" data-aos="fade-up">
         <h6 className="widget-title">Filter by Category</h6>
         <ul className="checkbox-list">
-          {nightsOptions.length > 0 ? (
+          {categories.length > 0 ? (
             categories.map((category) => (
               <li key={category}>
                 <label>
@@ -126,13 +98,7 @@ const FilterSidebar = ({ data, onFilterChange }) => {
       </div>
 
       {/* Nights Filter */}
-      <div
-        className="widget mb-4"
-        data-aos="fade-up"
-        data-aos-delay={50}
-        data-aos-duration={1500}
-        data-aos-offset={50}
-      >
+      <div className="widget mb-4" data-aos="fade-up">
         <h6 className="widget-title">Filter by Nights</h6>
         <ul className="checkbox-list">
           {nightsOptions.length > 0 ? (

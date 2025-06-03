@@ -102,7 +102,7 @@ const handleDelete = (id: string) => {
                       {indexOfFirstPackage + index + 1}
                     </td>
                     <td>{capitalizeFirstLetter(customPackage.name)}</td>
-                    <td>{capitalizeFirstLetter(customPackage.location)}</td>
+                    <td>{capitalizeFirstLetter(customPackage.location.name)}</td>
                     <td>{capitalizeFirstLetter(customPackage.category.name)}</td>
                     <td>
                       <Form.Select

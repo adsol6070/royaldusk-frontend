@@ -1,12 +1,19 @@
 import { usePackageById } from "@/hooks/usePackage";
 import { formatTimestamp } from "@/utils/formatTimestamp";
-import { Container, Row, Col, Image, Badge, ListGroup, Card } from "react-bootstrap";
+import {
+  Container,
+  Row,
+  Col,
+  Image,
+  Badge,
+  ListGroup,
+  Card,
+} from "react-bootstrap";
 import { useParams } from "react-router-dom";
 
 const PackageDetails = () => {
   const { id } = useParams();
   const { data: packageData } = usePackageById(String(id));
-  console.log("Package Data:", packageData);
 
   return (
     <Container className="py-5 bg-white">
@@ -17,7 +24,7 @@ const PackageDetails = () => {
             Created At: {formatTimestamp(packageData?.createdAt || "")}
           </p>
           <Badge bg="secondary" className="me-2">
-            Location: {packageData?.location}
+            Location: {packageData?.location.name}
           </Badge>
           <Badge bg="info" className="me-2">
             Duration: {packageData?.duration} days
@@ -80,15 +87,22 @@ const PackageDetails = () => {
           <h4>Features</h4>
           <div className="d-flex flex-wrap gap-2">
             {packageData?.features?.map((f) => (
-              <Badge bg="primary" key={f.id}>{f.name}</Badge>
+              <Badge bg="primary" key={f.id}>
+                {f.name}
+              </Badge>
             ))}
           </div>
 
           <h4 className="mt-4">Itinerary</h4>
           <ListGroup>
-            {packageData?.itineraries?.map((it) => (
-              <ListGroup.Item key={it.id}>
-                <strong>{it.title}</strong>: {it.description}
+            {packageData?.timeline?.map((dayItem, index) => (
+              <ListGroup.Item key={index} className="mb-2">
+                <div className="fw-bold mb-1">Day {dayItem.day}</div>
+                {dayItem.entries.map((entry, i) => (
+                  <div key={i} className="ms-3">
+                    <strong>{entry.title}</strong>: {entry.description}
+                  </div>
+                ))}
               </ListGroup.Item>
             ))}
           </ListGroup>
@@ -98,10 +112,19 @@ const PackageDetails = () => {
       <Row className="mb-4">
         <Col md={{ span: 10, offset: 1 }}>
           <h4>Policy</h4>
-          <p><strong>Booking:</strong> {packageData?.policy?.bookingPolicy}</p>
-          <p><strong>Cancellation:</strong> {packageData?.policy?.cancellationPolicy}</p>
-          <p><strong>Payment Terms:</strong> {packageData?.policy?.paymentTerms}</p>
-          <p><strong>Visa:</strong> {packageData?.policy?.visaDetail}</p>
+          <p>
+            <strong>Booking:</strong> {packageData?.policy?.bookingPolicy}
+          </p>
+          <p>
+            <strong>Cancellation:</strong>{" "}
+            {packageData?.policy?.cancellationPolicy}
+          </p>
+          <p>
+            <strong>Payment Terms:</strong> {packageData?.policy?.paymentTerms}
+          </p>
+          <p>
+            <strong>Visa:</strong> {packageData?.policy?.visaDetail}
+          </p>
         </Col>
       </Row>
     </Container>
