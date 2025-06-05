@@ -10,9 +10,6 @@ import {
   Button,
 } from "react-bootstrap";
 import { useParams } from "react-router-dom";
-import { BookingConfirmationPdf } from "./BookingConfirmationPdf";
-import { mergeBookingAndStripePdf } from "./mergeUtils";
-import { pdf } from "@react-pdf/renderer";
 
 const BookingDetailPage = () => {
   const id = useParams()?.id;
@@ -46,18 +43,12 @@ const BookingDetailPage = () => {
           <Button
             variant="primary"
             onClick={async () => {
-              const blob = await pdf(
-                <BookingConfirmationPdf booking={booking} />
-              ).toBlob();
-              const mergedBytes = await mergeBookingAndStripePdf(
-                new Uint8Array(await blob.arrayBuffer()),
-                booking.payments[0]?.receiptUrl || ""
-              );
-              const mergedBlob = new Blob([mergedBytes], {
-                type: "application/pdf",
-              });
-              const url = URL.createObjectURL(mergedBlob);
-              window.open(url);
+              console.log("Generating PDF...");
+              // const mergedBlob = new Blob([mergedBytes], {
+              //   type: "application/pdf",
+              // });
+              // const url = URL.createObjectURL(mergedBlob);
+              // window.open(url);
             }}
           >
             📄 Download Full Booking PDF
