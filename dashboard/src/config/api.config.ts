@@ -15,6 +15,7 @@ export const API_ENDPOINTS = {
     GET_ALL: `/user-service/api/users/`,
     GET_BY_ID: (id: string) => `/user-service/api/users/${id}`,
     UPDATE: (id: string) => `/user-service/api/users/${id}`,
+    DELETE: (id: string) => `/user-service/api/users/${id}`,
   },
   BLOG: {
     GET_ALL: `/blog-service/api/blogs`,
@@ -43,7 +44,8 @@ export const API_ENDPOINTS = {
     GET_BY_ID: (id: string) => `/package-service/api/package/${id}`,
     CREATE: `/package-service/api/package`,
     UPDATE: (id: string) => `/package-service/api/package/${id}`,
-    UPDATE_AVAILABILITY: (id: string) => `/package-service/api/package/${id}/availability`,
+    UPDATE_AVAILABILITY: (id: string) =>
+      `/package-service/api/package/${id}/availability`,
     DELETE: (id: string) => `/package-service/api/package/${id}`,
   },
   PACKAGE_LOCATION: {
@@ -55,24 +57,33 @@ export const API_ENDPOINTS = {
   },
   PACKAGE_CATEGORY: {
     GET_ALL: `/package-service/api/package-essentials/categories/`,
-    GET_BY_ID: (id: string) => `/package-service/api/package-essentials/categories/${id}`,
+    GET_BY_ID: (id: string) =>
+      `/package-service/api/package-essentials/categories/${id}`,
     CREATE: `/package-service/api/package-essentials/categories/`,
-    UPDATE: (id: string) => `/package-service/api/package-essentials/categories/${id}`,
-    DELETE: (id: string) => `/package-service/api/package-essentials/categories/${id}`,
+    UPDATE: (id: string) =>
+      `/package-service/api/package-essentials/categories/${id}`,
+    DELETE: (id: string) =>
+      `/package-service/api/package-essentials/categories/${id}`,
   },
   PACKAGE_SERVICES: {
     GET_ALL: `/package-service/api/package-essentials/services/`,
-    GET_BY_ID: (id: string) => `/package-service/api/package-essentials/services/${id}`,
+    GET_BY_ID: (id: string) =>
+      `/package-service/api/package-essentials/services/${id}`,
     CREATE: `/package-service/api/package-essentials/services/`,
-    UPDATE: (id: string) => `/package-service/api/package-essentials/services/${id}`,
-    DELETE: (id: string) => `/package-service/api/package-essentials/services/${id}`,
+    UPDATE: (id: string) =>
+      `/package-service/api/package-essentials/services/${id}`,
+    DELETE: (id: string) =>
+      `/package-service/api/package-essentials/services/${id}`,
   },
   PACKAGE_FEATURE: {
     GET_ALL: `/package-service/api/package-essentials/features/`,
-    GET_BY_ID: (id: string) => `/package-service/api/package-essentials/features/${id}`,
+    GET_BY_ID: (id: string) =>
+      `/package-service/api/package-essentials/features/${id}`,
     CREATE: `/package-service/api/package-essentials/features/`,
-    UPDATE: (id: string) => `/package-service/api/package-essentials/features/${id}`,
-    DELETE: (id: string) => `/package-service/api/package-essentials/features/${id}`,
+    UPDATE: (id: string) =>
+      `/package-service/api/package-essentials/features/${id}`,
+    DELETE: (id: string) =>
+      `/package-service/api/package-essentials/features/${id}`,
   },
   PACKAGE_ITINERARY: {
     GET_ALL: `/package-service/api/package-itinerary/`,
@@ -98,5 +109,9 @@ export const API_ENDPOINTS = {
     GET_ALL: "/invoice-service/invoice",
     GET_BY_ID: (id: string) => `/invoice-service/invoice/${id}`,
     DELETE: (id: string) => `/invoice-service/invoice/${id}`,
+  },
+  BOOKING: {
+    GET_ALL: "/booking-service/api/booking",
+    GET_BY_ID: (id: string) => `/booking-service/api/booking/${id}`,
   },
 };

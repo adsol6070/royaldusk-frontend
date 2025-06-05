@@ -15,6 +15,7 @@ import { toast } from "react-hot-toast";
 import Link from "next/link";
 import { useAuth } from "@/common/context/AuthContext";
 import { useRouter } from "next/navigation";
+import { bookingApi } from "@/common/api";
 
 const schema = yup.object().shape({
   name: yup.string().required("Name is required"),
@@ -31,7 +32,7 @@ const schema = yup.object().shape({
 
 const Page = () => {
   const { cartItems, removeFromCart, updateCartItem, clearCart } = useCart();
-  const { userInfo, addBooking } = useAuth();
+  const { userInfo } = useAuth();
   const router = useRouter();
   const [totalAmount, setTotalAmount] = useState(0);
   const [hasDateValidation, setHasDateValidation] = useState(false);
@@ -84,33 +85,51 @@ const Page = () => {
     }
   };
 
-  const onSubmit = async (data) => {
+const onSubmit = async (data) => {
+  if (cartItems.length === 0) {
+    toast.error('Your cart is empty!');
+    return;
+  }
 
-    if (cartItems.length === 0) {
-      toast.error('Your cart is empty!');
-      return;
-    }
+  if (cartItems.some(item => !item.startDate)) {
+    toast.error('Please select start date for all packages!');
+    return;
+  }
 
-    if (cartItems.some(item => !item.startDate)) {
-      toast.error('Please select start date for all packages!');
-      return;
-    }
+  // Format phone number
+  const fullMobile = `${data.mobile.isdCode}${data.mobile.phoneNumber}`;
 
-    // Add each cart item as a booking
-    cartItems.forEach(item => {
-      addBooking({
-        packageName: item.name,
-        date: item.startDate,
-        price: item.price * item.travelers,
-        travelers: item.travelers,
-        bookingDate: new Date().toISOString().split('T')[0]
-      });
-    });
+  // Get selected payment method (radio)
+  const selectedPayment = document.querySelector('input[name="payment"]:checked')?.id || "Credit Card";
 
-    // Clear the cart after successful booking
-    clearCart();
-    toast.success('Booking submitted successfully!');
+  // Build booking payload
+  const payload = {
+    guestName: data.name,
+    guestEmail: data.email,
+    guestMobile: fullMobile,
+    guestNationality: data.nationality,
+    remarks: data.remarks,
+    paymentMethod: selectedPayment,
+    agreedToTerms: true,
+    items: cartItems.map(item => ({
+      packageId: item.id,
+      travelers: item.travelers,
+      startDate: new Date(item.startDate).toISOString()
+    }))
   };
+  try {
+   const response = await bookingApi.createBooking(payload);
+   console.log("✅ Booking successful", response);
+   const bookingId = response.data.id;
+    const amount = totalAmount * 100; 
+
+    router.push(`/payment?bookingId=${bookingId}&amount=${amount}`);
+
+  } catch (err) {
+    console.error("❌ Booking failed", err);
+    toast.error("Failed to submit booking. Please try again.");
+  }
+};
 
   const nat = getNationalities();
   const nationalityOptions = nat.map((country) => ({
@@ -253,7 +272,7 @@ const Page = () => {
                   <h3>Payment Method</h3>
                   <PaymentOptions>
                     <PaymentOption>
-                      <input type="radio" name="payment" id="card" defaultChecked />
+                      <input type="radio" name="payment" id="Credit Card" defaultChecked />
                       <label htmlFor="card">
                         <span>Credit/Debit Card</span>
                         <small>Secure payment via bank</small>

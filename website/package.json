@@ -13,6 +13,8 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
+    "@stripe/react-stripe-js": "^3.7.0",
+    "@stripe/stripe-js": "^7.3.1",
     "aos": "^2.3.4",
     "axios": "^1.8.1",
     "bootstrap": "^5.3.5",
@@ -21,6 +23,7 @@
     "i18n-iso-countries": "^7.14.0",
     "jwt-decode": "^4.0.0",
     "next": "14.2.7",
+    "pdfkit": "^0.17.1",
     "rc-slider": "^11.1.5",
     "react": "^18",
     "react-bootstrap": "^1.6.8",
@@ -36,6 +39,7 @@
     "react-select": "^5.10.1",
     "react-slick": "^0.30.2",
     "react-visibility-sensor": "^5.1.1",
+    "stripe": "^18.2.1",
     "styled-components": "^6.1.15",
     "sweetalert2": "^11.17.2",
     "yup": "^1.6.1"

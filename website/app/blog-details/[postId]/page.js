@@ -5,7 +5,6 @@ import BlogSidebar from "@/components/Blogsidebar";
 import Loader from "@/components/loader";
 import ReveloLayout from "@/layout/ReveloLayout";
 import capitalizeFirstLetter from "@/utility/capitalizeFirstLetter";
-import slugToTitle from "@/utility/slugToTitleConverter";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 

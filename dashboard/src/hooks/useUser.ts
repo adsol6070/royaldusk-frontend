@@ -57,9 +57,9 @@ export const useMe = () =>
     queryFn: userApi.me,
   });
 
-// export const useDeleteUser = () =>
-//   useCustomMutation(
-//     (id: string) => userApi.deleteUser(id),
-//     ["users"],
-//     "User deleted successfully!"
-//   );
+export const useDeleteUser = () =>
+  useCustomMutation(
+    (id: string) => userApi.deleteUser(id),
+    ["users"],
+    "User deleted successfully!"
+  );

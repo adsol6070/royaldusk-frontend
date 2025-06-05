@@ -2,13 +2,13 @@ import Banner from "@/components/Banner";
 import ReveloLayout from "@/layout/ReveloLayout";
 const page = () => {
   return (
-    <ReveloLayout insta>
+    <ReveloLayout>
       <Banner pageTitle={"Contact Us"} />
       {/* Contact Info Area start */}
       <section className="contact-info-area pt-100 rel z-1">
         <div className="container">
           <div className="row align-items-center">
-          <div className="col-lg-6">
+          {/* <div className="col-lg-6">
               <div className="comment-form bgc-lighter z-1 rel mb-30 rmb-55">
                 <form
                   id="contactForm"
@@ -118,10 +118,10 @@ const page = () => {
                   </div>
                 </form>
               </div>
-            </div>
-            <div className="col-lg-6">
+            </div> */}
+            <div className="col-lg-12">
               <div className="row">
-                <div className="col-md-6">
+                <div className="col-md-4">
                   <div
                     className="contact-info-item"
                     data-aos="fade-up"
@@ -141,7 +141,7 @@ const page = () => {
                     </div>
                   </div>
                 </div>
-                <div className="col-md-6">
+                <div className="col-md-4">
                   <div
                     className="contact-info-item"
                     data-aos="fade-up"
@@ -181,7 +181,7 @@ const page = () => {
                     </div>
                   </div>
                 </div> */}
-                <div className="col-md-6">
+                <div className="col-md-4">
                   <div
                     className="contact-info-item"
                     data-aos="fade-up"
@@ -195,7 +195,8 @@ const page = () => {
                     <div className="content">
                       <h5>Main Office Address</h5>
                       <div className="text">
-                        <i className="fal fa-map-marker-alt" />IFZA Business Park, DDP, 56942 - 001, A1 - 3641379065
+                        {/* <i className="fal fa-map-marker-alt" />IFZA Business Park, DDP, 56942 - 001, A1 - 3641379065 */}
+                        <i className="fal fa-map-marker-alt" />IFZA Business Park, Dubai
                       </div>
                     </div>
                   </div>

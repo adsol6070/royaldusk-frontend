@@ -2,15 +2,14 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  password: string;
+  role: string;
   createdAt: string;
-  updatedAt: string;
 }
 
 export interface UserPayload {
   name: string;
   email?: string;
-  password?: string;
+  role?: string;
 }
 
 export interface ApiResponse<T> {
