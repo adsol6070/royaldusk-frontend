@@ -7,16 +7,11 @@ import {
   OverlayTrigger,
   Tooltip,
 } from "react-bootstrap";
-import {
-  FaPlus,
-  FaEye,
-  FaTrash,
-  FaFileInvoiceDollar,
-  FaExclamationCircle,
-} from "react-icons/fa";
+import { FaEye, FaTrash, FaExclamationCircle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/config/route-paths.config";
 import { useDeleteInvoice } from "@/hooks/useInvoice";
+import { resolveRoute } from "@/utils/resolveRoute";
 
 const InvoiceList = () => {
   const navigate = useNavigate();
@@ -60,7 +55,10 @@ const InvoiceList = () => {
 
   const indexOfLastInvoice = currentPage * invoicesPerPage;
   const indexOfFirstInvoice = indexOfLastInvoice - invoicesPerPage;
-  const currentInvoices = invoices.slice(indexOfFirstInvoice, indexOfLastInvoice);
+  const currentInvoices = invoices.slice(
+    indexOfFirstInvoice,
+    indexOfLastInvoice
+  );
   const totalPages = Math.ceil(invoices.length / invoicesPerPage);
 
   return (
@@ -111,7 +109,12 @@ const InvoiceList = () => {
                         size="sm"
                         className="me-2"
                         onClick={() =>
-                          navigate(`${ROUTES.PRIVATE.INVOICE_PREVIEW(invoice.id)}`)
+                          navigate(
+                            `${resolveRoute(
+                              ROUTES.PRIVATE.INVOICE_PREVIEW,
+                              invoice.id
+                            )}`
+                          )
                         }
                       >
                         <FaEye />

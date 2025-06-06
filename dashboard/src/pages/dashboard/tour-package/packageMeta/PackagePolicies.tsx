@@ -16,7 +16,7 @@ import {
   useCreatePackagePolicy,
   useUpdatePackagePolicy,
   useDeletePackagePolicy,
-} from "@/hooks/usePackage"; 
+} from "@/hooks/usePackage";
 import { capitalizeFirstLetter } from "@/utils/capitalizeFirstLetter";
 
 const PackagePolicyList = () => {
@@ -38,14 +38,18 @@ const PackagePolicyList = () => {
   const deletePolicy = useDeletePackagePolicy();
 
   const handleSavePolicy = () => {
-    const { bookingPolicy, visaDetail, cancellationPolicy, paymentTerms } = formData;
+    const { bookingPolicy, visaDetail, cancellationPolicy, paymentTerms } =
+      formData;
     if (!bookingPolicy || !visaDetail || !cancellationPolicy || !paymentTerms) {
       toast.error("All fields are required.");
       return;
     }
 
     if (editingPolicy) {
-      updatePolicy.mutate({ id: editingPolicy.id, ...formData });
+      updatePolicy.mutate({
+        id: editingPolicy.id,
+        policyData: { ...formData },
+      });
     } else {
       createPolicy.mutate({ ...formData });
     }
@@ -101,7 +105,13 @@ const PackagePolicyList = () => {
 
         {policies.length > 0 ? (
           <>
-            <Table striped bordered hover responsive className="shadow-sm rounded">
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="shadow-sm rounded"
+            >
               <thead className="table-dark text-center">
                 <tr>
                   <th>#</th>
@@ -121,7 +131,10 @@ const PackagePolicyList = () => {
                     <td>{capitalizeFirstLetter(policy.cancellationPolicy)}</td>
                     <td>{capitalizeFirstLetter(policy.paymentTerms)}</td>
                     <td>
-                      <OverlayTrigger placement="top" overlay={<Tooltip>Edit</Tooltip>}>
+                      <OverlayTrigger
+                        placement="top"
+                        overlay={<Tooltip>Edit</Tooltip>}
+                      >
                         <Button
                           variant="outline-primary"
                           size="sm"
@@ -131,7 +144,10 @@ const PackagePolicyList = () => {
                           <FaEdit />
                         </Button>
                       </OverlayTrigger>
-                      <OverlayTrigger placement="top" overlay={<Tooltip>Delete</Tooltip>}>
+                      <OverlayTrigger
+                        placement="top"
+                        overlay={<Tooltip>Delete</Tooltip>}
+                      >
                         <Button
                           variant="outline-danger"
                           size="sm"
@@ -193,22 +209,27 @@ const PackagePolicyList = () => {
           </Modal.Header>
           <Modal.Body>
             <Form>
-              {["bookingPolicy", "visaDetail", "cancellationPolicy", "paymentTerms"].map(
-                (field) => (
-                  <Form.Group className="mb-3" key={field}>
-                    <Form.Label>{capitalizeFirstLetter(field.replace(/([A-Z])/g, " $1"))}</Form.Label>
-                    <Form.Control
-                      as="textarea"
-                      rows={2}
-                      placeholder={`Enter ${field}`}
-                      value={formData[field as keyof typeof formData]}
-                      onChange={(e) =>
-                        setFormData({ ...formData, [field]: e.target.value })
-                      }
-                    />
-                  </Form.Group>
-                )
-              )}
+              {[
+                "bookingPolicy",
+                "visaDetail",
+                "cancellationPolicy",
+                "paymentTerms",
+              ].map((field) => (
+                <Form.Group className="mb-3" key={field}>
+                  <Form.Label>
+                    {capitalizeFirstLetter(field.replace(/([A-Z])/g, " $1"))}
+                  </Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    rows={2}
+                    placeholder={`Enter ${field}`}
+                    value={formData[field as keyof typeof formData]}
+                    onChange={(e) =>
+                      setFormData({ ...formData, [field]: e.target.value })
+                    }
+                  />
+                </Form.Group>
+              ))}
             </Form>
           </Modal.Body>
           <Modal.Footer>

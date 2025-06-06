@@ -8,6 +8,7 @@ import { capitalizeFirstLetter } from "@/utils/capitalizeFirstLetter";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/config/route-paths.config";
 import { useMe } from "@/hooks/useUser";
+import { resolveRoute } from "@/utils/resolveRoute";
 
 const Header = ({ onToggleSidebar }: any) => {
   const { logout } = useAuth();
@@ -67,7 +68,7 @@ const Header = ({ onToggleSidebar }: any) => {
           <DropdownMenu>
             <DropdownItemButton
               onClick={() => {
-                navigate(ROUTES.PRIVATE.PROFILE);
+                navigate(resolveRoute(ROUTES.PRIVATE.PROFILE));
                 setIsDropdownOpen(false);
               }}
             >

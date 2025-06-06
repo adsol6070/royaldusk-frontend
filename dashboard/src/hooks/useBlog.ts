@@ -17,7 +17,7 @@ const useCustomMutation = <T, V>(
       toast.success(successMessage);
       queryClient.invalidateQueries({ queryKey });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       const message =
         error?.response?.data?.message ||
         error?.response?.data?.error ||

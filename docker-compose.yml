@@ -1,0 +1,29 @@
+services:
+  dashboard:
+    container_name: dashboard
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    volumes:
+      - dashboard-build:/app/dist
+
+  website:
+    container_name: website
+    build:
+      context: ./website
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    command: ["npm", "run", "start"]
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    depends_on:
+      - dashboard
+      - website
+    volumes:
+      - dashboard-build:/usr/share/nginx/html/dashboard:ro
+
+volumes:
+  dashboard-build:

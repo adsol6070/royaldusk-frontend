@@ -95,10 +95,10 @@ const PackageDetails = () => {
 
           <h4 className="mt-4">Itinerary</h4>
           <ListGroup>
-            {packageData?.timeline?.map((dayItem, index) => (
+            {packageData?.timeline?.map((dayItem: any, index: any) => (
               <ListGroup.Item key={index} className="mb-2">
                 <div className="fw-bold mb-1">Day {dayItem.day}</div>
-                {dayItem.entries.map((entry, i) => (
+                {dayItem.entries.map((entry: any, i: any) => (
                   <div key={i} className="ms-3">
                     <strong>{entry.title}</strong>: {entry.description}
                   </div>

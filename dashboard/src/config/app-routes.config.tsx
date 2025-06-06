@@ -40,13 +40,14 @@ export const AUTH_ROUTES = [
 ];
 
 export const PRIVATE_ROUTES = [
+  { path: ROUTE_PATHS.HOME, element: <Dashboard /> },
   { path: ROUTE_PATHS.DASHBOARD, element: <Dashboard /> },
   { path: ROUTE_PATHS.PROFILE, element: <Profile /> },
   { path: ROUTE_PATHS.SETTINGS, element: <Settings /> },
 
   { path: ROUTE_PATHS.USER_LIST, element: <UserList /> },
   { path: ROUTE_PATHS.USER_DETAILS(), element: <UserDetails /> },
-  { path: ROUTE_PATHS.USER_EDIT(), element: <UserEdit /> },
+  { path: ROUTE_PATHS.USER_EDIT(), element: <UserEdit /> }, 
 
   { path: ROUTE_PATHS.BLOG_LIST, element: <BlogList /> },
   { path: ROUTE_PATHS.BLOG_DETAILS(), element: <BlogDetails /> },

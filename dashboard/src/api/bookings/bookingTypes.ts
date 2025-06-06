@@ -21,6 +21,7 @@ export interface BookingDetail {
   remarks?: string;
   agreedToTerms: boolean;
   status: string;
+  confirmationPdfPath: string | null;
   createdAt: string;
   items: {
     id: string;

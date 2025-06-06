@@ -1,6 +1,6 @@
 import { bookingApi } from "@/api/bookings/bookingApi";
 import { BookingDetail, BookingSummary } from "@/api/bookings/bookingTypes";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 export const useBookings = () =>
   useQuery<BookingSummary[], Error>({
@@ -13,4 +13,9 @@ export const useBookingById = (id: string) =>
     queryKey: ["booking", id],
     queryFn: () => bookingApi.getBookingById(id),
     enabled: !!id,
+  });
+
+export const useDownloadBookingConfirmation = () =>
+  useMutation({
+    mutationFn: bookingApi.downloadBookingConfirmation,
   });

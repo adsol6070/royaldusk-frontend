@@ -19,6 +19,7 @@ import { ROUTES } from "@/config/route-paths.config";
 import { useNavigate } from "react-router-dom";
 import { useBlogs, useDeleteBlog, useUpdateBlogStatus } from "@/hooks/useBlog";
 import { capitalizeFirstLetter } from "@/utils/capitalizeFirstLetter";
+import { resolveRoute } from "@/utils/resolveRoute";
 
 const BlogList = () => {
   const navigate = useNavigate();
@@ -122,7 +123,12 @@ const BlogList = () => {
                           size="sm"
                           className="me-2"
                           onClick={() =>
-                            navigate(`${ROUTES.PRIVATE.EDIT_BLOG(blog.id)}`)
+                            navigate(
+                              `${resolveRoute(
+                                ROUTES.PRIVATE.EDIT_BLOG,
+                                blog.id
+                              )}`
+                            )
                           }
                         >
                           <FaEdit />
@@ -137,7 +143,12 @@ const BlogList = () => {
                           size="sm"
                           className="me-2"
                           onClick={() =>
-                            navigate(`${ROUTES.PRIVATE.BLOG_DETAILS(blog.id)}`)
+                            navigate(
+                              `${resolveRoute(
+                                ROUTES.PRIVATE.BLOG_DETAILS,
+                                blog.id
+                              )}`
+                            )
                           }
                         >
                           <FaEye />

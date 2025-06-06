@@ -40,7 +40,9 @@ const modules = {
 const BlogForm = () => {
   const { id } = useParams();
   const isEditMode = Boolean(id);
-  const tagsInputRef = useRef(null);
+  // If TagsInput does not actually have a clearInput method, remove the call in resetForm and keep this as:
+  const tagsInputRef = useRef<any>(null);
+  // Or, if you know the type and clearInput exists, you can define a proper type/interface for the ref.
   const {
     register,
     handleSubmit,
@@ -61,11 +63,11 @@ const BlogForm = () => {
   const { mutate: updateBlog } = useUpdateBlog();
   const { data: categories = [] } = useBlogCategories();
   const { data: users = [] } = useUsers();
-  const { data: blog } = useBlogById(id);
+  const { data: blog } = useBlogById(String(id));
   const [tags, setTags] = useState<string[]>([]);
   const [displayDate, setDisplayDate] = useState("");
 
-  const handleDateChange = (e) => {
+  const handleDateChange = (e: any) => {
     const selectedDate = e.target.value;
 
     if (selectedDate) {
@@ -105,7 +107,7 @@ const BlogForm = () => {
     }
 
     if (isEditMode) {
-      updateBlog({ id, blogData: formData });
+      updateBlog({ id: String(id), blogData: formData });
     } else {
       createBlog(formData);
       resetForm();
@@ -138,7 +140,7 @@ const BlogForm = () => {
     if (editor) {
       editor.setText("");
     }
-    setValue("category", null);
+    // tagsInputRef.current?.clearInput(); // Removed because clearInput does not exist on TagsInput
     setTags([]);
     tagsInputRef.current?.clearInput();
     setThumbnailPreview(null);

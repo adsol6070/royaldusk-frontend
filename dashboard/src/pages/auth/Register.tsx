@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { ROUTES } from "@/config/route-paths.config";
 import { useAuth } from "@/context/AuthContext";
 import { useState } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useForm } from "react-hook-form";

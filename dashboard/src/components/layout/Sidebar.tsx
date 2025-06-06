@@ -4,6 +4,7 @@ import { theme } from "@/config/theme.config";
 import LogoIcon from "@/assets/images/logo-icon.png";
 import Logo from "@/assets/images/white-logo.png";
 import { sidebarMenuItems } from "@/config/sidebar.config";
+import { resolveRoute } from "@/utils/resolveRoute";
 
 const SidebarComponent = ({ isCollapsed, isToggled, setIsToggled }: any) => {
   return (
@@ -66,7 +67,7 @@ const SidebarComponent = ({ isCollapsed, isToggled, setIsToggled }: any) => {
                 <MenuItem
                   key={subItem.label}
                   icon={subItem.icon}
-                  component={<Link to={subItem.path} />}
+                  component={<Link to={resolveRoute(subItem.path)} />}
                 >
                   {subItem.label}
                 </MenuItem>
@@ -76,7 +77,7 @@ const SidebarComponent = ({ isCollapsed, isToggled, setIsToggled }: any) => {
             <MenuItem
               key={menu.label}
               icon={menu.icon}
-              component={<Link to={menu.path} />}
+              component={<Link to={resolveRoute(menu.path)} />}
             >
               {menu.label}
             </MenuItem>

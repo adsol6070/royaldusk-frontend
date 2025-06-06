@@ -1,0 +1,14 @@
+services:
+  dashboard:
+    environment:
+      - NODE_ENV=development
+
+  website:
+    environment:
+      - NODE_ENV=development
+
+  nginx:
+    ports:
+      - "8081:80"
+    volumes:
+      - ./nginx/nginx.local.conf:/etc/nginx/nginx.conf:ro

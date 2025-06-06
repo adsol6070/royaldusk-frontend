@@ -13,11 +13,13 @@ const BlogDetails = () => {
           <h1 className="fw-bold text-dark">{blog?.title}</h1>
           <p className="text-muted">
             By <span className="fw-bold">{blog?.author.name}</span> |{" "}
-            {new Date(blog?.publishedAt).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "2-digit",
-            })}
+            {blog?.publishedAt
+              ? new Date(blog.publishedAt).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "2-digit",
+                })
+              : "Unknown date"}
           </p>
           <Badge bg="primary" className="mb-3">
             {blog?.category.name}
@@ -39,7 +41,7 @@ const BlogDetails = () => {
       <Row className="mt-4">
         <Col md={{ span: 8, offset: 1 }}>
           <div
-            dangerouslySetInnerHTML={{ __html: blog?.content }}
+            dangerouslySetInnerHTML={{ __html: blog?.content ?? "" }}
             className="fs-5 text-dark"
           />
         </Col>
@@ -48,7 +50,7 @@ const BlogDetails = () => {
       <Row className="mt-4">
         <Col md={{ span: 8, offset: 1 }}>
           <h5>Tags:</h5>
-          {blog?.tags.map((tag, index) => (
+          {blog?.tags?.map((tag, index) => (
             <Badge key={index} bg="secondary" className="me-2">
               {tag}
             </Badge>

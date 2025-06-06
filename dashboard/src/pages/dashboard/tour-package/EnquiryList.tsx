@@ -8,7 +8,10 @@ import {
   Tooltip,
 } from "react-bootstrap";
 import { FaTrash, FaExclamationCircle } from "react-icons/fa";
-import { usePackageEnquiries, useDeletePackageEnquiry } from "@/hooks/usePackage";
+import {
+  usePackageEnquiries,
+  useDeletePackageEnquiry,
+} from "@/hooks/usePackage";
 
 const EnquiryList = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -17,7 +20,7 @@ const EnquiryList = () => {
   const { data: enquiries } = usePackageEnquiries();
   const { mutate: deleteEnquiry } = useDeletePackageEnquiry();
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     if (confirm("Are you sure you want to delete this enquiry?")) {
       deleteEnquiry(id);
     }
@@ -32,7 +35,7 @@ const EnquiryList = () => {
     <Container className="p-5 shadow rounded bg-light">
       <h2 className="mb-4 text-center fw-bold">📬 Enquiry List</h2>
 
-      {enquiries?.length > 0 ? (
+      {(enquiries?.length ?? 0) > 0 ? (
         <>
           <Table responsive striped bordered hover className="shadow-sm">
             <thead className="table-dark text-center">
@@ -49,7 +52,7 @@ const EnquiryList = () => {
               </tr>
             </thead>
             <tbody className="text-center bg-white">
-              {currentEnquiries.map((item, index) => (
+              {(currentEnquiries ?? []).map((item, index) => (
                 <tr key={item.id}>
                   <td>{indexOfFirst + index + 1}</td>
                   <td>{item.name}</td>

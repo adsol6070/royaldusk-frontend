@@ -17,9 +17,14 @@ import {
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/config/route-paths.config";
-import { usePackages, useUpdatePackageAvailability, useDeletePackage } from "@/hooks/usePackage";
+import {
+  usePackages,
+  useUpdatePackageAvailability,
+  useDeletePackage,
+} from "@/hooks/usePackage";
 import { capitalizeFirstLetter } from "@/utils/capitalizeFirstLetter";
 import Swal from "sweetalert2";
+import { resolveRoute } from "@/utils/resolveRoute";
 
 const PackageList = () => {
   const navigate = useNavigate();
@@ -29,24 +34,24 @@ const PackageList = () => {
   const { data: customPackages } = usePackages();
   const { mutate: deletePackage } = useDeletePackage();
   const { mutate: updatePackageAvailability } = useUpdatePackageAvailability();
-console.log("Custom Packages:", customPackages);
+  console.log("Custom Packages:", customPackages);
 
-const handleDelete = (id: string) => {
-  Swal.fire({
-    title: "Are you sure?",
-    text: "This package will be permanently deleted!",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#d33",
-    cancelButtonColor: "#3085d6",
-    confirmButtonText: "Yes, delete it!",
-  }).then((result: any) => {
-    if (result.isConfirmed) {
-      deletePackage(id);
-      Swal.fire("Deleted!", "The package has been deleted.", "success");
-    }
-  });
-};
+  const handleDelete = (id: string) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "This package will be permanently deleted!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    }).then((result: any) => {
+      if (result.isConfirmed) {
+        deletePackage(id);
+        Swal.fire("Deleted!", "The package has been deleted.", "success");
+      }
+    });
+  };
 
   const handleAvailabilityChange = (id: string, newAvailability: string) => {
     updatePackageAvailability({ id, availability: newAvailability });
@@ -102,8 +107,12 @@ const handleDelete = (id: string) => {
                       {indexOfFirstPackage + index + 1}
                     </td>
                     <td>{capitalizeFirstLetter(customPackage.name)}</td>
-                    <td>{capitalizeFirstLetter(customPackage.location.name)}</td>
-                    <td>{capitalizeFirstLetter(customPackage.category.name)}</td>
+                    <td>
+                      {capitalizeFirstLetter(customPackage.location.name)}
+                    </td>
+                    <td>
+                      {capitalizeFirstLetter(customPackage.category.name)}
+                    </td>
                     <td>
                       <Form.Select
                         value={customPackage.availability}
@@ -149,7 +158,10 @@ const handleDelete = (id: string) => {
                           className="me-2"
                           onClick={() =>
                             navigate(
-                              `${ROUTES.PRIVATE.EDIT_PACKAGE(customPackage.id)}`
+                              `${resolveRoute(
+                                ROUTES.PRIVATE.EDIT_PACKAGE,
+                                customPackage.id
+                              )}`
                             )
                           }
                         >
@@ -166,7 +178,8 @@ const handleDelete = (id: string) => {
                           className="me-2"
                           onClick={() =>
                             navigate(
-                              `${ROUTES.PRIVATE.PACKAGE_DETAILS(
+                              `${resolveRoute(
+                                ROUTES.PRIVATE.PACKAGE_DETAILS,
                                 customPackage.id
                               )}`
                             )

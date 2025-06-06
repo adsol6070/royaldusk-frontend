@@ -1,15 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button, Container, Form, Row, Col } from "react-bootstrap";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useParams } from "react-router-dom";
 
-import {
-  useCreateTour,
-  useTourById,
-  useUpdateTour,
-} from "@/hooks/useTour"; 
+import { useCreateTour, useTourById, useUpdateTour } from "@/hooks/useTour";
 
 const TourForm = () => {
   const { id } = useParams();
@@ -25,7 +21,7 @@ const TourForm = () => {
 
   const { mutate: createTour } = useCreateTour();
   const { mutate: updateTour } = useUpdateTour();
-  const { data: tour } = useTourById(id);
+  const { data: tour } = useTourById(String(id));
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const onSubmit = async (data: any) => {
@@ -39,7 +35,7 @@ const TourForm = () => {
     }
 
     if (isEditMode) {
-      updateTour({ id, tourData: formData });
+      updateTour({ id: String(id), tourData: formData });
     } else {
       createTour(formData);
     }
@@ -67,8 +63,8 @@ const TourForm = () => {
         description: tour.description || "",
         location: tour.location || "",
       });
-      if (tour.image_url) {
-        setImagePreview(tour.image_url);
+      if (tour.imageUrl) {
+        setImagePreview(tour.imageUrl);
       }
     }
   }, [tour]);
@@ -89,7 +85,9 @@ const TourForm = () => {
               {...register("name", { required: "Name is required" })}
             />
             {errors.name && (
-              <small className="text-danger">{errors.name.message as string}</small>
+              <small className="text-danger">
+                {errors.name.message as string}
+              </small>
             )}
           </Form.Group>
 
@@ -99,10 +97,14 @@ const TourForm = () => {
               as="textarea"
               rows={4}
               placeholder="Enter tour description"
-              {...register("description", { required: "Description is required" })}
+              {...register("description", {
+                required: "Description is required",
+              })}
             />
             {errors.description && (
-              <small className="text-danger">{errors.description.message as string}</small>
+              <small className="text-danger">
+                {errors.description.message as string}
+              </small>
             )}
           </Form.Group>
 
@@ -114,7 +116,9 @@ const TourForm = () => {
               {...register("location", { required: "Location is required" })}
             />
             {errors.location && (
-              <small className="text-danger">{errors.location.message as string}</small>
+              <small className="text-danger">
+                {errors.location.message as string}
+              </small>
             )}
           </Form.Group>
 

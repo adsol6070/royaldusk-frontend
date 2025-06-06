@@ -1,4 +1,7 @@
-import { useBookingById } from "@/hooks/useBookings";
+import {
+  useBookingById,
+  useDownloadBookingConfirmation,
+} from "@/hooks/useBookings";
 import {
   Container,
   Card,
@@ -14,6 +17,7 @@ import { useParams } from "react-router-dom";
 const BookingDetailPage = () => {
   const id = useParams()?.id;
   const { data: booking, isLoading, isError } = useBookingById(id as string);
+  const { mutate: downloadPdf, isPending } = useDownloadBookingConfirmation();
 
   if (isLoading) {
     return (
@@ -39,21 +43,35 @@ const BookingDetailPage = () => {
             📌 Booking Details ({booking.id.slice(0, 8)}...)
           </h2>
         </Col>
-        <Col className="text-end">
-          <Button
-            variant="primary"
-            onClick={async () => {
-              console.log("Generating PDF...");
-              // const mergedBlob = new Blob([mergedBytes], {
-              //   type: "application/pdf",
-              // });
-              // const url = URL.createObjectURL(mergedBlob);
-              // window.open(url);
-            }}
-          >
-            📄 Download Full Booking PDF
-          </Button>
-        </Col>
+
+        {booking.confirmationPdfPath && (
+          <Col className="text-end">
+            <Button
+              variant="primary"
+              onClick={() =>
+                downloadPdf(booking.id, {
+                  onSuccess: (blob) => {
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement("a");
+                    link.href = url;
+                    link.download = `booking-${booking.id}.pdf`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+                  },
+                  onError: (error) => {
+                    alert("❌ Failed to download the PDF.");
+                    console.error("Download error:", error);
+                  },
+                })
+              }
+              disabled={isPending}
+            >
+              {isPending ? "Downloading..." : "📄 Download Full Booking PDF"}
+            </Button>
+          </Col>
+        )}
       </Row>
 
       <Card className="mb-4 shadow-sm">

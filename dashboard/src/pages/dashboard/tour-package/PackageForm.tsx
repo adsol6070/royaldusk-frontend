@@ -37,7 +37,7 @@ const PackageForm = () => {
   const name = watch("name", "");
   const { mutate: createPackage } = useCreatePackage();
   const { mutate: updatePackage } = useUpdatePackage();
-  const { data: packageData } = usePackageById(id);
+  const { data: packageData } = usePackageById(String(id));
   const { data: categories = [] } = usePackageCategories();
   const { data: locations = [] } = usePackageLocations();
   const { data: features = [] } = usePackageFeatures();
@@ -334,7 +334,10 @@ const PackageForm = () => {
 
     try {
       if (isEditMode) {
-        updatePackage({ id, packageData: formData });
+        if (!id) {
+          throw new Error("Package ID is missing for update.");
+        }
+        updatePackage({ id: String(id), packageData: formData });
       } else {
         createPackage(formData);
         resetForm();
@@ -421,7 +424,7 @@ const PackageForm = () => {
           </Form.Group>
           <Row>
             <Col md={6}>
-               <Form.Group className="mb-3">
+              <Form.Group className="mb-3">
                 <Form.Label>Location</Form.Label>
                 <Controller
                   name="locationId"
@@ -728,7 +731,7 @@ const PackageForm = () => {
                       <Select
                         options={selectOptions}
                         isMulti
-                        value={timeline.entries.map((entry) => ({
+                        value={timeline.entries.map((entry: any) => ({
                           value: entry.itineraryId,
                           label: entry.title,
                         }))}
@@ -748,7 +751,7 @@ const PackageForm = () => {
                     <h6 className="fw-semibold text-muted mb-3">
                       Selected Entries
                     </h6>
-                    {timeline.entries.map((entry, eIdx) => (
+                    {timeline.entries.map((entry: any, eIdx) => (
                       <Row key={eIdx} className="mb-3">
                         <Col md={6}>
                           <Form.Group

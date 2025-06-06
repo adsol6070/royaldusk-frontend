@@ -113,5 +113,7 @@ export const API_ENDPOINTS = {
   BOOKING: {
     GET_ALL: "/booking-service/api/booking",
     GET_BY_ID: (id: string) => `/booking-service/api/booking/${id}`,
+    DOWNLOAD_CONFIRMATION: (id: string) =>
+      `/booking-service/api/booking/${id}/download-confirmation`,
   },
 };

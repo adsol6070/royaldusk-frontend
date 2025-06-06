@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { ROUTES } from "@/config/route-paths.config";
 import { useAuth } from "@/context/AuthContext";
@@ -17,7 +17,6 @@ const schema = yup.object().shape({
 
 const Form = () => {
   const { resendVerification } = useAuth();
-  const navigate = useNavigate();
   const {
     register,
     handleSubmit,

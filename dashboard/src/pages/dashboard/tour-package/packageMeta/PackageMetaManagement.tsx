@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import styled from "styled-components";
 import PackageCategoryList from "./PackageCategories";
 import PackageFeatureList from "./PackageFeatures";
@@ -11,7 +11,11 @@ const TABS = [
   { key: "categories", label: "📦 Categories", Component: PackageCategoryList },
   { key: "features", label: "🚀 Features", Component: PackageFeatureList },
   { key: "services", label: "🛎️ Services", Component: PackageServiceList },
-  { key: "itineraries", label: "🗺️ Itineraries", Component: PackageItineraryList },
+  {
+    key: "itineraries",
+    label: "🗺️ Itineraries",
+    Component: PackageItineraryList,
+  },
   { key: "policies", label: "📜 Policies", Component: PackagePolicyList },
   { key: "locations", label: "📍 Locations", Component: PackageLocationList },
 ];
@@ -19,7 +23,7 @@ const TABS = [
 const PackageManagementPage = () => {
   const [activeTab, setActiveTab] = useState("categories");
 
-  const ActiveComponent = TABS.find(tab => tab.key === activeTab)?.Component;
+  const ActiveComponent = TABS.find((tab) => tab.key === activeTab)?.Component;
 
   return (
     <>
@@ -40,16 +44,12 @@ const PackageManagementPage = () => {
         ))}
       </TabWrapper>
       <Divider />
-      <TabContent>
-        {ActiveComponent && <ActiveComponent />}
-      </TabContent>
+      <TabContent>{ActiveComponent && <ActiveComponent />}</TabContent>
     </>
   );
 };
 
 export default PackageManagementPage;
-
-// Styled Components
 
 const HeaderSection = styled.div`
   text-align: center;
@@ -60,11 +60,6 @@ const Heading = styled.h2`
   font-size: 2.5rem;
   font-weight: 700;
   margin-bottom: 10px;
-`;
-
-const SubHeading = styled.p`
-  color: #6c757d;
-  font-size: 1.1rem;
 `;
 
 const Divider = styled.hr`
@@ -94,7 +89,8 @@ const TabButton = styled.button<{ active: boolean }>`
   transition: all 0.3s;
 
   &:hover {
-    background: ${({ active }) => (active ? "#d78149" : "rgba(255, 157, 0, 0.1)")};
+    background: ${({ active }) =>
+      active ? "#d78149" : "rgba(255, 157, 0, 0.1)"};
   }
 `;
 

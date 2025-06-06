@@ -20,4 +20,17 @@ export const bookingApi = {
     console.log("✅ Booking API Response:", response);
     return response.data.data;
   },
+
+  downloadBookingConfirmation: async (id: string): Promise<Blob> => {
+    if (!id) throw new Error("No ID passed to downloadBookingConfirmation");
+
+    const response = await httpClient.get(
+      API_ENDPOINTS.BOOKING.DOWNLOAD_CONFIRMATION(id),
+      {
+        responseType: "blob",
+      }
+    );
+
+    return response.data as Blob;
+  },
 };

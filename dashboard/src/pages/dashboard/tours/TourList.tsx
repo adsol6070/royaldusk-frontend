@@ -16,7 +16,8 @@ import {
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/config/route-paths.config";
-import { useTours, useDeleteTour } from "@/hooks/useTour";
+import { useTours } from "@/hooks/useTour";
+import { resolveRoute } from "@/utils/resolveRoute";
 
 const TourList = () => {
   const demoTours = [
@@ -51,16 +52,17 @@ const TourList = () => {
       created_at: "2024-12-10T22:00:00Z",
     },
   ];
-  
+
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const toursPerPage = 10;
 
   const { data: fetchedTours } = useTours();
-  const tours = fetchedTours && fetchedTours.length > 0 ? fetchedTours : demoTours;
+  const tours =
+    fetchedTours && fetchedTours.length > 0 ? fetchedTours : demoTours;
 
-  const handleDelete = (id: number) => {
-    deleteTour(id);
+  const handleDelete = (_id: string) => {
+    // deleteTour(id);
   };
 
   const indexOfLastTour = currentPage * toursPerPage;
@@ -101,7 +103,7 @@ const TourList = () => {
               </tr>
             </thead>
             <tbody className="text-center bg-white">
-              {currentTours.map((tour, index) => (
+              {currentTours.map((tour: any, index) => (
                 <tr key={tour.id} className="align-middle">
                   <td className="fw-bold">{indexOfFirstTour + index + 1}</td>
                   <td>{tour.name}</td>
@@ -128,7 +130,9 @@ const TourList = () => {
                         size="sm"
                         className="me-2"
                         onClick={() =>
-                          navigate(`${ROUTES.PRIVATE.EDIT_TOUR(tour.id)}`)
+                          navigate(
+                            `${resolveRoute(ROUTES.PRIVATE.EDIT_TOUR, tour.id)}`
+                          )
                         }
                       >
                         <FaEdit />
@@ -143,7 +147,12 @@ const TourList = () => {
                         size="sm"
                         className="me-2"
                         onClick={() =>
-                          navigate(`${ROUTES.PRIVATE.TOUR_DETAILS(tour.id)}`)
+                          navigate(
+                            `${resolveRoute(
+                              ROUTES.PRIVATE.TOUR_DETAILS,
+                              tour.id
+                            )}`
+                          )
                         }
                       >
                         <FaEye />
@@ -156,7 +165,7 @@ const TourList = () => {
                       <Button
                         variant="outline-danger"
                         size="sm"
-                        onClick={() => handleDelete(tour.id)}
+                        onClick={() => handleDelete(String(tour.id))}
                       >
                         <FaTrash />
                       </Button>

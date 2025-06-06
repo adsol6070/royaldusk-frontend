@@ -3,74 +3,90 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { loadStripe } from "@stripe/stripe-js";
-import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import {
+  Elements,
+  CardElement,
+  useStripe,
+  useElements,
+} from "@stripe/react-stripe-js";
 import { bookingApi, paymentApi } from "@/common/api";
 import styled from "styled-components";
 import { useCart } from "@/common/context/CartContext";
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+);
 
 const CheckoutForm = ({ bookingId, amount }) => {
   const stripe = useStripe();
   const elements = useElements();
   const router = useRouter();
-  const [clientSecret, setClientSecret] = useState("");
   const [loading, setLoading] = useState(false);
   const [billingInfo, setBillingInfo] = useState({});
   const { clearCart } = useCart();
 
+  const fetchBooking = async () => {
+    try {
+      const response = await bookingApi.getBookingById(bookingId);
+      const guest = response.data;
+      setBillingInfo({
+        name: guest.guestName,
+        email: guest.guestEmail,
+        phone: guest.guestMobile,
+        address: { country: "AE" },
+      });
+    } catch (err) {
+      alert("❌ Failed to load booking info");
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
-    const fetchBooking = async () => {
-      try {
-        const bookingRes = await bookingApi.getBookingById(bookingId);
-        const guest = bookingRes.data;
-        console.log("Booking details:", guest);
-        setBillingInfo({
-          name: guest.guestName,
-          email: guest.guestEmail,
-          phone: guest.guestMobile,
-          address: { country: "AE" },
-        });
-
-        const payload = {
-          bookingId,
-          amount,
-          currency: "aed",
-          provider: "Stripe",
-          method: "Card",
-        };
-        const res = await paymentApi.createPayment(payload);
-        setClientSecret(res.clientSecret);
-      } catch (err) {
-        alert("❌ Failed to load booking or payment info");
-        console.error(err);
-      }
-    };
-
-    if (bookingId && amount) fetchBooking();
-  }, [bookingId, amount]);
+    if (bookingId) fetchBooking();
+  }, [bookingId]);
 
   const handlePayment = async (e) => {
     e.preventDefault();
-    if (!stripe || !elements || !clientSecret) return;
+    if (!stripe || !elements) return;
 
     setLoading(true);
-    const cardElement = elements.getElement(CardElement);
-    const result = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: {
-        card: cardElement,
-        billing_details: billingInfo,
-      },
-    });
 
-    if (result.error) {
-      alert(`❌ ${result.error.message}`);
-      setLoading(false);
-    } else if (result.paymentIntent.status === "succeeded") {
-      router.push(`/booking-success/${bookingId}`);
-      clearCart();
-    } else {
-      alert("⚠️ Payment not completed.");
+    try {
+      // Step 1: Create PaymentIntent
+      const payload = {
+        bookingId,
+        amount,
+        currency: "AED",
+        provider: "Stripe",
+        method: "Card",
+      };
+
+      const res = await paymentApi.createPayment(payload);
+      const clientSecret = res.clientSecret;
+
+      // Step 2: Confirm Card Payment
+      const cardElement = elements.getElement(CardElement);
+      const result = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: cardElement,
+          billing_details: billingInfo,
+        },
+      });
+
+      if (result.error) {
+        console.error("Payment error:", result.error);  
+        alert(`❌ ${result.error.message}`);
+      } else if (result.paymentIntent.status === "succeeded") {
+        alert("✅ Payment Successful!");
+        router.push(`/booking-success/${bookingId}`);
+        clearCart();
+      } else {
+        alert("⚠️ Payment not completed.");
+      }
+    } catch (error) {
+      console.error("Payment error:", error);
+      alert("❌ An unexpected error occurred during payment.");
+    } finally {
       setLoading(false);
     }
   };
@@ -81,7 +97,7 @@ const CheckoutForm = ({ bookingId, amount }) => {
       <CardElementContainer>
         <CardElement options={{ hidePostalCode: true }} />
       </CardElementContainer>
-      <PayButton type="submit" disabled={!stripe || !clientSecret || loading}>
+      <PayButton type="submit" disabled={!stripe || loading}>
         {loading ? "Processing..." : `Pay AED ${(amount / 100).toFixed(2)}`}
       </PayButton>
     </FormWrapper>
@@ -93,7 +109,8 @@ const CheckoutPage = () => {
   const bookingId = searchParams.get("bookingId");
   const amount = Number(searchParams.get("amount"));
 
-  if (!bookingId || !amount) return <p className="error-msg">Invalid booking information</p>;
+  if (!bookingId || !amount)
+    return <p className="error-msg">Invalid booking information</p>;
 
   return (
     <PageWrapper>
