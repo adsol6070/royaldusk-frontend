@@ -46,6 +46,7 @@ export interface Package {
     paymentTerms: string;
     visaDetail: string;
   };
+  tag: string
   timeline: any;
   createdAt: string;
   updatedAt: string;
