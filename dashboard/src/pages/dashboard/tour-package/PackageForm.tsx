@@ -83,6 +83,7 @@ const PackageForm = () => {
       policyID: "",
       features: [],
       packageImage: null,
+      tag: "Regular",
     });
     setInclusions([]);
     setExclusions([]);
@@ -113,6 +114,7 @@ const PackageForm = () => {
         policyID: packageData.policyID || "",
         availability: packageData.availability || "",
         features: packageData.features.map((inc) => inc.id) || [],
+        tag: packageData.tag || "",
       });
 
       if (packageData.inclusions && Array.isArray(packageData.inclusions)) {
@@ -306,6 +308,7 @@ const PackageForm = () => {
       "availability",
       "hotels",
       "policyID",
+      "tag",
     ];
     simpleFields.forEach((field) => appendField(field, data[field]));
 
@@ -532,7 +535,7 @@ const PackageForm = () => {
             </Col>
           </Row>
           <Row>
-            <Col md={4}>
+            <Col md={6}>
               <Form.Group className="mb-3">
                 <Form.Label>Availability</Form.Label>
                 <Form.Control
@@ -553,7 +556,7 @@ const PackageForm = () => {
                 )}
               </Form.Group>
             </Col>
-            <Col md={4}>
+            <Col md={6}>
               <Form.Group className="mb-3">
                 <Form.Label>Hotels</Form.Label>
                 <Form.Control
@@ -573,7 +576,7 @@ const PackageForm = () => {
                 )}
               </Form.Group>
             </Col>
-            <Col md={4}>
+            <Col md={6}>
               <Form.Group className="mb-3">
                 <Form.Label>Choose Features</Form.Label>
                 <Controller
@@ -610,6 +613,25 @@ const PackageForm = () => {
                 {errors.features && (
                   <small className="text-danger">
                     {errors.features.message as string}
+                  </small>
+                )}
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Tag</Form.Label>
+                <Form.Control
+                  as="select"
+                  {...register("tag", { required: "Tag is required" })}
+                >
+                  <option value="">Select</option>
+                  <option value="Popular">Popular</option>
+                  <option value="Top">Top</option>
+                  <option value="Regular">Regular</option>
+                </Form.Control>
+                {errors.tag && (
+                  <small className="text-danger">
+                    {errors.tag.message as string}
                   </small>
                 )}
               </Form.Group>
