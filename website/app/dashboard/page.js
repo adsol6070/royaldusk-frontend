@@ -6,9 +6,8 @@ import styled from "styled-components";
 import { useAuth } from "@/common/context/AuthContext";
 import ReveloLayout from "@/layout/ReveloLayout";
 import { toast } from "react-hot-toast";
-import { getNationalities } from "@/utility/getNationalities";
 import Link from "next/link";
-import { userApi } from "@/common/api";
+import { userApi, bookingApi } from "@/common/api";
 
 const DashboardSection = styled.section`
   padding: 40px 0;
@@ -269,6 +268,19 @@ const EmptyState = styled.div`
     margin: 0;
   }
 `;
+const thStyle = {
+  padding: "12px 10px",
+  textAlign: "left",
+  fontWeight: "600",
+  color: "#333",
+  borderBottom: "2px solid #ccc",
+};
+
+const tdStyle = {
+  padding: "10px",
+  fontSize: "0.95rem",
+  color: "#444",
+};
 
 const getInitial = (name) => {
   if (!name) return "";
@@ -285,24 +297,51 @@ export default function DashboardPage() {
     email: userInfo?.email || "",
   });
   const [loading, setLoading] = useState(false);
-  const nationalities = getNationalities();
+  const [userBookings, setUserBookings] = useState([]);
+  const [bookingLoading, setBookingLoading] = useState(false);
+
+  const fetchUserBookings = async () => {
+    try {
+      const data = {
+        email: userInfo.email,
+      };
+      const response = await bookingApi.getBookingByEmail(data);
+      if (response.success) {
+        setUserBookings(response.data);
+      } else {
+        toast.error("Failed to load bookings");
+      }
+    } catch (error) {
+      console.error("Error fetching bookings:", error);
+      toast.error("Something went wrong while fetching bookings");
+    } finally {
+      setBookingLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!isAuthLoading && !userInfo) {
       router.push("/login");
       return;
     }
+
     if (userInfo) {
       setFormData({
         name: userInfo.name || "",
         email: userInfo.email || "",
       });
     }
+
     const tab = searchParams.get("tab");
     if (tab && (tab === "profile" || tab === "bookings")) {
       setActiveTab(tab);
     }
-  }, [isAuthLoading, userInfo, router, searchParams]);
+
+    if (tab === "bookings" && userInfo?.email) {
+      setBookingLoading(true);
+      fetchUserBookings();
+    }
+  }, [isAuthLoading, userInfo, searchParams]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -376,35 +415,76 @@ export default function DashboardPage() {
         return (
           <div>
             <h2>My Bookings</h2>
-            {userInfo?.bookings?.length > 0 ? (
-              userInfo.bookings.map((booking) => (
-                <BookingCard key={booking.id}>
-                  <BookingHeader>
-                    <h3>{booking.packageName}</h3>
-                    <BookingStatus status={booking.status}>
-                      {booking.status}
-                    </BookingStatus>
-                  </BookingHeader>
-                  <BookingDetails>
-                    <DetailItem>
-                      <h4>Travel Date</h4>
-                      <p>{booking.date}</p>
-                    </DetailItem>
-                    <DetailItem>
-                      <h4>Booking Date</h4>
-                      <p>{booking.bookingDate}</p>
-                    </DetailItem>
-                    <DetailItem>
-                      <h4>Travelers</h4>
-                      <p>{booking.travelers}</p>
-                    </DetailItem>
-                    <DetailItem>
-                      <h4>Total Amount</h4>
-                      <p>AED {booking.price}</p>
-                    </DetailItem>
-                  </BookingDetails>
-                </BookingCard>
-              ))
+            {bookingLoading ? (
+              <p>Loading bookings...</p>
+            ) : userBookings.length > 0 ? (
+              <table
+                style={{
+                  width: "100%",
+                  borderCollapse: "collapse",
+                  marginTop: "1rem",
+                }}
+              >
+                <thead>
+                  <tr style={{ background: "#f0f0f0" }}>
+                    <th style={thStyle}>#</th>
+                    <th style={thStyle}>Package</th>
+                    <th style={thStyle}>Travel Date</th>
+                    <th style={thStyle}>Booking Date</th>
+                    <th style={thStyle}>Travelers</th>
+                    <th style={thStyle}>Amount Paid</th>
+                    <th style={thStyle}>Currency</th>
+                    <th style={thStyle}>Status</th>
+                    <th style={thStyle}>Payment</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {userBookings.map((booking, index) => (
+                    <tr
+                      key={booking.id}
+                      style={{ borderBottom: "1px solid #ddd" }}
+                    >
+                      <td style={tdStyle}>{index + 1}</td>
+                      <td style={tdStyle}>{booking.packageName}</td>
+                      <td style={tdStyle}>
+                        {new Date(booking.travelDate).toLocaleDateString()}
+                      </td>
+                      <td style={tdStyle}>
+                        {new Date(booking.createdAt).toLocaleDateString()}
+                      </td>
+                      <td style={tdStyle}>{booking.travelers}</td>
+                      <td style={tdStyle}>
+                        {booking.currency?.toUpperCase()}{" "}
+                        {booking.totalAmountPaid / 100}
+                      </td>
+                      <td style={tdStyle}>
+                        {booking.currency?.toUpperCase() || "-"}
+                      </td>
+                      <td style={tdStyle}>
+                        <span
+                          style={{
+                            padding: "0.3rem 0.7rem",
+                            borderRadius: "12px",
+                            background:
+                              booking.status === "Confirmed"
+                                ? "#d4edda"
+                                : "#fff3cd",
+                            color:
+                              booking.status === "Confirmed"
+                                ? "#155724"
+                                : "#856404",
+                            fontWeight: "bold",
+                            fontSize: "0.85rem",
+                          }}
+                        >
+                          {booking.status}
+                        </span>
+                      </td>
+                      <td style={tdStyle}>{booking.paymentStatus}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             ) : (
               <EmptyState>
                 <i className="fal fa-calendar-alt fa-3x mb-3" />

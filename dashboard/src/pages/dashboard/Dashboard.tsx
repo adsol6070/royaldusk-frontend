@@ -2,11 +2,13 @@ import { Toaster } from "react-hot-toast";
 import styled from "styled-components";
 import { useBlogs } from "@/hooks/useBlog";
 import { usePackages, usePackageEnquiries } from "@/hooks/usePackage";
+import { useBookings } from "@/hooks/useBookings";
 
 const Dashboard = () => {
   const { data: blogs } = useBlogs();
   const { data: packages } = usePackages();
   const { data: enquiries } = usePackageEnquiries();
+  const { data: bookings } = useBookings();
 
   return (
     <DashboardContainer>
@@ -24,6 +26,10 @@ const Dashboard = () => {
         <StatCard>
           <h3>Total Enquiries</h3>
           <p>{enquiries?.length ?? 0}</p>
+        </StatCard>
+        <StatCard>
+          <h3>Total Bookings</h3>
+          <p>{bookings?.length ?? 0}</p>
         </StatCard>
       </StatsWrapper>
     </DashboardContainer>
@@ -45,7 +51,7 @@ const DashboardContainer = styled.div`
 
 const StatsWrapper = styled.div`
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 2rem;
 
   @media (max-width: 600px) {

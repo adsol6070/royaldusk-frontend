@@ -5,7 +5,7 @@ import ReveloLayout from "@/layout/ReveloLayout";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
-import { Toaster, toast } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import { packageApi } from "@/common/api";
 import SkeletonLoader from "@/components/SkeletonLoader";
 import { activityIcons } from "@/utility/activityIcons";
@@ -20,8 +20,6 @@ const Page = ({ params }) => {
 
   const packageId = params.packageId;
   const [packageDetail, setPackagedetail] = useState(null);
-
-  console.log("Package Detail:", packageDetail);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -58,7 +56,7 @@ const Page = ({ params }) => {
 
   return (
     <ReveloLayout>
-      <Modal isOpen={showModal} onClose={() => setShowModal(false)} />
+      <Modal isOpen={showModal} packageId={packageDetail?.id} onClose={() => setShowModal(false)} />
       {loading ? (
         <div className="container my-50">
           <SkeletonLoader count={1} width="100%" height="500px" />

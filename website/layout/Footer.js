@@ -7,7 +7,7 @@ import capitalizeFirstLetter from "@/utility/capitalizeFirstLetter";
 const Footer = ({ footer, insta }) => {
   switch (footer) {
     case 1:
-      return <Footer1 />;
+      return <Footer />;
     default:
       return <Footer2 insta={insta} />;
   }

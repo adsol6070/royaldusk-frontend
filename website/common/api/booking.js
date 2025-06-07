@@ -9,6 +9,9 @@ function BookingService() {
     getBookingById: (id) => {
       return HttpClient.get(`/booking-service/api/booking/${id}`, { _skipAuth: true });
     },
+    getBookingByEmail: (data) => {
+      return HttpClient.post(`/booking-service/api/booking/userbooking`, data, { _skipAuth: false });
+    },
   };
 }
 

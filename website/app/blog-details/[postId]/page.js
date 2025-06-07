@@ -37,7 +37,7 @@ const BlogDetailPage = ({ params }) => {
   }, [postId]);
 
   return (
-    <ReveloLayout insta>
+    <ReveloLayout>
       <Banner
         pageTitle={blogDetail?.title || "Loading..."}
         pageName={"Blog Details"}

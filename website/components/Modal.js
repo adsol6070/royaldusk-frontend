@@ -27,7 +27,7 @@ const schema = yup.object().shape({
   remarks: yup.string().max(500, "Max 500 characters"),
 });
 
-const Modal = ({ isOpen, onClose }) => {
+const Modal = ({ isOpen, onClose, packageId }) => {
   const {
     register,
     handleSubmit,
@@ -82,16 +82,18 @@ const Modal = ({ isOpen, onClose }) => {
   }, [isOpen]);
 
   const onSubmit = async (data) => {
+    console.log("data in modal ", data)
      const payload = {
     ...data,
     isdCode: data.mobile.isdCode,
     mobile: data.mobile.phoneNumber,
     dob: new Date(data.dob).toISOString(),
-    packageID: "b27d5963-726d-4032-bc81-d567e6e242e7", 
+    packageID: packageId, 
   };
 
    try {
       const response = await packageApi.sendEnquiry(payload);
+      console.log("response ", response)
       toast.success(response.message);
       reset();
       onClose();

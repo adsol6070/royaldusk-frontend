@@ -278,13 +278,6 @@ const onSubmit = async (data) => {
                         <small>Secure payment via bank</small>
                       </label>
                     </PaymentOption>
-                    <PaymentOption>
-                      <input type="radio" name="payment" id="points" />
-                      <label htmlFor="points">
-                        <span>Pointspay</span>
-                        <small>Pay with your reward points</small>
-                      </label>
-                    </PaymentOption>
                   </PaymentOptions>
                 </CheckoutBlock>
 

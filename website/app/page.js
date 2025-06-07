@@ -330,7 +330,8 @@ const page = () => {
               </div>
             </div>
           </div>
-          <div className="row justify-content-center">
+          <div className="row justify-content-center" data-aos="fade-up"
+    >
             {loading && featuredPackages.length === 0 ? (
               Array.from({ length: 4 }).map((_, idx) => (
                 <div key={idx} className="col-xl-3 col-lg-4 col-md-6 mb-4">

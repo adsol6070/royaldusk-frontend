@@ -36,7 +36,7 @@ const page = ({ params }) => {
   }, []);
 
   return (
-    <ReveloLayout insta>
+    <ReveloLayout>
       <Banner pageTitle={"Blogs"} />
       <section className="blog-list-page py-100 rel z-1">
         <div className="container">

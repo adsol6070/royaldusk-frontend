@@ -9,6 +9,6 @@ services:
 
   nginx:
     ports:
-      - "8081:80"
+      - "8082:80"
     volumes:
       - ./nginx/nginx.local.conf:/etc/nginx/nginx.conf:ro

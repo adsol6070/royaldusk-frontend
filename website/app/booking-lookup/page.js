@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
-import styled from 'styled-components';
-import ReveloLayout from '@/layout/ReveloLayout';
-import { toast } from 'react-hot-toast';
-import Modal from '@/components/Modal';
-import BookingModal from '@/components/BookingModal';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import styled from "styled-components";
+import ReveloLayout from "@/layout/ReveloLayout";
+import { toast } from "react-hot-toast";
+import Modal from "@/components/Modal";
+import BookingModal from "@/components/BookingModal";
+import { bookingApi } from "@/common/api";
 
 const BookingLookupSection = styled.section`
   padding: 80px 0;
@@ -173,28 +174,28 @@ const StatusBadge = styled.span`
   border-radius: 50px;
   font-size: 0.875rem;
   font-weight: 600;
-  background-color: ${props => {
+  background-color: ${(props) => {
     switch (props.status?.toLowerCase()) {
-      case 'confirmed':
-        return '#dcfce7';
-      case 'pending':
-        return '#fff3e0';
-      case 'cancelled':
-        return '#fee2e2';
+      case "confirmed":
+        return "#dcfce7";
+      case "pending":
+        return "#fff3e0";
+      case "cancelled":
+        return "#fee2e2";
       default:
-        return '#f3f4f6';
+        return "#f3f4f6";
     }
   }};
-  color: ${props => {
+  color: ${(props) => {
     switch (props.status?.toLowerCase()) {
-      case 'confirmed':
-        return '#166534';
-      case 'pending':
-        return '#9a3412';
-      case 'cancelled':
-        return '#991b1b';
+      case "confirmed":
+        return "#166534";
+      case "pending":
+        return "#9a3412";
+      case "cancelled":
+        return "#991b1b";
       default:
-        return '#374151';
+        return "#374151";
     }
   }};
 `;
@@ -228,23 +229,20 @@ const ItineraryDescription = styled.div`
 `;
 
 const schema = yup.object().shape({
-  bookingReference: yup
-    .string()
-    .required('Booking reference is required')
-    .matches(/^[A-Z0-9]{6}$/, 'Invalid booking reference format'),
-  email: yup
-    .string()
-    .email('Invalid email format')
-    .required('Email is required'),
+  bookingReference: yup.string().required("Booking reference is required")  .matches(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+      "Invalid booking reference format"
+    ),
 });
 
 export default function BookingLookupPage() {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm({ resolver: yupResolver(schema) });
-  
+
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [bookingData, setBookingData] = useState(null);
@@ -252,35 +250,27 @@ export default function BookingLookupPage() {
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      const response = await fetch('/api/bookings/lookup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to find booking');
+      const response = await bookingApi.getBookingById(data.bookingReference);
+      if (!response.success) {
+        toast.error(response.message || "Failed to find booking");
       }
-
-      const bookingDetails = await response.json();
+      const bookingDetails = response.data;
       setBookingData(bookingDetails);
+      reset();
       setShowModal(true);
     } catch (error) {
-      toast.error(error.message || 'Failed to find booking');
+      toast.error(error.message || "Failed to find booking");
     } finally {
       setLoading(false);
     }
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
@@ -291,11 +281,8 @@ export default function BookingLookupPage() {
           <BookingLookupContainer>
             <Title>Booking Lookup</Title>
             <Subtitle>
-              Enter your booking reference and email to view your booking details
+              Enter your booking reference to view your booking details
             </Subtitle>
-            <DemoInfo>
-              For testing, use booking reference <code>ABC123</code> or <code>XYZ789</code> with any email address.
-            </DemoInfo>
             <Form onSubmit={handleSubmit(onSubmit)}>
               <FormGroup>
                 <Label htmlFor="bookingReference">Booking Reference</Label>
@@ -303,26 +290,15 @@ export default function BookingLookupPage() {
                   id="bookingReference"
                   type="text"
                   placeholder="Enter booking reference"
-                  {...register('bookingReference')}
+                  {...register("bookingReference")}
                 />
                 {errors.bookingReference && (
                   <ErrorText>{errors.bookingReference.message}</ErrorText>
                 )}
               </FormGroup>
 
-              <FormGroup>
-                <Label htmlFor="email">Email Address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  {...register('email')}
-                />
-                {errors.email && <ErrorText>{errors.email.message}</ErrorText>}
-              </FormGroup>
-
               <SubmitButton type="submit" disabled={loading}>
-                {loading ? 'Searching...' : 'View Booking'}
+                {loading ? "Searching..." : "View Booking"}
               </SubmitButton>
             </Form>
           </BookingLookupContainer>
@@ -333,28 +309,24 @@ export default function BookingLookupPage() {
         {bookingData && (
           <BookingDetails>
             <BookingTitle>Booking Details</BookingTitle>
-            
+
             <Section>
-              <SectionTitle>Overview</SectionTitle>
+              <SectionTitle>Guest Information</SectionTitle>
               <DetailRow>
-                <DetailLabel>Reference Number:</DetailLabel>
-                <DetailValue>{bookingData.reference}</DetailValue>
+                <DetailLabel>Guest Name:</DetailLabel>
+                <DetailValue>{bookingData.guestName}</DetailValue>
               </DetailRow>
               <DetailRow>
-                <DetailLabel>Tour Name:</DetailLabel>
-                <DetailValue>{bookingData.tourName}</DetailValue>
+                <DetailLabel>Email:</DetailLabel>
+                <DetailValue>{bookingData.guestEmail}</DetailValue>
               </DetailRow>
               <DetailRow>
-                <DetailLabel>Start Date:</DetailLabel>
-                <DetailValue>{formatDate(bookingData.date)}</DetailValue>
+                <DetailLabel>Mobile:</DetailLabel>
+                <DetailValue>{bookingData.guestMobile}</DetailValue>
               </DetailRow>
               <DetailRow>
-                <DetailLabel>Number of Guests:</DetailLabel>
-                <DetailValue>{bookingData.guests}</DetailValue>
-              </DetailRow>
-              <DetailRow>
-                <DetailLabel>Total Amount:</DetailLabel>
-                <DetailValue>${bookingData.totalAmount.toFixed(2)}</DetailValue>
+                <DetailLabel>Nationality:</DetailLabel>
+                <DetailValue>{bookingData.guestNationality}</DetailValue>
               </DetailRow>
               <DetailRow>
                 <DetailLabel>Status:</DetailLabel>
@@ -364,69 +336,98 @@ export default function BookingLookupPage() {
                   </StatusBadge>
                 </DetailValue>
               </DetailRow>
-            </Section>
-
-            <Section>
-              <SectionTitle>Hotel Details</SectionTitle>
               <DetailRow>
-                <DetailLabel>Hotel:</DetailLabel>
-                <DetailValue>{bookingData.hotel.name}</DetailValue>
+                <DetailLabel>Remarks:</DetailLabel>
+                <DetailValue>{bookingData.remarks || "N/A"}</DetailValue>
               </DetailRow>
               <DetailRow>
-                <DetailLabel>Room Type:</DetailLabel>
-                <DetailValue>{bookingData.hotel.roomType}</DetailValue>
-              </DetailRow>
-              <DetailRow>
-                <DetailLabel>Check-in:</DetailLabel>
-                <DetailValue>{formatDate(bookingData.hotel.checkIn)}</DetailValue>
-              </DetailRow>
-              <DetailRow>
-                <DetailLabel>Check-out:</DetailLabel>
-                <DetailValue>{formatDate(bookingData.hotel.checkOut)}</DetailValue>
+                <DetailLabel>Confirmation PDF:</DetailLabel>
+                <DetailValue>
+                  <a
+                    href={bookingData.confirmationPdfPath}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    View PDF
+                  </a>
+                </DetailValue>
               </DetailRow>
             </Section>
 
             <Section>
-              <SectionTitle>Itinerary</SectionTitle>
-              {bookingData.itinerary.map((item) => (
-                <ItineraryCard key={item.day}>
-                  <ItineraryDay>Day {item.day}</ItineraryDay>
-                  <ItineraryTitle>{item.title}</ItineraryTitle>
-                  <ItineraryDescription>{item.description}</ItineraryDescription>
-                </ItineraryCard>
+              <SectionTitle>Package Information</SectionTitle>
+              {bookingData.items.map((item, index) => (
+                <div key={item.id}>
+                  <DetailRow>
+                    <DetailLabel>Package Name:</DetailLabel>
+                    <DetailValue>{item.packageName}</DetailValue>
+                  </DetailRow>
+                  <DetailRow>
+                    <DetailLabel>Travelers:</DetailLabel>
+                    <DetailValue>{item.travelers}</DetailValue>
+                  </DetailRow>
+                  <DetailRow>
+                    <DetailLabel>Start Date:</DetailLabel>
+                    <DetailValue>{formatDate(item.startDate)}</DetailValue>
+                  </DetailRow>
+                  {index !== bookingData.items.length - 1 && <hr />}
+                </div>
               ))}
             </Section>
 
             <Section>
-              <SectionTitle>Activities</SectionTitle>
-              {bookingData.activities.map((activity, index) => (
-                <DetailRow key={index}>
-                  <DetailLabel>{activity.name}</DetailLabel>
-                  <DetailValue>
-                    {formatDate(activity.date)} at {activity.time}
-                  </DetailValue>
-                </DetailRow>
+              <SectionTitle>Payments</SectionTitle>
+              {bookingData.payments.map((payment, index) => (
+                <div key={payment.providerRefId}>
+                  <DetailRow>
+                    <DetailLabel>Status:</DetailLabel>
+                    <DetailValue>
+                      <StatusBadge status={payment.status}>
+                        {payment.status}
+                      </StatusBadge>
+                    </DetailValue>
+                  </DetailRow>
+                  <DetailRow>
+                    <DetailLabel>Amount:</DetailLabel>
+                    <DetailValue>
+                      ${payment.amount / 100} {payment.currency.toUpperCase()}
+                    </DetailValue>
+                  </DetailRow>
+                  <DetailRow>
+                    <DetailLabel>Provider:</DetailLabel>
+                    <DetailValue>{payment.provider}</DetailValue>
+                  </DetailRow>
+                  <DetailRow>
+                    <DetailLabel>Card:</DetailLabel>
+                    <DetailValue>
+                      {payment.cardBrand
+                        ? `${payment.cardBrand.toUpperCase()} •••• ${
+                            payment.cardLast4
+                          }`
+                        : "N/A"}
+                    </DetailValue>
+                  </DetailRow>
+                  {payment.receiptUrl && (
+                    <DetailRow>
+                      <DetailLabel>Receipt:</DetailLabel>
+                      <DetailValue>
+                        <a
+                          href={payment.receiptUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          View Receipt
+                        </a>
+                      </DetailValue>
+                    </DetailRow>
+                  )}
+                  {index !== bookingData.payments.length - 1 && <hr />}
+                </div>
               ))}
-            </Section>
-
-            <Section>
-              <SectionTitle>Transfers</SectionTitle>
-              <DetailRow>
-                <DetailLabel>Arrival:</DetailLabel>
-                <DetailValue>
-                  {formatDate(bookingData.transfers.arrival.date)} at {bookingData.transfers.arrival.time} ({bookingData.transfers.arrival.type})
-                </DetailValue>
-              </DetailRow>
-              <DetailRow>
-                <DetailLabel>Departure:</DetailLabel>
-                <DetailValue>
-                  {formatDate(bookingData.transfers.departure.date)} at {bookingData.transfers.departure.time} ({bookingData.transfers.departure.type})
-                </DetailValue>
-              </DetailRow>
             </Section>
           </BookingDetails>
         )}
       </BookingModal>
     </ReveloLayout>
   );
-} 
+}

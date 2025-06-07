@@ -124,36 +124,36 @@ const HolidayListPage = () => {
   const handleAddToCart = (packageItem) => {
     setAnimatingId(packageItem.id);
     addToCart(packageItem);
-    toast.success('Package added to cart!');
+    toast.success("Package added to cart!");
     setTimeout(() => {
       setAnimatingId(null);
     }, 500);
   };
 
   const handleViewCart = () => {
-    router.push('/cart');
+    router.push("/cart");
   };
 
   const isInCart = (packageId) => {
-    return cartItems.some(item => item.id === packageId);
+    return cartItems.some((item) => item.id === packageId);
   };
 
   const handleFilterChange = useCallback(
     ({ priceRange, categories, nights, searchTerm }) => {
       let filtered = [...packages];
-  
+
       // Price Filtering
       filtered = filtered.filter(
         (pkg) => pkg.price >= priceRange[0] && pkg.price <= priceRange[1]
       );
-  
+
       // Category Filtering
       if (categories.length) {
         filtered = filtered.filter((pkg) =>
           categories.includes(pkg.category?.name)
         );
       }
-  
+
       // Nights Filtering (duration - 1 = nights)
       if (nights.length) {
         filtered = filtered.filter((pkg) => {
@@ -161,16 +161,17 @@ const HolidayListPage = () => {
           return nights.includes(nightsCount);
         });
       }
-  
+
       // Search Term Filtering
       if (searchTerm.trim() !== "") {
         const searchLower = searchTerm.toLowerCase();
-        filtered = filtered.filter((pkg) =>
-          pkg.name.toLowerCase().includes(searchLower) ||
-          pkg.location.toLowerCase().includes(searchLower)
+        filtered = filtered.filter(
+          (pkg) =>
+            pkg.name.toLowerCase().includes(searchLower) ||
+            pkg.location.toLowerCase().includes(searchLower)
         );
       }
-  
+
       setFilteredPackages(filtered);
     },
     [packages]
@@ -194,7 +195,11 @@ const HolidayListPage = () => {
 
               <div className="col-lg-9">
                 <div className="d-flex justify-content-between align-items-center flex-wrap mb-4">
-                  <div>{filteredPackages.length} {filteredPackages.length === 1 ? "Package" : "Packages"} Found</div>
+                  <div>
+                    {filteredPackages.length}{" "}
+                    {filteredPackages.length === 1 ? "Package" : "Packages"}{" "}
+                    Found
+                  </div>
                   <SortComponent
                     data={packages}
                     setData={setFilteredPackages}
@@ -235,7 +240,7 @@ const HolidayListPage = () => {
                         <div className="destination-header d-flex justify-content-between align-items-center">
                           <span className="location">
                             <i className="fal fa-map-marker-alt" />{" "}
-                             {capitalizeFirstLetter(packageItem.location.name)}
+                            {capitalizeFirstLetter(packageItem.location.name)}
                           </span>
 
                           <div className="ratting">
@@ -258,7 +263,11 @@ const HolidayListPage = () => {
                           </Link>
                         </h5>
 
-                        <p>{packageItem.description}</p>
+                        <p>
+                          {packageItem.description.length > 100
+                            ? `${packageItem.description.slice(0, 100)}...`
+                            : packageItem.description}
+                        </p>
 
                         <ul className="blog-meta d-flex flex-wrap">
                           <li className="text-sm">
@@ -294,11 +303,13 @@ const HolidayListPage = () => {
 
                         <PackageFooter>
                           <Price>
-                            <span className="currency">{packageItem.currency} </span>
+                            <span className="currency">
+                              {packageItem.currency}{" "}
+                            </span>
                             {packageItem.price}
                           </Price>
                           {isInCart(packageItem.id) ? (
-                            <ActionButton 
+                            <ActionButton
                               className="view-cart"
                               onClick={handleViewCart}
                             >
@@ -307,7 +318,9 @@ const HolidayListPage = () => {
                             </ActionButton>
                           ) : (
                             <ActionButton
-                              className={`add-to-cart ${animatingId === packageItem.id ? 'animate' : ''}`}
+                              className={`add-to-cart ${
+                                animatingId === packageItem.id ? "animate" : ""
+                              }`}
                               onClick={() => handleAddToCart(packageItem)}
                             >
                               <i className="fal fa-shopping-cart"></i>
