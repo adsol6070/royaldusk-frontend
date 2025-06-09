@@ -324,7 +324,7 @@ const BlogForm = () => {
               ref={quillRef}
               theme="snow"
               modules={modules}
-              style={{ height: "300px", marginBottom: "55px" }}
+              style={{ height: "300px", marginBottom: "100px" }}
               placeholder="Write detailed blog content (minimum 50 characters)..."
             />
           </Form.Group>
