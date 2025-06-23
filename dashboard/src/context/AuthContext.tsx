@@ -162,7 +162,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (error: any) {
       toast.error(error.response.data.message);
-      throw error
+      throw error;
     }
   };
 

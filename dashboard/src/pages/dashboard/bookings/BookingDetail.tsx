@@ -44,34 +44,32 @@ const BookingDetailPage = () => {
           </h2>
         </Col>
 
-        {booking.confirmationPdfPath && (
-          <Col className="text-end">
-            <Button
-              variant="primary"
-              onClick={() =>
-                downloadPdf(booking.id, {
-                  onSuccess: (blob) => {
-                    const url = window.URL.createObjectURL(blob);
-                    const link = document.createElement("a");
-                    link.href = url;
-                    link.download = `booking-${booking.id}.pdf`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    window.URL.revokeObjectURL(url);
-                  },
-                  onError: (error) => {
-                    alert("❌ Failed to download the PDF.");
-                    console.error("Download error:", error);
-                  },
-                })
-              }
-              disabled={isPending}
-            >
-              {isPending ? "Downloading..." : "📄 Download Full Booking PDF"}
-            </Button>
-          </Col>
-        )}
+        <Col className="text-end">
+          <Button
+            variant="primary"
+            onClick={() =>
+              downloadPdf(booking.id, {
+                onSuccess: (blob) => {
+                  const url = window.URL.createObjectURL(blob);
+                  const link = document.createElement("a");
+                  link.href = url;
+                  link.download = `booking-${booking.id}.pdf`;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  window.URL.revokeObjectURL(url);
+                },
+                onError: (error) => {
+                  alert("❌ Failed to download the PDF.");
+                  console.error("Download error:", error);
+                },
+              })
+            }
+            disabled={isPending}
+          >
+            {isPending ? "Downloading..." : "📄 Download Full Booking PDF"}
+          </Button>
+        </Col>
       </Row>
 
       <Card className="mb-4 shadow-sm">
