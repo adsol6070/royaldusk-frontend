@@ -15,11 +15,11 @@ const schema = yup.object().shape({
   name: yup.string().required("Name is required"),
   email: yup.string().email("Invalid email").required("Email is required"),
   mobile: yup
-  .object()
-  .required("Mobile number is required")
-  .test("is-filled", "Mobile number is required", (value) => {
-    return !!value?.isdCode && !!value?.phoneNumber;
-  }),
+    .object()
+    .required("Mobile number is required")
+    .test("is-filled", "Mobile number is required", (value) => {
+      return !!value?.isdCode && !!value?.phoneNumber;
+    }),
   dob: yup.string().required("DOB is required"),
   adults: yup.string().required("Adults is required"),
   children: yup.string().required("Childrens is required"),
@@ -43,7 +43,7 @@ const Modal = ({ isOpen, onClose, packageId }) => {
       email: "",
       mobile: {
         isdCode: "971",
-        phoneNumber: ""
+        phoneNumber: "",
       },
       dob: "",
       adults: "1",
@@ -82,18 +82,18 @@ const Modal = ({ isOpen, onClose, packageId }) => {
   }, [isOpen]);
 
   const onSubmit = async (data) => {
-    console.log("data in modal ", data)
-     const payload = {
-    ...data,
-    isdCode: data.mobile.isdCode,
-    mobile: data.mobile.phoneNumber,
-    dob: new Date(data.dob).toISOString(),
-    packageID: packageId, 
-  };
+    console.log("data in modal ", data);
+    const payload = {
+      ...data,
+      isdCode: data.mobile.isdCode,
+      mobile: data.mobile.phoneNumber,
+      dob: new Date(data.dob).toISOString(),
+      packageID: packageId,
+    };
 
-   try {
+    try {
       const response = await packageApi.sendEnquiry(payload);
-      console.log("response ", response)
+      console.log("response ", response);
       toast.success(response.message);
       reset();
       onClose();

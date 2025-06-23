@@ -5,5 +5,5 @@
 **/.next
 **/dist
 certbot/
-.env.production
-.env.development
+**/.env.development
+**/.env.production

@@ -2,60 +2,719 @@
 import useClickOutside from "@/utility/useClickOutside";
 import Link from "next/link";
 import { Fragment, useState } from "react";
-import { Accordion } from "react-bootstrap";
-import { useAuth } from '@/common/context/AuthContext';
+import { useAuth } from "@/common/context/AuthContext";
+import { useCart } from "@/common/context/CartContext";
+import styled from "styled-components";
+
+const PlatformHeader = styled.header`
+  background: #ffffff;
+  border-bottom: 1px solid #fed7aa;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 1px 3px rgba(248, 133, 61, 0.08);
+`;
+
+const HeaderContainer = styled.div`
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const LogoSection = styled.div`
+  display: flex;
+  align-items: center;
+
+  .logo {
+    img {
+      height: 40px;
+      width: auto;
+    }
+  }
+`;
+
+const NavSection = styled.nav`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  @media (max-width: 1024px) {
+    display: none;
+  }
+`;
+
+const NavLink = styled(Link)`
+  padding: 8px 16px;
+  color: #64748b;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: #f8853d;
+    background: #fef7f0;
+    text-decoration: none;
+  }
+
+  &.active {
+    color: #f8853d;
+    background: #fef7f0;
+  }
+`;
+
+const ActionsSection = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  @media (max-width: 1024px) {
+    gap: 8px;
+
+    /* Hide desktop actions on mobile except mobile menu button */
+    > *:not(:last-child) {
+      display: none;
+    }
+  }
+`;
+
+const CartButton = styled(Link)`
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: #fef7f0;
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  color: #f8853d;
+  text-decoration: none;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #f8853d;
+    border-color: #f8853d;
+    color: white;
+    text-decoration: none;
+    transform: translateY(-1px);
+  }
+
+  i {
+    font-size: 16px;
+  }
+`;
+
+const CartBadge = styled.span`
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ef4444;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+`;
+
+const AuthSection = styled.div`
+  position: relative;
+`;
+
+const LoginButton = styled(Link)`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #f8853d;
+  color: white;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #e67428;
+    color: white;
+    text-decoration: none;
+    transform: translateY(-1px);
+  }
+
+  i {
+    font-size: 14px;
+  }
+`;
+
+const UserButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #fef7f0;
+  border: 1px solid #fed7aa;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 100px;
+  justify-content: space-between;
+
+  &:hover {
+    background: #f8853d;
+    border-color: #f8853d;
+    color: white;
+  }
+
+  .user-avatar {
+    width: 24px;
+    height: 24px;
+    background: #f8853d;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .chevron {
+    color: #94a3b8;
+    font-size: 12px;
+  }
+
+  &:hover .chevron {
+    color: white;
+  }
+`;
+
+const UserDropdown = styled.div`
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  background: white;
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(248, 133, 61, 0.15);
+  min-width: 200px;
+  overflow: hidden;
+  z-index: 1000;
+`;
+
+const DropdownItem = styled(Link)`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  color: #374151;
+  text-decoration: none;
+  font-size: 14px;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: #fef7f0;
+    text-decoration: none;
+    color: #f8853d;
+  }
+
+  i {
+    width: 16px;
+    color: #9ca3af;
+  }
+
+  &:hover i {
+    color: #f8853d;
+  }
+`;
+
+const DropdownButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  width: 100%;
+  background: none;
+  border: none;
+  color: #dc2626;
+  text-decoration: none;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: #fef2f2;
+  }
+
+  i {
+    width: 16px;
+    color: #dc2626;
+  }
+`;
+
+const MobileMenuButton = styled.button`
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: #fef7f0;
+  border: 1px solid #fed7aa;
+  border-radius: 6px;
+  color: #f8853d;
+  cursor: pointer;
+
+  @media (max-width: 1024px) {
+    display: flex;
+  }
+
+  &:hover {
+    background: #f8853d;
+    border-color: #f8853d;
+    color: white;
+  }
+
+  .menu-icon {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+
+    span {
+      width: 16px;
+      height: 2px;
+      background: currentColor;
+      border-radius: 1px;
+    }
+  }
+`;
+
+const MobileMenu = styled.div`
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 320px;
+  height: 100vh;
+  background: white;
+  border-left: 1px solid #fed7aa;
+  box-shadow: -10px 0 25px rgba(248, 133, 61, 0.15);
+  transform: translateX(${(props) => (props.isOpen ? "0" : "100%")});
+  transition: transform 0.3s ease;
+  z-index: 1001;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+`;
+
+const MobileMenuHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  border-bottom: 1px solid #fed7aa;
+
+  .logo img {
+    height: 32px;
+  }
+`;
+
+const CloseButton = styled.button`
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: #fef7f0;
+    color: #f8853d;
+  }
+`;
+
+const MobileNavList = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex: 1;
+`;
+
+const MobileNavItem = styled.li`
+  border-bottom: 1px solid #fef7f0;
+`;
+
+const MobileNavLink = styled(Link)`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  color: #374151;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
+
+  &:hover {
+    background: #fef7f0;
+    text-decoration: none;
+    color: #f8853d;
+  }
+
+  i {
+    width: 20px;
+    color: #9ca3af;
+  }
+
+  &:hover i {
+    color: #f8853d;
+  }
+`;
+
+const MobileActions = styled.div`
+  padding: 20px;
+  border-top: 1px solid #fed7aa;
+  margin-top: auto;
+`;
+
+const MobileCurrencySection = styled.div`
+  padding: 20px;
+  border-bottom: 1px solid #fef7f0;
+`;
+
+const MobileCurrencyHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  color: #374151;
+  font-size: 15px;
+  font-weight: 500;
+`;
+
+const MobileAuthSection = styled.div`
+  padding: 20px;
+  border-bottom: 1px solid #fef7f0;
+`;
+
+const MobileAuthButtons = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+`;
+
+const MobileButton = styled(Link)`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: ${(props) => (props.primary ? "#f8853d" : "transparent")};
+  color: ${(props) => (props.primary ? "white" : "#f8853d")};
+  border: 1px solid ${(props) => (props.primary ? "#f8853d" : "#fed7aa")};
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  text-align: center;
+
+  &:hover {
+    background: ${(props) => (props.primary ? "#e67428" : "#fef7f0")};
+    color: ${(props) => (props.primary ? "white" : "#e67428")};
+    border-color: #f8853d;
+    text-decoration: none;
+  }
+
+  i {
+    font-size: 14px;
+  }
+`;
+
+const Backdrop = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: ${(props) => (props.isOpen ? "block" : "none")};
+`;
 
 const Menu = () => {
   return (
-    <nav className="main-menu navbar-expand-lg">
-      <Accordion>
-        <div className="navbar-header">
-          <div className="mobile-logo">
-            <Link href="/">
-              <img
-                src="/assets/images/logos/rdusk-logo.png"
-                alt="Logo"
-                title="Logo"
-                width={120}
-              />
-            </Link>
-          </div>
-          {/* Toggle Button */}
-          <Accordion.Toggle
-            as={"button"}
-            type="button"
-            className="navbar-toggle"
-            eventKey="collapse"
+    <NavSection>
+      <NavLink href="/">Home</NavLink>
+      <NavLink href="/holidays">Packages</NavLink>
+      <NavLink href="/about">About</NavLink>
+      <NavLink href="/blog">Blog</NavLink>
+      <NavLink href="/contact">Contact</NavLink>
+    </NavSection>
+  );
+};
+
+const CurrencySelector = styled.div`
+  position: relative;
+`;
+
+const CurrencyButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #fef7f0;
+  border: 1px solid #fed7aa;
+  color: #f8853d;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 80px;
+  justify-content: center;
+
+  &:hover {
+    background: #f8853d;
+    border-color: #f8853d;
+    color: white;
+  }
+
+  .flag {
+    width: 16px;
+    height: 12px;
+    border-radius: 2px;
+    background: #cbd5e1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+  }
+
+  .chevron {
+    color: #94a3b8;
+    font-size: 10px;
+  }
+
+  &:hover .chevron {
+    color: white;
+  }
+`;
+
+const CurrencyDropdown = styled.div`
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  background: white;
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(248, 133, 61, 0.15);
+  min-width: 160px;
+  overflow: hidden;
+  z-index: 1000;
+`;
+
+const CurrencyOption = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  width: 100%;
+  background: none;
+  border: none;
+  color: #374151;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: #fef7f0;
+    color: #f8853d;
+  }
+
+  &.active {
+    background: #fef7f0;
+    color: #f8853d;
+  }
+
+  .flag {
+    width: 20px;
+    height: 15px;
+    border-radius: 2px;
+    background: #cbd5e1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    flex-shrink: 0;
+  }
+
+  .currency-info {
+    flex: 1;
+
+    .code {
+      font-weight: 500;
+    }
+
+    .name {
+      font-size: 12px;
+      color: #64748b;
+    }
+  }
+`;
+
+const AuthButtons = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const RegisterButton = styled(Link)`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: transparent;
+  color: #f8853d;
+  border: 1px solid #fed7aa;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #fef7f0;
+    color: #e67428;
+    border-color: #f8853d;
+    text-decoration: none;
+    transform: translateY(-1px);
+  }
+
+  i {
+    font-size: 14px;
+  }
+`;
+
+const CurrencyConverter = () => {
+  const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
+  const [selectedCurrency, setSelectedCurrency] = useState("AED");
+  const dropdownRef = useClickOutside(() => setShowCurrencyDropdown(false));
+
+  const currencies = [
+    { code: "AED", name: "UAE Dirham", flag: "🇦🇪" },
+    { code: "USD", name: "US Dollar", flag: "🇺🇸" },
+    { code: "EUR", name: "Euro", flag: "🇪🇺" },
+    { code: "GBP", name: "British Pound", flag: "🇬🇧" },
+    { code: "INR", name: "Indian Rupee", flag: "🇮🇳" },
+    { code: "SAR", name: "Saudi Riyal", flag: "🇸🇦" },
+  ];
+
+  const handleCurrencyChange = (currency) => {
+    setSelectedCurrency(currency.code);
+    setShowCurrencyDropdown(false);
+    // Here you would typically trigger a global currency conversion
+    console.log("Currency changed to:", currency.code);
+  };
+
+  const currentCurrency = currencies.find((c) => c.code === selectedCurrency);
+
+  return (
+    <CurrencySelector ref={dropdownRef}>
+      <CurrencyButton
+        onClick={() => setShowCurrencyDropdown(!showCurrencyDropdown)}
+      >
+        <span className="flag">{currentCurrency?.flag}</span>
+        <span>{selectedCurrency}</span>
+        <i
+          className={`fal fa-chevron-${
+            showCurrencyDropdown ? "up" : "down"
+          } chevron`}
+        />
+      </CurrencyButton>
+
+      {showCurrencyDropdown && (
+        <CurrencyDropdown>
+          {currencies.map((currency) => (
+            <CurrencyOption
+              key={currency.code}
+              className={currency.code === selectedCurrency ? "active" : ""}
+              onClick={() => handleCurrencyChange(currency)}
+            >
+              <span className="flag">{currency.flag}</span>
+              <div className="currency-info">
+                <div className="code">{currency.code}</div>
+                <div className="name">{currency.name}</div>
+              </div>
+            </CurrencyOption>
+          ))}
+        </CurrencyDropdown>
+      )}
+    </CurrencySelector>
+  );
+};
+
+const MobileCurrencyConverter = ({ onCurrencyChange }) => {
+  const [selectedCurrency, setSelectedCurrency] = useState("AED");
+
+  const currencies = [
+    { code: "AED", name: "UAE Dirham", flag: "🇦🇪" },
+    { code: "USD", name: "US Dollar", flag: "🇺🇸" },
+    { code: "EUR", name: "Euro", flag: "🇪🇺" },
+    { code: "GBP", name: "British Pound", flag: "🇬🇧" },
+    { code: "INR", name: "Indian Rupee", flag: "🇮🇳" },
+    { code: "SAR", name: "Saudi Riyal", flag: "🇸🇦" },
+  ];
+
+  const handleCurrencyChange = (currency) => {
+    setSelectedCurrency(currency.code);
+    if (onCurrencyChange) {
+      onCurrencyChange(currency);
+    }
+    console.log("Currency changed to:", currency.code);
+  };
+
+  return (
+    <MobileCurrencySection>
+      <MobileCurrencyHeader>
+        <i className="fal fa-money-bill-wave" />
+        Currency
+      </MobileCurrencyHeader>
+      <div
+        style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}
+      >
+        {currencies.map((currency) => (
+          <CurrencyOption
+            key={currency.code}
+            className={currency.code === selectedCurrency ? "active" : ""}
+            onClick={() => handleCurrencyChange(currency)}
+            style={{ borderRadius: "6px", border: "1px solid #fed7aa" }}
           >
-            <span className="icon-bar" />
-            <span className="icon-bar" />
-            <span className="icon-bar" />
-          </Accordion.Toggle>
-        </div>
-        <Accordion.Collapse
-          eventKey="collapse"
-          className="navbar-collapse clearfix"
-        >
-          <ul className="navigation clearfix">
-            <li>
-              <Link href="/">Home</Link>
-            </li>
-            <li>
-              <Link href="/about">About</Link>
-            </li>
-            <li>
-              <Link href="/holidays">Holidays</Link>
-            </li>
-            <li>
-              <Link href="/blog">blogs</Link>
-            </li>
-            <li>
-              <Link href="/contact">Contact Us</Link>
-            </li>
-          </ul>
-        </Accordion.Collapse>
-      </Accordion>
-    </nav>
+            <span className="flag">{currency.flag}</span>
+            <div className="currency-info">
+              <div className="code">{currency.code}</div>
+            </div>
+          </CurrencyOption>
+        ))}
+      </div>
+    </MobileCurrencySection>
   );
 };
 
@@ -66,470 +725,245 @@ const AuthMenu = () => {
 
   if (!userInfo) {
     return (
-      <div className="d-flex align-items-center">
-        <Link href="/booking-lookup" className="theme-btn style-three me-3">
-          <i className="fal fa-ticket me-2" />
-          View Booking
-        </Link>
-        <Link href="/login" className="theme-btn style-one">
-          <i className="fal fa-user me-2" />
-          Login
-        </Link>
-      </div>
+      <AuthSection>
+        <AuthButtons>
+          <RegisterButton href="/signup">
+            <i className="fal fa-user-plus" />
+            Sign Up
+          </RegisterButton>
+          <LoginButton href="/login">
+            <i className="fal fa-user" />
+            Login
+          </LoginButton>
+        </AuthButtons>
+      </AuthSection>
     );
   }
 
+  const getInitials = (name) => {
+    return (
+      name
+        ?.split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase() || "U"
+    );
+  };
+
   return (
-    <div className="user-menu" ref={dropdownRef}>
-      <button
-        className="theme-btn style-two"
-        onClick={() => setShowDropdown(!showDropdown)}
-      >
-        {userInfo.name?.split(" ")[0] || "User"}
-      </button>
+    <AuthSection ref={dropdownRef}>
+      <UserButton onClick={() => setShowDropdown(!showDropdown)}>
+        <div className="user-avatar">{getInitials(userInfo.name)}</div>
+        <span>{userInfo.name?.split(" ")[0] || "User"}</span>
+        <i
+          className={`fal fa-chevron-${showDropdown ? "up" : "down"} chevron`}
+        />
+      </UserButton>
+
       {showDropdown && (
-        <div className="user-dropdown">
-          <Link href="/dashboard" className="dropdown-item">
-            <i className="fal fa-user" /> Dashboard
-          </Link>
-          <Link href="/dashboard?tab=bookings" className="dropdown-item">
-            <i className="fal fa-calendar-alt" /> My Bookings
-          </Link>
-          <Link href="/cart" className="dropdown-item">
-            <i className="fal fa-shopping-cart" /> Cart
-          </Link>
-          <button className="dropdown-item" onClick={logout}>
-            <i className="fal fa-sign-out" /> Logout
-          </button>
-        </div>
+        <UserDropdown>
+          <DropdownItem href="/dashboard">
+            <i className="fal fa-tachometer-alt" />
+            Dashboard
+          </DropdownItem>
+          <DropdownItem href="/dashboard?tab=bookings">
+            <i className="fal fa-calendar-check" />
+            My Bookings
+          </DropdownItem>
+          <DropdownItem href="/dashboard?tab=profile">
+            <i className="fal fa-user-cog" />
+            Profile Settings
+          </DropdownItem>
+          <DropdownButton onClick={logout}>
+            <i className="fal fa-sign-out" />
+            Sign Out
+          </DropdownButton>
+        </UserDropdown>
       )}
-    </div>
+    </AuthSection>
   );
 };
 
 const Header = ({ header }) => {
-  const sidebarClick = () =>
-    document.querySelector("body").classList.toggle("side-content-visible");
+  const { cartItems } = useCart();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { userInfo, logout } = useAuth();
 
-  switch (header) {
-    case 1:
-      return <Header1 sidebarClick={sidebarClick} />;
-    case 2:
-      return <Header2 sidebarClick={sidebarClick} />;
-    default:
-      return <Header3 />;
-  }
-};
-export default Header;
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
 
-const Header1 = ({ sidebarClick }) => {
-  const [toggleSearch, setToggleSearch] = useState(false);
-  const domNode = useClickOutside(() => {
-    setToggleSearch(false);
-  });
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false);
+  };
+
+  const handleMobileCurrencyChange = (currency) => {
+    console.log("Mobile currency changed to:", currency.code);
+    // Add your currency change logic here
+  };
+
   return (
     <Fragment>
-      <header className="main-header header-one white-menu menu-absolute fixed-header">
-        {/*Header-Upper*/}
-        <div className="header-upper py-30 rpy-0">
-          <div className="container-fluid clearfix">
-            <div className="header-inner rel d-flex align-items-center">
-              <div className="logo-outer">
-                <div className="logo">
-                  <Link href="/">
-                    <img
-                      src="/assets/images/logos/rdusk-logo.png"
-                      alt="Logo"
-                      title="Logo"
-                      width={160}
-                    />
-                  </Link>
-                </div>
-              </div>
-              <div className="nav-outer mx-lg-auto ps-xxl-5 clearfix">
-                {/* Main Menu */}
-                <Menu />
-                {/* Main Menu End*/}
-              </div>
-              {/* Nav Search */}
-              <div className="nav-search">
-                <button
-                  className="far fa-search"
-                  onClick={() => setToggleSearch(!toggleSearch)}
+      <PlatformHeader>
+        <HeaderContainer>
+          <LogoSection>
+            <div className="logo">
+              <Link href="/">
+                <img
+                  src="/assets/images/logos/rdusk-logo.png"
+                  alt="Royal Dusk Tours"
+                  title="Royal Dusk Tours"
                 />
-                <form
-                  action="#"
-                  className={toggleSearch ? "" : "hide"}
-                  ref={domNode}
-                >
-                  <input
-                    type="text"
-                    placeholder="Search"
-                    className="searchbox"
-                    required
-                  />
-                  <button
-                    type="submit"
-                    className="searchbutton far fa-search"
-                  />
-                </form>
-              </div>
-              {/* Menu Button */}
-              <div className="menu-btns py-10 d-flex align-items-center">
-                <Link href="/cart" className="theme-btn style-three me-3">
-                  <i className="fal fa-shopping-cart" />
-                </Link>
-                <AuthMenu />
-                {/* menu sidbar */}
-                <div className="menu-sidebar ms-3" onClick={() => sidebarClick()}>
-                  <button className="bg-transparent">
-                    <span className="icon-bar" />
-                    <span className="icon-bar" />
-                    <span className="icon-bar" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        {/*End Header Upper*/}
-      </header>
-      <Sidebar sidebarClick={sidebarClick} />
-    </Fragment>
-  );
-};
-
-const Header2 = ({ sidebarClick }) => {
-  const [activeMenu, setActiveMenu] = useState("");
-  const [multiMenu, setMultiMenu] = useState("");
-  const activeMenuSet = (value) =>
-      setActiveMenu(activeMenu === value ? "" : value),
-    activeLi = (value) =>
-      value === activeMenu ? { display: "block" } : { display: "none" };
-  const multiMenuSet = (value) =>
-      setMultiMenu(multiMenu === value ? "" : value),
-    multiMenuActiveLi = (value) =>
-      value === multiMenu ? { display: "block" } : { display: "none" };
-
-  return (
-    <Fragment>
-      <header className="main-header header-two">
-        {/*Header-Upper*/}
-        <div className="header-upper">
-          <div className="container-fluid clearfix">
-            <div className="header-inner rel d-flex align-items-center justify-content-between">
-              <div className="logo-outer d-block">
-                <div className="logo">
-                  <Link href="/">
-                    <img
-                      src="/assets/images/logos/rdusk-logo.png"
-                      alt="Logo"
-                      title="Logo"
-                      width={160}
-                    />
-                  </Link>
-                </div>
-              </div>
-              {/* Menu Button */}
-              <div className="menu-btns py-10">
-                {/* menu sidbar */}
-                <div className="menu-sidebar" onClick={() => sidebarClick()}>
-                  <button className="bg-transparent">
-                    <span className="icon-bar" />
-                    <span className="icon-bar" />
-                    <span className="icon-bar" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        {/*End Header Upper*/}
-      </header>
-      <section className="hidden-bar">
-        <div className="inner-box">
-          <div className="cross-icon" onClick={() => sidebarClick()}>
-            <span className="fal fa-times" />
-          </div>
-          <div className="logo text-lg-center">
-            <Link href="/">
-              <img src="/assets/images/logos/rdusk-logo.png" alt="Logo" width={160}/>
-            </Link>
-          </div>
-          <hr className="my-40" />
-          <ul className="sidebar-menu">
-            <li className="dropdown current">
-              <a href="#" onClick={() => activeMenuSet("home")}>
-                Home
-              </a>
-              <ul style={activeLi("home")}>
-                <li>
-                  <Link href="/">Travel Agency</Link>
-                </li>
-                <li>
-                  <Link href="index2">City Tou</Link>
-                </li>
-                <li>
-                  <Link href="index3">Tour Package</Link>
-                </li>
-              </ul>
-              <div
-                className="dropdown-btn"
-                onClick={() => activeMenuSet("home")}
-              >
-                <span className="far fa-angle-down" />
-              </div>
-            </li>
-            <li>
-              <Link href="about">About</Link>
-            </li>
-            <li className="dropdown">
-              <a href="#" onClick={() => activeMenuSet("Tours")}>
-                Tours
-              </a>
-              <ul style={activeLi("Tours")}>
-                <li>
-                  <Link href="tour-list">Tour List</Link>
-                </li>
-                <li>
-                  <Link href="tour-grid">Tour Grid</Link>
-                </li>
-                <li>
-                  <Link href="tour-sidebar">Tour Sidebar</Link>
-                </li>
-                <li>
-                  <Link href="tour-details">Tour Details</Link>
-                </li>
-                <li>
-                  <Link href="tour-guide">Tour Guide</Link>
-                </li>
-              </ul>
-              <div
-                className="dropdown-btn"
-                onClick={() => activeMenuSet("Tours")}
-              >
-                <span className="far fa-angle-down" />
-              </div>
-            </li>
-            <li className="dropdown">
-              <a href="#" onClick={() => activeMenuSet("Destinations")}>
-                Destinations
-              </a>
-              <ul style={activeLi("Destinations")}>
-                <li>
-                  <Link href="destination1">Destination 01</Link>
-                </li>
-                <li>
-                  <Link href="destination2">Destination 02</Link>
-                </li>
-                <li>
-                  <Link href="destination-details">Destination Details</Link>
-                </li>
-              </ul>
-              <div
-                className="dropdown-btn"
-                onClick={() => activeMenuSet("Destinations")}
-              >
-                <span className="far fa-angle-down" />
-              </div>
-            </li>
-            <li className="dropdown">
-              <a href="#" onClick={() => activeMenuSet("Pages")}>
-                Pages
-              </a>
-              <ul style={activeLi("Pages")}>
-                <li>
-                  <Link href="pricing">Pricing</Link>
-                </li>
-                <li>
-                  <Link href="faqs">faqs</Link>
-                </li>
-                <li className="dropdown">
-                  <a href="#">Gallery</a>
-                  <ul style={multiMenuActiveLi("Gallery")}>
-                    <li>
-                      <Link href="gellery-grid">Gallery Grid</Link>
-                    </li>
-                    <li>
-                      <Link href="gellery-slider">Gallery Slider</Link>
-                    </li>
-                  </ul>
-                  <div
-                    className="dropdown-btn"
-                    onClick={() => multiMenuSet("Gallery")}
-                  >
-                    <span className="far fa-angle-down" />
-                  </div>
-                </li>
-                <li className="dropdown">
-                  <a href="#">products</a>
-                  <ul style={multiMenuActiveLi("products")}>
-                    <li>
-                      <Link href="shop">Our Products</Link>
-                    </li>
-                    <li>
-                      <Link href="product-details">Product Details</Link>
-                    </li>
-                  </ul>
-                  <div
-                    className="dropdown-btn"
-                    onClick={() => multiMenuSet("products")}
-                  >
-                    <span className="far fa-angle-down" />
-                  </div>
-                </li>
-                <li>
-                  <Link href="contact">Contact Us</Link>
-                </li>
-                <li>
-                  <Link href="404">404 Error</Link>
-                </li>
-              </ul>
-              <div
-                className="dropdown-btn"
-                onClick={() => activeMenuSet("Pages")}
-              >
-                <span className="far fa-angle-down" />
-              </div>
-            </li>
-            <li className="dropdown">
-              <a href="#" onClick={() => activeMenuSet("blog")}>
-                blogs
-              </a>
-              <ul style={activeLi("blog")}>
-                <li>
-                  <Link href="blog">blog List</Link>
-                </li>
-                <li>
-                  <Link href="blog-details">blog details</Link>
-                </li>
-              </ul>
-              <div
-                className="dropdown-btn"
-                onClick={() => activeMenuSet("blog")}
-              >
-                <span className="far fa-angle-down" />
-              </div>
-            </li>
-          </ul>
-          <Link href="" className="theme-btn style-two bgc-secondary">
-            <i className="fal fa-shopping-cart" />
-          </Link>
-          <hr className="mb-65" />
-          <h6>Social Media</h6>
-          {/*Social Icons*/}
-          <div className="social-style-two mt-10">
-            <Link href="contact">
-              <i className="fab fa-twitter" />
-            </Link>
-            <Link href="contact">
-              <i className="fab fa-facebook-f" />
-            </Link>
-            <Link href="contact">
-              <i className="fab fa-instagram" />
-            </Link>
-            <a href="#">
-              <i className="fab fa-pinterest-p" />
-            </a>
-          </div>
-        </div>
-      </section>
-
-      <div className="form-back-drop" onClick={() => sidebarClick()} />
-    </Fragment>
-  );
-};
-
-const Header3 = () => {
-  return (
-    <header className="main-header header-one">
-      <div className="header-upper bg-white py-30 rpy-0">
-        <div className="container-fluid clearfix">
-          <div className="header-inner rel d-flex align-items-center">
-            <div className="logo-outer">
-              <div className="logo">
-                <Link href="/">
-                  <img
-                    src="/assets/images/logos/rdusk-logo.png"
-                    alt="Logo"
-                    title="Logo"
-                    width={160}
-                  />
-                </Link>
-              </div>
-            </div>
-            <div className="nav-outer mx-lg-auto ps-xxl-5 clearfix">
-              <Menu />
-            </div>
-            <div className="menu-btns py-10 d-flex align-items-center">
-              <Link href="/cart" className="style-three me-3">
-                <i className="fal fa-shopping-cart" />
               </Link>
-              <AuthMenu />
             </div>
-          </div>
-        </div>
-      </div>
-    </header>
-  );
-};
+          </LogoSection>
 
-const Sidebar = ({ sidebarClick }) => {
-  return (
-    <Fragment>
-      {/* Form Backdrop */}
-      <div className="form-back-drop" onClick={sidebarClick} />
-      {/* Hidden Sidebar */}
-      <section className="hidden-bar">
-        <div className="inner-box text-center">
-          {/* Close Icon */}
-          <div className="cross-icon" onClick={sidebarClick}>
-            <span className="fa fa-times" />
-          </div>
-          {/* Logo */}
-          <div className="logo text-lg-center">
-            <Link href="/">
-              <img src="/assets/images/logos/rdusk-logo.png" alt="Logo" width={160}/>
+          <Menu />
+
+          <ActionsSection>
+            <CurrencyConverter />
+
+            <CartButton href="/cart">
+              <i className="fal fa-shopping-cart" />
+              {cartItems.length > 0 && (
+                <CartBadge>{cartItems.length}</CartBadge>
+              )}
+            </CartButton>
+
+            <AuthMenu />
+
+            <MobileMenuButton onClick={toggleMobileMenu}>
+              <div className="menu-icon">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </MobileMenuButton>
+          </ActionsSection>
+        </HeaderContainer>
+      </PlatformHeader>
+
+      {/* Mobile Menu */}
+      <Backdrop isOpen={mobileMenuOpen} onClick={closeMobileMenu} />
+      <MobileMenu isOpen={mobileMenuOpen}>
+        <MobileMenuHeader>
+          <div className="logo">
+            <Link href="/" onClick={closeMobileMenu}>
+              <img
+                src="/assets/images/logos/rdusk-logo.png"
+                alt="Royal Dusk Tours"
+              />
             </Link>
           </div>
-          <hr className="my-40" />
-          {/* Navigation Menu */}
-          <ul className="sidebar-menu">
-            <li>
-              <Link href="/">Home</Link>
-            </li>
-            <li>
-              <Link href="/about">About</Link>
-            </li>
-            <li>
-              <Link href="/holidays">Holidays</Link>
-            </li>
-            <li>
-              <Link href="/blog">Blogs</Link>
-            </li>
-            <li>
-              <Link href="/contact">Contact Us</Link>
-            </li>
-          </ul>
-          <hr className="mb-65" />
-          <h6>Social Media</h6>
-          {/*Social Icons*/}
-          <div className="social-style-two mt-10">
-            <Link href="contact">
-              <i className="fab fa-twitter" />
-            </Link>
-            <Link href="contact">
-              <i className="fab fa-facebook-f" />
-            </Link>
-            <Link href="contact">
-              <i className="fab fa-instagram" />
-            </Link>
-            <a href="#">
-              <i className="fab fa-pinterest-p" />
-            </a>
-          </div>
-        </div>
-      </section>
+          <CloseButton onClick={closeMobileMenu}>
+            <i className="fal fa-times" />
+          </CloseButton>
+        </MobileMenuHeader>
+
+        {/* Currency Section in Mobile Menu */}
+        <MobileCurrencyConverter
+          onCurrencyChange={handleMobileCurrencyChange}
+        />
+
+        {/* Auth Section in Mobile Menu */}
+        {!userInfo && (
+          <MobileAuthSection>
+            <MobileAuthButtons>
+              <MobileButton href="/signup" onClick={closeMobileMenu}>
+                <i className="fal fa-user-plus" />
+                Sign Up
+              </MobileButton>
+              <MobileButton href="/login" onClick={closeMobileMenu} primary>
+                <i className="fal fa-user" />
+                Login
+              </MobileButton>
+            </MobileAuthButtons>
+          </MobileAuthSection>
+        )}
+
+        <MobileNavList>
+          <MobileNavItem>
+            <MobileNavLink href="/" onClick={closeMobileMenu}>
+              <i className="fal fa-home" />
+              Home
+            </MobileNavLink>
+          </MobileNavItem>
+          <MobileNavItem>
+            <MobileNavLink href="/holidays" onClick={closeMobileMenu}>
+              <i className="fal fa-map" />
+              Packages
+            </MobileNavLink>
+          </MobileNavItem>
+          <MobileNavItem>
+            <MobileNavLink href="/cart" onClick={closeMobileMenu}>
+              <i className="fal fa-shopping-cart" />
+              Cart ({cartItems.length})
+            </MobileNavLink>
+          </MobileNavItem>
+          {userInfo && (
+            <>
+              <MobileNavItem>
+                <MobileNavLink href="/dashboard" onClick={closeMobileMenu}>
+                  <i className="fal fa-tachometer-alt" />
+                  Dashboard
+                </MobileNavLink>
+              </MobileNavItem>
+              <MobileNavItem>
+                <MobileNavLink
+                  href="/dashboard?tab=bookings"
+                  onClick={closeMobileMenu}
+                >
+                  <i className="fal fa-calendar-check" />
+                  My Bookings
+                </MobileNavLink>
+              </MobileNavItem>
+              <MobileNavItem>
+                <MobileNavLink
+                  href="/dashboard?tab=profile"
+                  onClick={closeMobileMenu}
+                >
+                  <i className="fal fa-user-cog" />
+                  Profile Settings
+                </MobileNavLink>
+              </MobileNavItem>
+            </>
+          )}
+          <MobileNavItem>
+            <MobileNavLink href="/about" onClick={closeMobileMenu}>
+              <i className="fal fa-info-circle" />
+              About
+            </MobileNavLink>
+          </MobileNavItem>
+          <MobileNavItem>
+            <MobileNavLink href="/blog" onClick={closeMobileMenu}>
+              <i className="fal fa-blog" />
+              Blog
+            </MobileNavLink>
+          </MobileNavItem>
+          <MobileNavItem>
+            <MobileNavLink href="/contact" onClick={closeMobileMenu}>
+              <i className="fal fa-phone" />
+              Contact
+            </MobileNavLink>
+          </MobileNavItem>
+        </MobileNavList>
+
+        {userInfo && (
+          <MobileActions>
+            <DropdownButton
+              onClick={() => {
+                logout();
+                closeMobileMenu();
+              }}
+            >
+              <i className="fal fa-sign-out" />
+              Sign Out
+            </DropdownButton>
+          </MobileActions>
+        )}
+      </MobileMenu>
     </Fragment>
   );
 };
+
+export default Header;

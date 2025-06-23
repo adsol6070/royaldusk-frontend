@@ -6100,7 +6100,7 @@ h6, .h6, blockquote {
     background-size: cover;
     background-position: center;
     background-color: var(--heading-color);
-    background-image: url(../images/shapes/benefit-bg-shape.png);
+    /* background-image: url(../images/shapes/benefit-bg-shape.png); */
     position: absolute;
     left: 50%;
     top: 50%;

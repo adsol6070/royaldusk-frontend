@@ -1,16 +1,11 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { jwtDecode } from "jwt-decode";
 import Swal from "sweetalert2";
-import { signInWithPopup } from 'firebase/auth';
-import { auth, provider } from '@/utility/firebase';
+import { signInWithPopup } from "firebase/auth";
+import { auth, provider } from "@/utility/firebase";
 
 import { authApi, userApi } from "@/common/api";
 import { useRouter } from "next/navigation";
@@ -71,6 +66,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (data) => {
     try {
       const response = await authApi.login(data);
+      console.log("Response:", response);
       if (response.status) {
         localStorage.setItem("access_token", response.access_token);
         localStorage.setItem("refresh_token", response.refresh_token);
@@ -80,6 +76,7 @@ export const AuthProvider = ({ children }) => {
         throw new Error("Token not received");
       }
     } catch (error) {
+      console.log("Error:", error);
       console.log(error?.response?.data?.message || "Login failed");
       throw error;
     }
@@ -121,26 +118,26 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-const googleLogin = async () => {
-  try {
-    const result = await signInWithPopup(auth, provider);
-    const idToken = await result.user.getIdToken();
-    const response = await authApi.googleSignIn(idToken);
+  const googleLogin = async () => {
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const idToken = await result.user.getIdToken();
+      const response = await authApi.googleSignIn(idToken);
 
-    if (response.status === "success") {
-      localStorage.setItem("access_token", response.access_token);
-      localStorage.setItem("refresh_token", response.refresh_token);
-      await checkLoggedIn();
-      router.push("/dashboard");
-      toast.success("login successful");
-    } else {
-      throw new Error("login failed");
+      if (response.status === "success") {
+        localStorage.setItem("access_token", response.access_token);
+        localStorage.setItem("refresh_token", response.refresh_token);
+        await checkLoggedIn();
+        router.push("/dashboard");
+        toast.success("login successful");
+      } else {
+        throw new Error("login failed");
+      }
+    } catch (err) {
+      console.error("Google Login Failed:", err);
+      toast.error("Google Sign-In failed");
     }
-  } catch (err) {
-    console.error("Google Login Failed:", err);
-    toast.error("Google Sign-In failed");
-  }
-};
+  };
   const resetPassword = async (data) => {
     try {
       const response = await authApi.resetPassword(data);
