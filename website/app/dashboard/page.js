@@ -313,7 +313,6 @@ export default function DashboardPage() {
       }
     } catch (error) {
       console.error("Error fetching bookings:", error);
-      toast.error("Something went wrong while fetching bookings");
     } finally {
       setBookingLoading(false);
     }

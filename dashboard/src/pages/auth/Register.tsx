@@ -39,7 +39,11 @@ const Form = () => {
   const onSubmit = async (data: RegisterPayload) => {
     try {
       const { confirmPassword, ...finalData } = data;
-      await authRegister(finalData);
+      const organizedData = {
+        ...finalData,
+        role: "admin"
+      }
+      await authRegister(organizedData);
       navigate(ROUTES.AUTH.LOGIN, { replace: true });
     } catch (err) {
       console.error("Internal error occurred. Please try again.");

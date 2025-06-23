@@ -39,39 +39,48 @@ const BookingDetailPage = () => {
     <Container className="p-5 shadow-lg rounded bg-light">
       <Row className="align-items-center justify-content-between mb-4">
         <Col>
-          <h2 className="fw-bold">
-            📌 Booking Details ({booking.id.slice(0, 8)}...)
-          </h2>
-        </Col>
-
-        {booking.confirmationPdfPath && (
-          <Col className="text-end">
+          <div className="d-flex align-items-center gap-2">
+            <h2 className="fw-bold mb-0">
+              📌 Booking Details ({booking.id.slice(0, 8)}...)
+            </h2>
             <Button
-              variant="primary"
-              onClick={() =>
-                downloadPdf(booking.id, {
-                  onSuccess: (blob) => {
-                    const url = window.URL.createObjectURL(blob);
-                    const link = document.createElement("a");
-                    link.href = url;
-                    link.download = `booking-${booking.id}.pdf`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    window.URL.revokeObjectURL(url);
-                  },
-                  onError: (error) => {
-                    alert("❌ Failed to download the PDF.");
-                    console.error("Download error:", error);
-                  },
-                })
-              }
-              disabled={isPending}
+              size="sm"
+              variant="outline-secondary"
+              onClick={() => {
+                navigator.clipboard.writeText(booking.id);
+              }}
+              title="Copy Booking Reference no."
             >
-              {isPending ? "Downloading..." : "📄 Download Full Booking PDF"}
+              📋
             </Button>
-          </Col>
-        )}
+          </div>
+        </Col>
+        <Col className="text-end">
+          <Button
+            variant="primary"
+            onClick={() =>
+              downloadPdf(booking.id, {
+                onSuccess: (blob) => {
+                  const url = window.URL.createObjectURL(blob);
+                  const link = document.createElement("a");
+                  link.href = url;
+                  link.download = `booking-${booking.id}.pdf`;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  window.URL.revokeObjectURL(url);
+                },
+                onError: (error) => {
+                  alert("❌ Failed to download the PDF.");
+                  console.error("Download error:", error);
+                },
+              })
+            }
+            disabled={isPending}
+          >
+            {isPending ? "Downloading..." : "📄 Download Full Booking PDF"}
+          </Button>
+        </Col>
       </Row>
 
       <Card className="mb-4 shadow-sm">

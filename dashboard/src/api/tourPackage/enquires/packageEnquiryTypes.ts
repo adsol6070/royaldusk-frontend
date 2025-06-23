@@ -5,13 +5,13 @@ export interface Enquiry {
   email: string;
   mobile: string;
   isdCode: string;
-  date: string;
+  dob: string;
   adults: string;
   children: string;
   flightBooked: string;
   remarks?: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // Payload for creating a new Enquiry (e.g. POST request)
@@ -20,7 +20,7 @@ export interface EnquiryPayload {
   email: string;
   mobile: string;
   isdCode: string;
-  date: string;
+  dob: string;
   adults: string;
   children: string;
   flightBooked: string;

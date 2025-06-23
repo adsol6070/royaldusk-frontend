@@ -47,6 +47,7 @@ const EnquiryList = () => {
                 <th>Adults</th>
                 <th>Children</th>
                 <th>Remarks</th>
+                <th>DOB</th>
                 <th>Date</th>
                 <th>Actions</th>
               </tr>
@@ -61,13 +62,22 @@ const EnquiryList = () => {
                   <td>{item.adults}</td>
                   <td>{item.children}</td>
                   <td>{item.remarks || "—"}</td>
-                  <td>
-                    {item.created_at
+                      <td>
+                    {item.dob
                       ? new Intl.DateTimeFormat("en-GB", {
                           dateStyle: "short",
                           timeStyle: "short",
                           hour12: true,
-                        }).format(new Date(item.created_at))
+                        }).format(new Date(item.dob))
+                      : "N/A"}
+                  </td>
+                  <td>
+                    {item.createdAt
+                      ? new Intl.DateTimeFormat("en-GB", {
+                          dateStyle: "short",
+                          timeStyle: "short",
+                          hour12: true,
+                        }).format(new Date(item.createdAt))
                       : "N/A"}
                   </td>
                   <td>

@@ -90,13 +90,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await authApi.login(data);
       if (response.status === "success") {
+        const decoded: { role: string } = jwtDecode(response.access_token);
+
+        if (decoded.role !== "admin") {
+          toast.error("Access denied. Only admins can access the dashboard.");
+          return;
+        }
+
         localStorage.setItem("access_token", response.access_token);
         localStorage.setItem("refresh_token", response.refresh_token);
+
         await checkLoggedIn();
         toast.success("Login successful");
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Login failed");
+      toast.error(
+        error.response?.data?.message || error.message || "Login failed"
+      );
       throw error;
     }
   };
@@ -162,7 +172,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (error: any) {
       toast.error(error.response.data.message);
-      throw error
+      throw error;
     }
   };
 

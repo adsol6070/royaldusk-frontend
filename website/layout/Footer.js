@@ -1,3 +1,4 @@
+"use client";
 import Counter from "@/components/Counter";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -5,29 +6,136 @@ import { packageApi } from "@/common/api";
 import capitalizeFirstLetter from "@/utility/capitalizeFirstLetter";
 
 const Footer = ({ footer, insta }) => {
-  switch (footer) {
-    case 1:
-      return <Footer />;
-    default:
-      return <Footer2 insta={insta} />;
-  }
-};
-export default Footer;
-
-const Footer2 = ({ insta }) => {
   const [locations, setLocations] = useState([]);
-
   useEffect(() => {
     const fetchLocations = async () => {
       try {
         const response = await packageApi.getPackageLocations();
         setLocations(response.data || []);
       } catch (err) {
+        setLocations([]);
         console.error("Failed to load footer locations", err);
       }
     };
     fetchLocations();
   }, []);
+
+  switch (footer) {
+    case 1:
+      return <Footer1 locations={locations}/>;
+    default:
+      return <Footer2 insta={insta} locations={locations}/>;
+  }
+};
+export default Footer;
+
+const Footer1 = ({ locations }) => {
+  return (
+    <footer
+      className="main-footer bgs-cover overlay rel z-1 pb-25"
+      style={{
+        backgroundImage: "url(/assets/images/backgrounds/footer.jpg)",
+      }}
+    >
+      <div className="container">
+        <div className="footer-top pt-100 pb-30">
+          <div className="row justify-content-between">
+            <div
+              className="col-xl-5 col-lg-6"
+              data-aos="fade-up"
+              data-aos-duration="500"
+              data-aos-offset="50"
+            >
+              <div className="footer-widget footer-text">
+                <div className="footer-logo mb-40">
+                  <Link href="/">
+                    <img
+                      src="/assets/images/logos/white-logo.png"
+                      alt="Logo"
+                      width={180}
+                    />
+                  </Link>
+                </div>
+                <p className="mb-20">
+                  Experience the magic of travel with Royal Dusk Tours. Discover
+                  handpicked destinations, seamless journeys, and unforgettable
+                  memories.
+                </p>
+                <ul className="social-style-one">
+                  <li>
+                    <a href="#"><i className="fab fa-facebook-f" /></a>
+                  </li>
+                  <li>
+                    <a href="#"><i className="fab fa-twitter" /></a>
+                  </li>
+                  <li>
+                    <a href="#"><i className="fab fa-instagram" /></a>
+                  </li>
+                  <li>
+                    <a href="#"><i className="fab fa-linkedin-in" /></a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+              <div
+              className="col col-small"
+              data-aos="fade-up"
+              data-aos-delay={150}
+              data-aos-duration={500}
+              data-aos-offset={50}
+            >
+              <div className="footer-widget footer-links ms-lg-4">
+                <div className="footer-title">
+                  <h5>Top Locations</h5>
+                </div>
+                <ul className="list-style-three">
+                  {locations.length > 0 ? (
+                    locations.slice(0, 5).map((loc) => (
+                      <li key={loc.id}>
+                        <Link href={`/holidays-location/${loc.id}`}>
+                          {capitalizeFirstLetter(loc.name)}
+                        </Link>
+                      </li>
+                    ))
+                  ) : (
+                    <li>No locations found.</li>
+                  )}
+                </ul>
+              </div>
+            </div>
+            <div
+              className="col-xl-2 col-lg-3 col-sm-6"
+              data-aos="fade-up"
+              data-aos-delay="100"
+              data-aos-duration="500"
+              data-aos-offset="50"
+            >
+              <div className="footer-widget footer-links">
+                <div className="footer-title mb-20">
+                  <h5>Quick Links</h5>
+                </div>
+                <ul className="list-style-two">
+                  <li><Link href="/">Home</Link></li>
+                  <li><Link href="/about">About</Link></li>
+                  <li><Link href="/holidays">Holidays</Link></li>
+                  <li><Link href="/blog">Blog</Link></li>
+                  <li><Link href="/contact">Contact</Link></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="footer-bottom text-center pt-20">
+            <p>
+                <a href="/">ROYAL DUSK TOURS - FZCO</a> All rights reserved | <a href="/privacy-policy">Privacy Policy</a>
+              </p>
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+const Footer2 = ({ insta, locations }) => {
 
   return (
     <footer
@@ -160,7 +268,7 @@ const Footer2 = ({ insta }) => {
           <div className="row">
             <div className="copyright-text text-center">
               <p>
-                <a href="">ROYAL DUSK TOURS - FZCO</a> All rights reserved
+                <a href="/">ROYAL DUSK TOURS - FZCO</a> All rights reserved | <a href="/privacy-policy">Privacy Policy</a>
               </p>
             </div>
           </div>
