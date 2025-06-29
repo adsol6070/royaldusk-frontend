@@ -102,37 +102,36 @@ const Page = () => {
 
     try {
       const fullMobile = `${data.mobile.isdCode}${data.mobile.phoneNumber}`;
-      const selectedPayment = "Credit Card";
-
-      const bookingPayload = {
-        guestName: data.name,
-        guestEmail: data.email,
-        guestMobile: fullMobile,
-        guestNationality: data.nationality,
-        remarks: data.remarks,
-        paymentMethod: selectedPayment,
-        agreedToTerms: true,
-        items: cartItems.map((item) => ({
-          packageId: item.id,
-          travelers: item.travelers,
-          startDate: new Date(item.startDate).toISOString(),
-        })),
-      };
-
-      console.log("📝 Creating booking...");
-      const bookingResponse = await bookingApi.createBooking(bookingPayload);
-      const bookingId = bookingResponse.data.id;
       const amount = totalAmount * 100;
 
-      console.log("✅ Booking created:", bookingId);
-
-      const checkoutResponse = await paymentApi.createCheckoutSession({
-        bookingId,
+      const checkoutPayload = {
         amount,
         currency: "AED",
-        successUrl: `${window.location.origin}/booking-success/${bookingId}`,
+        successUrl: `${window.location.origin}/booking-success`,
         cancelUrl: `${window.location.origin}/cart`,
-      });
+        metadata: {
+          guestName: data.name,
+          guestEmail: data.email,
+          guestMobile: fullMobile,
+          guestNationality: data.nationality,
+          remarks: data.remarks,
+          paymentMethod: "Credit Card",
+          cartItems: JSON.stringify(
+            cartItems.map((item) => ({
+              packageId: item.id,
+              travelers: item.travelers,
+              startDate: new Date(item.startDate).toISOString(),
+              packageName: item.name,
+              price: item.price,
+            }))
+          ),
+          totalAmount: totalAmount.toString(),
+        },
+      };
+
+      const checkoutResponse = await paymentApi.createCheckoutSession(
+        checkoutPayload
+      );
 
       if (checkoutResponse.error) {
         throw new Error(checkoutResponse.error);
@@ -143,7 +142,6 @@ const Page = () => {
         throw new Error("Stripe failed to load");
       }
 
-      console.log("🚀 Redirecting to Stripe checkout...");
       const { error } = await stripe.redirectToCheckout({
         sessionId: checkoutResponse.sessionId,
       });
@@ -152,6 +150,7 @@ const Page = () => {
         console.error("Stripe checkout error:", error);
         toast.error(`Payment failed: ${error.message}`);
       } else {
+        // Only clear cart after successful redirect
         clearCart();
       }
     } catch (err) {

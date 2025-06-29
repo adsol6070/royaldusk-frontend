@@ -1,9 +1,9 @@
 "use client";
 
-import { Toaster } from 'react-hot-toast';
-import { AuthProvider } from '@/common/context/AuthContext';
-import { CartProvider } from '@/common/context/CartContext';
-import StyledComponentsRegistry from '@/lib/registry';
+import { Toaster } from "react-hot-toast";
+import { AuthProvider } from "@/common/context/AuthContext";
+import { CartProvider } from "@/common/context/CartContext";
+import StyledComponentsRegistry from "@/lib/registry";
 
 export default function ClientLayout({ children }) {
   return (
@@ -16,4 +16,4 @@ export default function ClientLayout({ children }) {
       </AuthProvider>
     </StyledComponentsRegistry>
   );
-} 
+}

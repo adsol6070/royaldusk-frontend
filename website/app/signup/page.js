@@ -432,42 +432,6 @@ const LoginPrompt = styled.div`
   }
 `;
 
-const BackToHome = styled.div`
-  position: absolute;
-  top: 20px;
-  left: 20px;
-
-  @media (max-width: 768px) {
-    position: static;
-    margin-bottom: 20px;
-    text-align: center;
-  }
-
-  a {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: #64748b;
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-    padding: 8px 12px;
-    border-radius: 6px;
-    transition: all 0.2s ease;
-
-    &:hover {
-      color: #374151;
-      background: white;
-      text-decoration: none;
-      transform: translateX(-2px);
-    }
-
-    i {
-      font-size: 14px;
-    }
-  }
-`;
-
 export default function RegisterPage() {
   const { register: registerUser } = useAuth();
   const router = useRouter();
@@ -527,13 +491,6 @@ export default function RegisterPage() {
   return (
     <ReveloLayout>
       <PlatformContainer>
-        <BackToHome>
-          <Link href="/">
-            <i className="fal fa-arrow-left" />
-            Back to Home
-          </Link>
-        </BackToHome>
-
         <RegisterCard>
           <Header>
             <div className="logo">

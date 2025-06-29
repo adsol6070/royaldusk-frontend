@@ -904,9 +904,8 @@ const HomePage = () => {
               {services.map((service) => (
                 <div
                   key={service.id}
-                  className={`tab ${activeTab === service.id ? "active" : ""} ${
-                    !service.available ? "coming-soon" : ""
-                  }`}
+                  className={`tab ${activeTab === service.id ? "active" : ""} ${!service.available ? "coming-soon" : ""
+                    }`}
                   onClick={() => service.available && setActiveTab(service.id)}
                 >
                   <i className={service.icon} />
@@ -988,9 +987,8 @@ const HomePage = () => {
               {services.map((service) => (
                 <div
                   key={service.id}
-                  className={`service-card ${
-                    service.available ? "available" : "coming-soon"
-                  }`}
+                  className={`service-card ${service.available ? "available" : "coming-soon"
+                    }`}
                   onClick={() =>
                     service.available &&
                     service.id === "packages" &&
@@ -1178,9 +1176,8 @@ const HomePage = () => {
                             </ActionButton>
                           ) : (
                             <ActionButton
-                              className={`add-to-cart ${
-                                animatingId === pkg.id ? "animate" : ""
-                              }`}
+                              className={`add-to-cart ${animatingId === pkg.id ? "animate" : ""
+                                }`}
                               onClick={() => handleAddToCart(pkg)}
                             >
                               <i className="fal fa-plus" /> Add to Cart

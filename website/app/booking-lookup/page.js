@@ -1,433 +1,667 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import styled from "styled-components";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import styled from "styled-components";
-import ReveloLayout from "@/layout/ReveloLayout";
 import { toast } from "react-hot-toast";
-import Modal from "@/components/Modal";
-import BookingModal from "@/components/BookingModal";
+import ReveloLayout from "@/layout/ReveloLayout";
 import { bookingApi } from "@/common/api";
 
-const BookingLookupSection = styled.section`
-  padding: 80px 0;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  min-height: calc(100vh - 100px);
+const schema = yup.object().shape({
+  email: yup
+    .string()
+    .email("Invalid email format")
+    .required("Email is required"),
+  bookingReference: yup
+    .string()
+    .min(6, "Booking reference must be at least 6 characters")
+    .required("Booking reference is required"),
+});
+
+const PlatformContainer = styled.div`
+  background: #f8fafc;
+  min-height: 100vh;
   display: flex;
   align-items: center;
+  justify-content: center;
+  padding: 20px;
 `;
 
-const BookingLookupContainer = styled.div`
-  max-width: 500px;
-  margin: 0 auto;
-  padding: 2rem;
+const LookupCard = styled.div`
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 40px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+
+  @media (max-width: 480px) {
+    padding: 30px 24px;
+  }
 `;
 
-const Title = styled.h1`
-  font-size: 1.8rem;
-  color: #333;
+const Header = styled.div`
   text-align: center;
-  margin-bottom: 1rem;
-`;
+  margin-bottom: 32px;
 
-const Subtitle = styled.p`
-  text-align: center;
-  color: #666;
-  margin-bottom: 2rem;
-  font-size: 0.95rem;
-`;
+  .logo {
+    margin-bottom: 24px;
 
-const DemoInfo = styled.div`
-  background: #fff3e0;
-  border: 1px solid #ffcc80;
-  border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 2rem;
-  font-size: 0.9rem;
-  color: #e65100;
+    img {
+      height: 48px;
+      width: auto;
+    }
+  }
 
-  code {
-    background: rgba(255, 255, 255, 0.5);
-    padding: 0.2rem 0.4rem;
-    border-radius: 4px;
-    font-family: monospace;
+  h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 8px 0;
+  }
+
+  p {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0;
+    line-height: 1.5;
   }
 `;
 
 const Form = styled.form`
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
+  gap: 20px;
 `;
 
 const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 8px;
 `;
 
 const Label = styled.label`
-  font-size: 0.9rem;
-  color: #555;
+  font-size: 14px;
   font-weight: 500;
+  color: #374151;
+`;
+
+const InputWrapper = styled.div`
+  position: relative;
+
+  .input-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 16px;
+    pointer-events: none;
+  }
 `;
 
 const Input = styled.input`
-  padding: 0.8rem 1rem;
-  border: 1px solid #ddd;
+  width: 100%;
+  padding: 12px 16px;
+  padding-left: ${(props) => (props.hasIcon ? "44px" : "16px")};
+  border: 1px solid #d1d5db;
   border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.2s;
+  font-size: 14px;
+  background: #f9fafb;
+  transition: all 0.2s ease;
 
   &:focus {
     outline: none;
-    border-color: #ee8b50;
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
+  &::placeholder {
+    color: #9ca3af;
+  }
+
+  &.error {
+    border-color: #ef4444;
+    background: #fef2f2;
   }
 `;
 
-const ErrorText = styled.small`
-  color: #e63946;
-  font-size: 0.85rem;
+const ErrorMessage = styled.div`
+  color: #ef4444;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  i {
+    font-size: 12px;
+  }
+`;
+
+const HelpText = styled.div`
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  i {
+    color: #667eea;
+    font-size: 12px;
+  }
 `;
 
 const SubmitButton = styled.button`
-  background: #ee8b50;
+  width: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
-  padding: 1rem;
+  padding: 14px 16px;
   border-radius: 8px;
   font-weight: 600;
+  font-size: 15px;
   cursor: pointer;
-  transition: background 0.2s;
-  margin-top: 1rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
 
-  &:hover {
-    background: #e56d1f;
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
   }
 
   &:disabled {
-    background: #ffd5b8;
+    opacity: 0.6;
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid transparent;
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+`;
+
+const Divider = styled.div`
+  display: flex;
+  align-items: center;
+  margin: 24px 0;
+
+  &::before,
+  &::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #e2e8f0;
+  }
+
+  span {
+    padding: 0 16px;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 500;
+  }
+`;
+
+const FooterLinks = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 24px;
+  border-top: 1px solid #f1f5f9;
+`;
+
+const LoginPrompt = styled.div`
+  text-align: center;
+  font-size: 14px;
+  color: #64748b;
+
+  a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+    margin-left: 4px;
+
+    &:hover {
+      color: #5a67d8;
+      text-decoration: underline;
+    }
+  }
+`;
+
+const QuickLinks = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+
+  @media (max-width: 380px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const QuickLink = styled.div`
+  text-align: center;
+
+  a {
+    color: #64748b;
+    text-decoration: none;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    width: 100%;
+
+    &:hover {
+      color: #667eea;
+      background: #f8fafc;
+      text-decoration: none;
+    }
+
+    i {
+      font-size: 12px;
+    }
+  }
+`;
+
+const InfoBox = styled.div`
+  background: #f0f9ff;
+  border: 1px solid #e0f2fe;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+
+  .info-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+
+    i {
+      color: #0ea5e9;
+      font-size: 16px;
+    }
+
+    h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #0c4a6e;
+      margin: 0;
+    }
+  }
+
+  .info-content {
+    font-size: 13px;
+    color: #075985;
+    line-height: 1.5;
+
+    ul {
+      margin: 8px 0 0 0;
+      padding-left: 20px;
+
+      li {
+        margin: 4px 0;
+      }
+    }
+  }
+`;
+
+// Booking Result Components
+const BookingResult = styled.div`
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  padding: 24px;
+  margin-top: 24px;
+
+  .result-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+
+    i {
+      color: #16a34a;
+      font-size: 20px;
+    }
+
+    h3 {
+      color: #15803d;
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin: 0;
+    }
   }
 `;
 
 const BookingDetails = styled.div`
-  padding: 2rem;
-  background: white;
-  border-radius: 12px;
-  max-width: 800px;
-  margin: 0 auto;
-`;
-
-const BookingTitle = styled.h2`
-  font-size: 1.5rem;
-  color: #333;
-  margin-bottom: 1.5rem;
-  text-align: center;
-`;
-
-const Section = styled.div`
-  margin-bottom: 2rem;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
-`;
-
-const SectionTitle = styled.h3`
-  font-size: 1.2rem;
-  color: #333;
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid #ee8b50;
+  display: grid;
+  gap: 16px;
 `;
 
 const DetailRow = styled.div`
   display: flex;
   justify-content: space-between;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid #eee;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #dcfce7;
 
   &:last-child {
     border-bottom: none;
   }
-`;
 
-const DetailLabel = styled.span`
-  color: #666;
-  font-weight: 500;
-`;
+  .label {
+    font-size: 14px;
+    color: #166534;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 
-const DetailValue = styled.span`
-  color: #333;
-  font-weight: 600;
-`;
-
-const StatusBadge = styled.span`
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: 50px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  background-color: ${(props) => {
-    switch (props.status?.toLowerCase()) {
-      case "confirmed":
-        return "#dcfce7";
-      case "pending":
-        return "#fff3e0";
-      case "cancelled":
-        return "#fee2e2";
-      default:
-        return "#f3f4f6";
+    i {
+      font-size: 14px;
+      color: #16a34a;
     }
-  }};
-  color: ${(props) => {
-    switch (props.status?.toLowerCase()) {
-      case "confirmed":
-        return "#166534";
-      case "pending":
-        return "#9a3412";
-      case "cancelled":
-        return "#991b1b";
-      default:
-        return "#374151";
-    }
-  }};
-`;
+  }
 
-const ItineraryCard = styled.div`
-  background: #f8f9fa;
-  border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 1rem;
-
-  &:last-child {
-    margin-bottom: 0;
+  .value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #14532d;
   }
 `;
 
-const ItineraryDay = styled.div`
+const StatusBadge = styled.span`
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 12px;
   font-weight: 600;
-  color: #ee8b50;
-  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  background: ${(props) =>
+    props.status === "Confirmed"
+      ? "#dcfce7"
+      : props.status === "Pending"
+      ? "#fef3c7"
+      : "#fee2e2"};
+  color: ${(props) =>
+    props.status === "Confirmed"
+      ? "#166534"
+      : props.status === "Pending"
+      ? "#92400e"
+      : "#dc2626"};
 `;
-
-const ItineraryTitle = styled.div`
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 0.5rem;
-`;
-
-const ItineraryDescription = styled.div`
-  color: #666;
-  font-size: 0.9rem;
-`;
-
-const schema = yup.object().shape({
-  bookingReference: yup.string().required("Booking reference is required")  .matches(
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
-      "Invalid booking reference format"
-    ),
-});
 
 export default function BookingLookupPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [bookingResult, setBookingResult] = useState(null);
+
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors },
+    reset,
   } = useForm({ resolver: yupResolver(schema) });
-
-  const [loading, setLoading] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [bookingData, setBookingData] = useState(null);
 
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      const response = await bookingApi.getBookingById(data.bookingReference);
-      if (!response.success) {
-        toast.error(response.message || "Failed to find booking");
+      // Call your booking lookup API
+      const response = await bookingApi.lookupBooking({
+        email: data.email,
+        bookingReference: data.bookingReference,
+      });
+
+      if (response.success && response.data) {
+        setBookingResult(response.data);
+        toast.success("Booking found successfully!");
+      } else {
+        toast.error("No booking found with these details.");
+        setBookingResult(null);
       }
-      const bookingDetails = response.data;
-      setBookingData(bookingDetails);
-      reset();
-      setShowModal(true);
     } catch (error) {
-      toast.error(error.message || "Failed to find booking");
+      console.error("Booking lookup error:", error);
+      toast.error("Error looking up booking. Please try again.");
+      setBookingResult(null);
     } finally {
       setLoading(false);
     }
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+  const handleNewLookup = () => {
+    setBookingResult(null);
+    reset();
   };
 
   return (
     <ReveloLayout>
-      <BookingLookupSection>
-        <div className="container">
-          <BookingLookupContainer>
-            <Title>Booking Lookup</Title>
-            <Subtitle>
-              Enter your booking reference to view your booking details
-            </Subtitle>
-            <Form onSubmit={handleSubmit(onSubmit)}>
-              <FormGroup>
-                <Label htmlFor="bookingReference">Booking Reference</Label>
-                <Input
-                  id="bookingReference"
-                  type="text"
-                  placeholder="Enter booking reference"
-                  {...register("bookingReference")}
-                />
-                {errors.bookingReference && (
-                  <ErrorText>{errors.bookingReference.message}</ErrorText>
-                )}
-              </FormGroup>
+      <PlatformContainer>
+        <LookupCard>
+          <Header>
+            <div className="logo">
+              <img
+                src="/assets/images/logos/rdusk-logo.png"
+                alt="Royal Dusk Tours"
+              />
+            </div>
+            <h1>Booking Lookup</h1>
+            <p>
+              Enter your details below to find and view your booking information
+            </p>
+          </Header>
 
-              <SubmitButton type="submit" disabled={loading}>
-                {loading ? "Searching..." : "View Booking"}
-              </SubmitButton>
-            </Form>
-          </BookingLookupContainer>
-        </div>
-      </BookingLookupSection>
-
-      <BookingModal isOpen={showModal} onClose={() => setShowModal(false)}>
-        {bookingData && (
-          <BookingDetails>
-            <BookingTitle>Booking Details</BookingTitle>
-
-            <Section>
-              <SectionTitle>Guest Information</SectionTitle>
-              <DetailRow>
-                <DetailLabel>Guest Name:</DetailLabel>
-                <DetailValue>{bookingData.guestName}</DetailValue>
-              </DetailRow>
-              <DetailRow>
-                <DetailLabel>Email:</DetailLabel>
-                <DetailValue>{bookingData.guestEmail}</DetailValue>
-              </DetailRow>
-              <DetailRow>
-                <DetailLabel>Mobile:</DetailLabel>
-                <DetailValue>{bookingData.guestMobile}</DetailValue>
-              </DetailRow>
-              <DetailRow>
-                <DetailLabel>Nationality:</DetailLabel>
-                <DetailValue>{bookingData.guestNationality}</DetailValue>
-              </DetailRow>
-              <DetailRow>
-                <DetailLabel>Status:</DetailLabel>
-                <DetailValue>
-                  <StatusBadge status={bookingData.status}>
-                    {bookingData.status}
-                  </StatusBadge>
-                </DetailValue>
-              </DetailRow>
-              <DetailRow>
-                <DetailLabel>Remarks:</DetailLabel>
-                <DetailValue>{bookingData.remarks || "N/A"}</DetailValue>
-              </DetailRow>
-              <DetailRow>
-                <DetailLabel>Confirmation PDF:</DetailLabel>
-                <DetailValue>
-                  <a
-                    href={bookingData.confirmationPdfPath}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    View PDF
-                  </a>
-                </DetailValue>
-              </DetailRow>
-            </Section>
-
-            <Section>
-              <SectionTitle>Package Information</SectionTitle>
-              {bookingData.items.map((item, index) => (
-                <div key={item.id}>
-                  <DetailRow>
-                    <DetailLabel>Package Name:</DetailLabel>
-                    <DetailValue>{item.packageName}</DetailValue>
-                  </DetailRow>
-                  <DetailRow>
-                    <DetailLabel>Travelers:</DetailLabel>
-                    <DetailValue>{item.travelers}</DetailValue>
-                  </DetailRow>
-                  <DetailRow>
-                    <DetailLabel>Start Date:</DetailLabel>
-                    <DetailValue>{formatDate(item.startDate)}</DetailValue>
-                  </DetailRow>
-                  {index !== bookingData.items.length - 1 && <hr />}
+          {!bookingResult ? (
+            <>
+              <InfoBox>
+                <div className="info-header">
+                  <i className="fal fa-info-circle" />
+                  <h3>What you'll need</h3>
                 </div>
-              ))}
-            </Section>
+                <div className="info-content">
+                  To look up your booking, please provide:
+                  <ul>
+                    <li>The email address used for booking</li>
+                    <li>Your booking reference number</li>
+                  </ul>
+                </div>
+              </InfoBox>
 
-            <Section>
-              <SectionTitle>Payments</SectionTitle>
-              {bookingData.payments.map((payment, index) => (
-                <div key={payment.providerRefId}>
-                  <DetailRow>
-                    <DetailLabel>Status:</DetailLabel>
-                    <DetailValue>
-                      <StatusBadge status={payment.status}>
-                        {payment.status}
-                      </StatusBadge>
-                    </DetailValue>
-                  </DetailRow>
-                  <DetailRow>
-                    <DetailLabel>Amount:</DetailLabel>
-                    <DetailValue>
-                      ${payment.amount / 100} {payment.currency.toUpperCase()}
-                    </DetailValue>
-                  </DetailRow>
-                  <DetailRow>
-                    <DetailLabel>Provider:</DetailLabel>
-                    <DetailValue>{payment.provider}</DetailValue>
-                  </DetailRow>
-                  <DetailRow>
-                    <DetailLabel>Card:</DetailLabel>
-                    <DetailValue>
-                      {payment.cardBrand
-                        ? `${payment.cardBrand.toUpperCase()} •••• ${
-                            payment.cardLast4
-                          }`
-                        : "N/A"}
-                    </DetailValue>
-                  </DetailRow>
-                  {payment.receiptUrl && (
-                    <DetailRow>
-                      <DetailLabel>Receipt:</DetailLabel>
-                      <DetailValue>
-                        <a
-                          href={payment.receiptUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          View Receipt
-                        </a>
-                      </DetailValue>
-                    </DetailRow>
+              <Form onSubmit={handleSubmit(onSubmit)}>
+                <FormGroup>
+                  <Label htmlFor="email">Email Address</Label>
+                  <InputWrapper>
+                    <i className="fal fa-envelope input-icon" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="Enter your email address"
+                      hasIcon
+                      className={errors.email ? "error" : ""}
+                      {...register("email")}
+                    />
+                  </InputWrapper>
+                  {errors.email && (
+                    <ErrorMessage>
+                      <i className="fal fa-exclamation-circle" />
+                      {errors.email.message}
+                    </ErrorMessage>
                   )}
-                  {index !== bookingData.payments.length - 1 && <hr />}
-                </div>
-              ))}
-            </Section>
-          </BookingDetails>
-        )}
-      </BookingModal>
+                  <HelpText>
+                    <i className="fal fa-info-circle" />
+                    Use the same email address you used when making the booking
+                  </HelpText>
+                </FormGroup>
+
+                <FormGroup>
+                  <Label htmlFor="bookingReference">Booking Reference</Label>
+                  <InputWrapper>
+                    <i className="fal fa-ticket-alt input-icon" />
+                    <Input
+                      id="bookingReference"
+                      type="text"
+                      placeholder="Enter your booking reference"
+                      hasIcon
+                      className={errors.bookingReference ? "error" : ""}
+                      {...register("bookingReference")}
+                      style={{ textTransform: "uppercase" }}
+                    />
+                  </InputWrapper>
+                  {errors.bookingReference && (
+                    <ErrorMessage>
+                      <i className="fal fa-exclamation-circle" />
+                      {errors.bookingReference.message}
+                    </ErrorMessage>
+                  )}
+                  <HelpText>
+                    <i className="fal fa-info-circle" />
+                    Found in your booking confirmation email (e.g., RD123456)
+                  </HelpText>
+                </FormGroup>
+
+                <SubmitButton type="submit" disabled={loading}>
+                  {loading && <div className="spinner" />}
+                  {loading ? "Looking up..." : "Find My Booking"}
+                  {!loading && <i className="fal fa-search" />}
+                </SubmitButton>
+              </Form>
+            </>
+          ) : (
+            <BookingResult>
+              <div className="result-header">
+                <i className="fal fa-check-circle" />
+                <h3>Booking Found</h3>
+              </div>
+
+              <BookingDetails>
+                <DetailRow>
+                  <div className="label">
+                    <i className="fal fa-map-marked-alt" />
+                    Package
+                  </div>
+                  <div className="value">{bookingResult.packageName}</div>
+                </DetailRow>
+
+                <DetailRow>
+                  <div className="label">
+                    <i className="fal fa-ticket-alt" />
+                    Reference
+                  </div>
+                  <div className="value">{bookingResult.bookingReference}</div>
+                </DetailRow>
+
+                <DetailRow>
+                  <div className="label">
+                    <i className="fal fa-calendar" />
+                    Travel Date
+                  </div>
+                  <div className="value">
+                    {new Date(bookingResult.travelDate).toLocaleDateString(
+                      "en-US",
+                      {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      }
+                    )}
+                  </div>
+                </DetailRow>
+
+                <DetailRow>
+                  <div className="label">
+                    <i className="fal fa-users" />
+                    Travelers
+                  </div>
+                  <div className="value">{bookingResult.travelers} People</div>
+                </DetailRow>
+
+                <DetailRow>
+                  <div className="label">
+                    <i className="fal fa-money-bill" />
+                    Total Amount
+                  </div>
+                  <div className="value">
+                    {bookingResult.currency?.toUpperCase()}{" "}
+                    {bookingResult.totalAmountPaid / 100}
+                  </div>
+                </DetailRow>
+
+                <DetailRow>
+                  <div className="label">
+                    <i className="fal fa-info-circle" />
+                    Status
+                  </div>
+                  <StatusBadge status={bookingResult.status}>
+                    {bookingResult.status}
+                  </StatusBadge>
+                </DetailRow>
+              </BookingDetails>
+
+              <SubmitButton
+                type="button"
+                onClick={handleNewLookup}
+                style={{ marginTop: "20px" }}
+              >
+                <i className="fal fa-search" />
+                Look Up Another Booking
+              </SubmitButton>
+            </BookingResult>
+          )}
+
+          <Divider>
+            <span>or</span>
+          </Divider>
+
+          <FooterLinks>
+            <LoginPrompt>
+              Have an account?
+              <Link href="/login">Sign In</Link>
+            </LoginPrompt>
+
+            <QuickLinks>
+              <QuickLink>
+                <Link href="/register">
+                  <i className="fal fa-user-plus" />
+                  Create Account
+                </Link>
+              </QuickLink>
+              <QuickLink>
+                <Link href="/holidays">
+                  <i className="fal fa-compass" />
+                  Browse Packages
+                </Link>
+              </QuickLink>
+            </QuickLinks>
+          </FooterLinks>
+        </LookupCard>
+      </PlatformContainer>
     </ReveloLayout>
   );
 }
