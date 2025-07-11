@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { toast } from "react-hot-toast";
+import { ContactFormApi } from "@/common/api";
 
 const schema = yup.object().shape({
   name: yup.string().required("Name is required"),
@@ -477,23 +478,29 @@ const Page = () => {
     formState: { errors },
   } = useForm({ resolver: yupResolver(schema) });
 
-  const onSubmit = async (data) => {
-    setLoading(true);
-    try {
-      // Here you would typically send the data to your backend
-      console.log("Contact form data:", data);
+const onSubmit = async (data) => {
+  setLoading(true);
+  try {
+    // Adjust keys to match backend if needed
+    const payload = {
+      fullName: data.name,
+      email: data.email,
+      phone: data.phone,
+      subject: data.subject,
+      message: data.message,
+    };
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+    await ContactFormApi.submitContactForm(payload);
 
-      toast.success("Message sent successfully! We'll get back to you soon.");
-      reset();
-    } catch (error) {
-      toast.error("Failed to send message. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    toast.success("Message sent successfully! We'll get back to you soon.");
+    reset();
+  } catch (error) {
+    console.error("Contact form error:", error);
+    toast.error("Failed to send message. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <ReveloLayout>

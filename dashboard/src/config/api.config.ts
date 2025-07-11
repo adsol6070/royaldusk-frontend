@@ -33,11 +33,13 @@ export const API_ENDPOINTS = {
     DELETE: (id: string) => `/blog-service/api/blog-categories/${id}`,
   },
   TOUR: {
-    GET_ALL: `/tour-service/tours`,
-    GET_BY_ID: (id: string) => `/tour-service/tours/${id}`,
-    CREATE: `/tour-service/tours`,
-    UPDATE: (id: string) => `/tour-service/tours/${id}`,
-    DELETE: (id: string) => `/tour-service/tours/${id}`,
+    GET_ALL: `/tour-service/api/tours/`,
+    GET_BY_ID: (id: string) => `/tour-service/api/tours/${id}`,
+    CREATE: `/tour-service/api/tours/`,
+    UPDATE: (id: string) => `/tour-service/api/tours/${id}`,
+    UPDATE_AVAILABILITY: (id: string) =>
+      `/tour-service/api/tours/${id}/availability`,
+    DELETE: (id: string) => `/tour-service/api/tours/${id}`,
   },
   PACKAGES: {
     GET_ALL: `/package-service/api/package`,
@@ -115,5 +117,18 @@ export const API_ENDPOINTS = {
     GET_BY_ID: (id: string) => `/booking-service/api/booking/${id}`,
     DOWNLOAD_CONFIRMATION: (id: string) =>
       `/booking-service/api/booking/${id}/download-confirmation`,
+  },
+  NEWSLETTER: {
+    GET_ALL: "/user-service/api/newsletter",
+    GET_BY_ID: (id: string) => `/user-service/api/newsletter/${id}`,
+    SUBSCRIBE: "/user-service/api/newsletter/subscribe",
+    UPDATE: "/user-service/api/newsletter/update",
+    DELETE: (id: string) => `/user-service/api/newsletter/${id}`,
+  },
+  CONTACT: {
+    SUBMIT: "/user-service/api/contact/submit",
+    GET_ALL: "/user-service/api/contact",
+    GET_BY_ID: (id: string) => `/user-service/api/contact/${id}`,
+    DELETE: (id: string) => `/user-service/api/contact/${id}`,
   },
 };

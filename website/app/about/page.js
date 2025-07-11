@@ -274,6 +274,7 @@ const AboutContent = styled.div`
       font-weight: 600;
       font-size: 15px;
       transition: all 0.2s ease;
+      margin: 5px;
 
       &:hover {
         background: linear-gradient(135deg, #e67428 0%, #d65e1f 100%);
@@ -708,6 +709,10 @@ const Page = () => {
                 <i className="fal fa-compass" />
                 Explore Our Packages
               </Link>
+              <Link href="/tours" className="cta-button">
+                <i className="fal fa-compass" />
+                Explore Our Tours
+              </Link>
             </div>
           </AboutContent>
 
@@ -750,7 +755,15 @@ const Page = () => {
                     <div className="status available">Available</div>
                   </div>
                 </div>
-
+                    <div className="service-item">
+                  <div className="service-icon">
+                    <i className="fal fa-map-marked-alt" />
+                  </div>
+                  <div className="service-content">
+                    <div className="title">Tours</div>
+                    <div className="status available">Available</div>
+                  </div>
+                </div>
                 <div className="service-item">
                   <div className="service-icon">
                     <i className="fal fa-plane" />
@@ -767,16 +780,6 @@ const Page = () => {
                   </div>
                   <div className="service-content">
                     <div className="title">Hotel Reservations</div>
-                    <div className="status coming-soon">Coming Soon</div>
-                  </div>
-                </div>
-
-                <div className="service-item">
-                  <div className="service-icon">
-                    <i className="fal fa-map-marked-alt" />
-                  </div>
-                  <div className="service-content">
-                    <div className="title">Guided Tours</div>
                     <div className="status coming-soon">Coming Soon</div>
                   </div>
                 </div>

@@ -15,7 +15,7 @@ import {
 import { useParams } from "react-router-dom";
 
 const BookingDetailPage = () => {
-  const id = useParams()?.id;
+  const { id } = useParams();
   const { data: booking, isLoading, isError } = useBookingById(id as string);
   const { mutate: downloadPdf, isPending } = useDownloadBookingConfirmation();
 
@@ -35,6 +35,11 @@ const BookingDetailPage = () => {
     );
   }
 
+  const serviceInfo =
+    typeof booking.serviceData === "string"
+      ? JSON.parse(booking.serviceData)
+      : booking.serviceData;
+
   return (
     <Container className="p-5 shadow-lg rounded bg-light">
       <Row className="align-items-center justify-content-between mb-4">
@@ -43,37 +48,37 @@ const BookingDetailPage = () => {
             📌 Booking Details ({booking.id.slice(0, 8)}...)
           </h2>
         </Col>
-
         <Col className="text-end">
           <Button
             variant="primary"
             onClick={() =>
               downloadPdf(booking.id, {
                 onSuccess: (blob) => {
-                  const url = window.URL.createObjectURL(blob);
+                  const url = URL.createObjectURL(blob);
                   const link = document.createElement("a");
                   link.href = url;
                   link.download = `booking-${booking.id}.pdf`;
                   document.body.appendChild(link);
                   link.click();
                   document.body.removeChild(link);
-                  window.URL.revokeObjectURL(url);
+                  URL.revokeObjectURL(url);
                 },
-                onError: (error) => {
-                  alert("❌ Failed to download the PDF.");
-                  console.error("Download error:", error);
+                onError: (err) => {
+                  alert("❌ Failed to download PDF.");
+                  console.error(err);
                 },
               })
             }
             disabled={isPending}
           >
-            {isPending ? "Downloading..." : "📄 Download Full Booking PDF"}
+            {isPending ? "Downloading..." : "📄 Download PDF"}
           </Button>
         </Col>
       </Row>
 
+      {/* Booking Overview */}
       <Card className="mb-4 shadow-sm">
-        <Card.Header className="fw-bold bg-dark text-white">
+        <Card.Header className="bg-dark text-white fw-bold">
           🧾 Booking Overview
         </Card.Header>
         <Card.Body>
@@ -120,34 +125,52 @@ const BookingDetailPage = () => {
         </Card.Body>
       </Card>
 
+      {/* Service Info */}
       <Card className="mb-4 shadow-sm">
-        <Card.Header className="fw-bold bg-primary text-white">
-          🎒 Package Information
+        <Card.Header className="bg-primary text-white fw-bold">
+          🎒 Service Information
         </Card.Header>
         <Card.Body>
           <Table responsive bordered className="text-center">
             <thead className="table-light">
               <tr>
-                <th>Package Name</th>
+                <th>Service Type</th>
+                <th>Item Name</th>
                 <th>Travelers</th>
                 <th>Travel Date</th>
+                <th>Price</th>
+                <th>Total</th>
               </tr>
             </thead>
             <tbody>
-              {booking.items.map((item) => (
-                <tr key={item.id}>
-                  <td>{item.packageName}</td>
-                  <td>{item.travelers}</td>
-                  <td>{new Date(item.startDate).toLocaleDateString()}</td>
-                </tr>
-              ))}
+              <tr>
+                <td>{booking.serviceType}</td>
+                <td>{serviceInfo?.itemName || "N/A"}</td>
+                <td>{serviceInfo?.travelers ?? "N/A"}</td>
+                <td>
+                  {serviceInfo?.travelDate
+                    ? new Date(serviceInfo.travelDate).toLocaleDateString()
+                    : "N/A"}
+                </td>
+                <td>
+                  {serviceInfo?.price
+                    ? `${booking.payments?.[0]?.currency?.toUpperCase() || "AED"} ${serviceInfo.price}`
+                    : "N/A"}
+                </td>
+                <td>
+                  {serviceInfo?.totalAmount
+                    ? `${booking.payments?.[0]?.currency?.toUpperCase() || "AED"} ${serviceInfo.totalAmount}`
+                    : "N/A"}
+                </td>
+              </tr>
             </tbody>
           </Table>
         </Card.Body>
       </Card>
 
+      {/* Payment Info */}
       <Card className="mb-4 shadow-sm">
-        <Card.Header className="fw-bold bg-success text-white">
+        <Card.Header className="bg-success text-white fw-bold">
           💳 Payment Details
         </Card.Header>
         <Card.Body>
@@ -156,17 +179,17 @@ const BookingDetailPage = () => {
               <thead className="table-light">
                 <tr>
                   <th>Provider</th>
-                  <th>Method</th>
+                  <th>Reference</th>
                   <th>Status</th>
                   <th>Amount</th>
                   <th>Card</th>
                   <th>Receipt</th>
-                  <th>Date</th>
+                  <th>Paid At</th>
                 </tr>
               </thead>
               <tbody>
-                {booking.payments.map((p, index) => (
-                  <tr key={index}>
+                {booking.payments.map((p, i) => (
+                  <tr key={i}>
                     <td>{p.provider}</td>
                     <td>{p.providerRefId}</td>
                     <td>
@@ -186,11 +209,17 @@ const BookingDetailPage = () => {
                       {p.currency.toUpperCase()} {(p.amount / 100).toFixed(2)}
                     </td>
                     <td>
-                      {p.cardBrand ? `${p.cardBrand} •••• ${p.cardLast4}` : "—"}
+                      {p.cardBrand
+                        ? `${p.cardBrand} •••• ${p.cardLast4}`
+                        : "—"}
                     </td>
                     <td>
                       {p.receiptUrl ? (
-                        <a href={p.receiptUrl} target="_blank" rel="noreferrer">
+                        <a
+                          href={p.receiptUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
                           View
                         </a>
                       ) : (
@@ -203,7 +232,7 @@ const BookingDetailPage = () => {
               </tbody>
             </Table>
           ) : (
-            <p className="text-muted">No payment records available.</p>
+            <p className="text-muted">No payment records found.</p>
           )}
         </Card.Body>
       </Card>

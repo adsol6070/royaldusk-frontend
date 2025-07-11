@@ -4,14 +4,19 @@ import Modal from "@/components/Modal";
 import ReveloLayout from "@/layout/ReveloLayout";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import { toast } from "react-hot-toast";
 import { packageApi } from "@/common/api";
 import SkeletonLoader from "@/components/SkeletonLoader";
 import { activityIcons } from "@/utility/activityIcons";
-import { useCart } from "@/common/context/CartContext";
 import { useRouter } from "next/navigation";
 import capitalizeFirstLetter from "@/utility/capitalizeFirstLetter";
+
+const bookNowAnimation = keyframes`
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+`;
 
 const PlatformContainer = styled.div`
   background: #f8fafc;
@@ -541,6 +546,21 @@ const ActionButton = styled.button`
   cursor: pointer;
   transition: all 0.2s ease;
   border: none;
+  
+  &.book-now {
+    background: linear-gradient(135deg, #f8853d 0%, #e67428 100%);
+    color: white;
+    
+    &:hover { 
+      background: linear-gradient(135deg, #e67428 0%, #d65e1f 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 25px rgba(248, 133, 61, 0.3);
+    }
+    
+    &.animate { 
+      animation: ${bookNowAnimation} 0.5s ease; 
+    }
+  }
 
   &.primary {
     background: #f8853d;
@@ -622,7 +642,7 @@ const MetaInfo = styled.div`
 
 const Page = ({ params }) => {
   const [showModal, setShowModal] = useState(false);
-  const { addToCart, cartItems } = useCart();
+  const [animatingId, setAnimatingId] = useState(null);
   const router = useRouter();
 
   const packageId = params.packageId;
@@ -650,16 +670,19 @@ const Page = ({ params }) => {
     fetchPackageDetail(packageId);
   }, [packageId]);
 
-  const handleAddToCart = () => {
-    addToCart(packageDetail);
-    toast.success("Package added to cart!");
-  };
-
-  const handleViewCart = () => {
-    router.push("/cart");
-  };
-
-  const isInCart = cartItems.some((item) => item.id === packageDetail?.id);
+    const handleBookNow = (packageItem) => {
+      setAnimatingId(packageItem.id);
+      
+      // Navigate to booking page with package details
+      const bookingUrl = `/booking?id=${packageItem.id}&type=package`;
+      router.push(bookingUrl);
+      
+      // Show success message
+      toast.success("Redirecting to booking page...");
+      
+      // Clear animation after delay
+      setTimeout(() => setAnimatingId(null), 500);
+    };
 
   if (loading) {
     return (
@@ -710,11 +733,12 @@ const Page = ({ params }) => {
 
   return (
     <ReveloLayout>
-      <Modal
-        isOpen={showModal}
-        packageId={packageDetail?.id}
-        onClose={() => setShowModal(false)}
-      />
+     <Modal
+      isOpen={showModal}
+      packageId={packageDetail?.id}
+      packageDetail={packageDetail} // Add this line
+      onClose={() => setShowModal(false)}
+    />
       <PlatformContainer>
         <HeaderSection>
           <HeaderContainer>
@@ -982,17 +1006,15 @@ const Page = ({ params }) => {
             </div>
 
             <div className="action-buttons">
-              {isInCart ? (
-                <ActionButton className="success" onClick={handleViewCart}>
-                  <i className="fal fa-shopping-cart" />
-                  View Cart
-                </ActionButton>
-              ) : (
-                <ActionButton className="primary" onClick={handleAddToCart}>
-                  <i className="fal fa-plus" />
-                  Add to Cart
-                </ActionButton>
-              )}
+              <ActionButton
+                className={`book-now ${
+                  animatingId === packageDetail?.id ? "animate" : ""
+                }`}
+                onClick={() => handleBookNow(packageDetail)}
+              >
+                <i className="fal fa-calendar-check" />
+                Book Now
+              </ActionButton>
 
               <ActionButton
                 className="secondary"

@@ -30,6 +30,9 @@ const ROUTE_PATHS = {
   INVOICE_PREVIEW: (invoiceId = ":id") =>
     `/dashboard/invoice/details/${invoiceId}`,
 
+  TRAVEL_CATEGORY: `/dashboard/travelmeta/category`,
+  TRAVEL_LOCATION: `/dashboard/travelmeta/location`,
+
   TOUR_LIST: "/dashboard/tours/list",
   TOUR_DETAILS: (tourId = ":id") => `/dashboard/tours/details/${tourId}`,
   CREATE_TOUR: "/dashboard/tours/create",
@@ -46,6 +49,9 @@ const ROUTE_PATHS = {
   BOOKING_LIST: "/dashboard/bookings/list",
   BOOKING_DETAILS: (bookingId = ":id") =>
     `/dashboard/bookings/details/${bookingId}`,
+
+  NEWSLETTER_LIST: "/dashboard/newsletter/list",
+  CONTACT_FORM_LIST: "/dashboard/contact/list"
 };
 
 const getFullPath = <T extends string | ((...args: any[]) => string)>(

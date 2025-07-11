@@ -5,7 +5,6 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { loadStripe } from "@stripe/stripe-js";
 import { bookingApi, paymentApi } from "@/common/api";
 import styled from "styled-components";
-import { useCart } from "@/common/context/CartContext";
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
@@ -16,7 +15,6 @@ const CheckoutPage = () => {
   const router = useRouter();
   const bookingId = searchParams.get("bookingId");
   const amount = Number(searchParams.get("amount"));
-  const { clearCart } = useCart();
 
   const [loading, setLoading] = useState(false);
   const [bookingData, setBookingData] = useState(null);
@@ -69,9 +67,6 @@ const CheckoutPage = () => {
       if (error) {
         console.error("Stripe checkout error:", error);
         alert(`❌ ${error.message}`);
-      } else {
-        // Clear cart on successful redirect
-        clearCart();
       }
     } catch (error) {
       console.error("Checkout session error:", error);
@@ -98,9 +93,9 @@ const CheckoutPage = () => {
   return (
     <PageWrapper>
       <HeaderSection>
-        <BackButton onClick={() => window.history.back()}>
+        {/* <BackButton onClick={() => window.history.back()}>
           <i className="fal fa-arrow-left"></i> Back to Cart
-        </BackButton>
+        </BackButton> */}
         <h1>Complete Your Payment</h1>
         <p>Review your booking details and proceed to secure payment.</p>
       </HeaderSection>

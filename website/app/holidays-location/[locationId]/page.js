@@ -10,22 +10,9 @@ import SortComponent from "@/components/SortComponent";
 import { activityIcons } from "@/utility/activityIcons";
 import FilterSidebar from "@/components/FilterSidebar";
 import styled, { keyframes } from "styled-components";
-import { useCart } from "@/common/context/CartContext";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import capitalizeFirstLetter from "@/utility/capitalizeFirstLetter";
-
-const addToCartAnimation = keyframes`
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-  100% {
-    transform: scale(1);
-  }
-`;
 
 const SidebarContainer = styled.div`
   @media (max-width: 1000px) {
@@ -45,25 +32,6 @@ const ActionButton = styled.button`
   border: none;
   cursor: pointer;
   font-size: 14px;
-
-  &.add-to-cart {
-    background-color: #ee8b50;
-    color: white;
-    &:hover {
-      background-color: #e56d1f;
-    }
-    &.animate {
-      animation: ${addToCartAnimation} 0.5s ease;
-    }
-  }
-
-  &.view-cart {
-    background-color: #28a745;
-    color: white;
-    &:hover {
-      background-color: #218838;
-    }
-  }
 
   i {
     font-size: 16px;
@@ -96,7 +64,6 @@ const HolidayByLocationsListPage = ({ params }) => {
   const [filteredPackages, setFilteredPackages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [animatingId, setAnimatingId] = useState(null);
-  const { addToCart, cartItems } = useCart();
   const router = useRouter();
   console.log("packages ", packages);
 
@@ -123,23 +90,6 @@ const HolidayByLocationsListPage = ({ params }) => {
 
     fetchPackages();
   }, []);
-
-  const handleAddToCart = (packageItem) => {
-    setAnimatingId(packageItem.id);
-    addToCart(packageItem);
-    toast.success('Package added to cart!');
-    setTimeout(() => {
-      setAnimatingId(null);
-    }, 500);
-  };
-
-  const handleViewCart = () => {
-    router.push('/cart');
-  };
-
-  const isInCart = (packageId) => {
-    return cartItems.some(item => item.id === packageId);
-  };
 
   const handleFilterChange = useCallback(
     ({ priceRange, categories, nights, searchTerm }) => {
@@ -311,10 +261,10 @@ const HolidayByLocationsListPage = ({ params }) => {
                           ) : (
                             <ActionButton
                               className={`add-to-cart ${animatingId === packageItem.id ? 'animate' : ''}`}
-                              onClick={() => handleAddToCart(packageItem)}
+                              onClick={() => console.log("book now")}
                             >
                               <i className="fal fa-shopping-cart"></i>
-                              ADD TO CART
+                              Book Now
                             </ActionButton>
                           )}
                         </PackageFooter>

@@ -56,6 +56,15 @@ export const useUpdateTour = () =>
     "Tour updated successfully!"
   );
 
+// Update tour availibility
+export const useUpdateTourAvailability = () =>
+  useCustomMutation(
+    ({ id, availability }: { id: string; availability: string }) =>
+      tourApi.updateTourAvailability(id, availability),
+    ["tours"],
+    "Tour availability updated successfully!"
+  );
+
 // Delete tour
 export const useDeleteTour = () =>
   useCustomMutation(
@@ -63,4 +72,3 @@ export const useDeleteTour = () =>
     ["tours"],
     "Tour deleted successfully!"
   );
-

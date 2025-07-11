@@ -2,16 +2,15 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import SkeletonLoader from "@/components/SkeletonLoader";
-import { packageApi } from "@/common/api";
 import ReveloLayout from "@/layout/ReveloLayout";
-import { activityIcons } from "@/utility/activityIcons";
 import styled, { keyframes } from "styled-components";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import capitalizeFirstLetter from "@/utility/capitalizeFirstLetter";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
+import { tourApi } from "@/common/api";
+import SkeletonLoader from "@/components/SkeletonLoader";
+import capitalizeFirstLetter from "@/utility/capitalizeFirstLetter";
 
 const bookNowAnimation = keyframes`
   0% { transform: scale(1); }
@@ -309,7 +308,7 @@ const ViewToggle = styled.div`
   }
 `;
 
-const PackagesList = styled.div`
+const ToursList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -321,7 +320,7 @@ const PackagesList = styled.div`
   }
 `;
 
-const PackageCard = styled.div`
+const TourCard = styled.div`
   background: white;
   border-radius: 12px;
   overflow: hidden;
@@ -348,7 +347,7 @@ const PackageCard = styled.div`
   }
 `;
 
-const PackageImage = styled.div`
+const TourImage = styled.div`
   position: relative;
   height: 250px;
   
@@ -375,27 +374,30 @@ const PackageImage = styled.div`
     border-radius: 4px;
     font-size: 11px;
     font-weight: 600;
-    color: #059669;
+    
+    &.available {
+      color: #059669;
+    }
+    
+    &.unavailable {
+      color: #dc2626;
+    }
   }
 
-  .rating {
+  .tag-badge {
     position: absolute;
     top: 12px;
     right: 12px;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(248, 133, 61, 0.9);
     padding: 4px 8px;
     border-radius: 4px;
-    display: flex;
-    gap: 2px;
-
-    i {
-      font-size: 12px;
-      color: #f8853d;
-    }
+    font-size: 11px;
+    font-weight: 600;
+    color: white;
   }
 `;
 
-const PackageContent = styled.div`
+const TourContent = styled.div`
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -405,7 +407,7 @@ const PackageContent = styled.div`
   }
 `;
 
-const PackageHeader = styled.div`
+const TourHeader = styled.div`
   margin-bottom: 12px;
 
   .location {
@@ -443,7 +445,7 @@ const PackageHeader = styled.div`
   }
 `;
 
-const PackageDescription = styled.p`
+const TourDescription = styled.p`
   color: #64748b;
   font-size: 14px;
   line-height: 1.6;
@@ -454,7 +456,7 @@ const PackageDescription = styled.p`
   overflow: hidden;
 `;
 
-const PackageMeta = styled.div`
+const TourMeta = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
@@ -474,31 +476,7 @@ const PackageMeta = styled.div`
   }
 `;
 
-const FeaturesList = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 20px;
-
-  .feature-tag {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: #fef7f0;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    color: #475569;
-    border: 1px solid #fed7aa;
-
-    i {
-      color: #f8853d;
-      font-size: 11px;
-    }
-  }
-`;
-
-const PackageFooter = styled.div`
+const TourFooter = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -653,19 +631,52 @@ const CustomSlider = styled.div`
   }
 `;
 
+// Helper function to safely handle location display
+const getLocationDisplay = (location) => {
+  if (!location) return '';
+  
+  if (typeof location === 'string') {
+    return capitalizeFirstLetter(location);
+  }
+  
+  if (typeof location === 'object' && location.name) {
+    return capitalizeFirstLetter(location.name);
+  }
+  
+  return String(location);
+};
+
+// Helper function to safely get location for filtering
+const getLocationForFilter = (item) => {
+  if (!item.location) return '';
+  
+  if (typeof item.location === 'string') {
+    return item.location;
+  }
+  
+  if (typeof item.location === 'object' && item.location.name) {
+    return item.location.name;
+  }
+  
+  return String(item.location);
+};
+
 const FilterSidebarComponent = ({ data = [], onFilterChange, onClearFilters }) => {
-  const [priceRange, setPriceRange] = useState([0, 1000]);
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  const [selectedNights, setSelectedNights] = useState([]);
+  const [priceRange, setPriceRange] = useState([0, 2000]);
   const [selectedLocations, setSelectedLocations] = useState([]);
+  const [selectedTags, setSelectedTags] = useState([]);
+  const [selectedAvailability, setSelectedAvailability] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const maxPrice = data.length > 0 ? Math.max(...data.map((item) => item.price)) : 1000;
-  const categories = Array.from(new Set(data.map((item) => item.category?.name))).filter(Boolean);
-  const locations = Array.from(new Set(data.map((item) => item.location?.name))).filter(Boolean);
-  const nightsOptions = Array.from(
-    new Set(data.map((item) => Math.max(1, item.duration - 1)))
-  ).sort((a, b) => a - b);
+  const maxPrice = data.length > 0 ? Math.max(...data.map((item) => parseFloat(item.price))) : 2000;
+  
+  // Safely extract locations
+  const locations = Array.from(new Set(
+    data.map((item) => getLocationForFilter(item)).filter(Boolean)
+  ));
+  
+  const tags = Array.from(new Set(data.map((item) => item.tag))).filter(Boolean);
+  const availabilityOptions = Array.from(new Set(data.map((item) => item.tourAvailability))).filter(Boolean);
 
   useEffect(() => {
     setPriceRange([0, maxPrice]);
@@ -674,28 +685,20 @@ const FilterSidebarComponent = ({ data = [], onFilterChange, onClearFilters }) =
   useEffect(() => {
     onFilterChange({
       priceRange,
-      categories: selectedCategories,
-      nights: selectedNights,
       locations: selectedLocations,
+      tags: selectedTags,
+      availability: selectedAvailability,
       searchTerm,
     });
-  }, [priceRange, selectedCategories, selectedNights, selectedLocations, searchTerm, onFilterChange]);
+  }, [priceRange, selectedLocations, selectedTags, selectedAvailability, searchTerm, onFilterChange]);
 
   const handleClearFilters = () => {
     setPriceRange([0, maxPrice]);
-    setSelectedCategories([]);
-    setSelectedNights([]);
     setSelectedLocations([]);
+    setSelectedTags([]);
+    setSelectedAvailability([]);
     setSearchTerm("");
     onClearFilters();
-  };
-
-  const handleCategoryChange = (category) => {
-    setSelectedCategories((prev) =>
-      prev.includes(category)
-        ? prev.filter((item) => item !== category)
-        : [...prev, category]
-    );
   };
 
   const handleLocationChange = (location) => {
@@ -706,11 +709,19 @@ const FilterSidebarComponent = ({ data = [], onFilterChange, onClearFilters }) =
     );
   };
 
-  const handleNightsChange = (night) => {
-    setSelectedNights((prev) =>
-      prev.includes(night)
-        ? prev.filter((item) => item !== night)
-        : [...prev, night]
+  const handleTagChange = (tag) => {
+    setSelectedTags((prev) =>
+      prev.includes(tag)
+        ? prev.filter((item) => item !== tag)
+        : [...prev, tag]
+    );
+  };
+
+  const handleAvailabilityChange = (availability) => {
+    setSelectedAvailability((prev) =>
+      prev.includes(availability)
+        ? prev.filter((item) => item !== availability)
+        : [...prev, availability]
     );
   };
 
@@ -727,7 +738,7 @@ const FilterSidebarComponent = ({ data = [], onFilterChange, onClearFilters }) =
         <div className="filter-title">Search</div>
         <SearchInput
           type="text"
-          placeholder="Search packages..."
+          placeholder="Search tours..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -745,94 +756,109 @@ const FilterSidebarComponent = ({ data = [], onFilterChange, onClearFilters }) =
           />
         </CustomSlider>
         <PriceDisplay>
-          <span className="range">AED {priceRange[0]} - AED {priceRange[1]}</span>
+          <span className="range">AED{priceRange[0]} - AED{priceRange[1]}</span>
         </PriceDisplay>
       </FilterSection>
 
-      <FilterSection>
-        <div className="filter-title">Destinations</div>
-        <CheckboxList>
-          {locations.slice(0, 6).map((location) => (
-            <CheckboxItem key={location}>
-              <input
-                type="checkbox"
-                checked={selectedLocations.includes(location)}
-                onChange={() => handleLocationChange(location)}
-              />
-              {capitalizeFirstLetter(location)}
-            </CheckboxItem>
-          ))}
-        </CheckboxList>
-      </FilterSection>
+      {locations.length > 0 && (
+        <FilterSection>
+          <div className="filter-title">Destinations</div>
+          <CheckboxList>
+            {locations.slice(0, 6).map((location) => (
+              <CheckboxItem key={location}>
+                <input
+                  type="checkbox"
+                  checked={selectedLocations.includes(location)}
+                  onChange={() => handleLocationChange(location)}
+                />
+                {capitalizeFirstLetter(location)}
+              </CheckboxItem>
+            ))}
+          </CheckboxList>
+        </FilterSection>
+      )}
 
-      <FilterSection>
-        <div className="filter-title">Category</div>
-        <CheckboxList>
-          {categories.map((category) => (
-            <CheckboxItem key={category}>
-              <input
-                type="checkbox"
-                checked={selectedCategories.includes(category)}
-                onChange={() => handleCategoryChange(category)}
-              />
-              {capitalizeFirstLetter(category)}
-            </CheckboxItem>
-          ))}
-        </CheckboxList>
-      </FilterSection>
+      {tags.length > 0 && (
+        <FilterSection>
+          <div className="filter-title">Tags</div>
+          <CheckboxList>
+            {tags.map((tag) => (
+              <CheckboxItem key={tag}>
+                <input
+                  type="checkbox"
+                  checked={selectedTags.includes(tag)}
+                  onChange={() => handleTagChange(tag)}
+                />
+                {capitalizeFirstLetter(tag)}
+              </CheckboxItem>
+            ))}
+          </CheckboxList>
+        </FilterSection>
+      )}
 
-      <FilterSection>
-        <div className="filter-title">Duration</div>
-        <CheckboxList>
-          {nightsOptions.map((night) => (
-            <CheckboxItem key={night}>
-              <input
-                type="checkbox"
-                checked={selectedNights.includes(night)}
-                onChange={() => handleNightsChange(night)}
-              />
-              {night} Nights
-            </CheckboxItem>
-          ))}
-        </CheckboxList>
-      </FilterSection>
+      {availabilityOptions.length > 0 && (
+        <FilterSection>
+          <div className="filter-title">Availability</div>
+          <CheckboxList>
+            {availabilityOptions.map((availability) => (
+              <CheckboxItem key={availability}>
+                <input
+                  type="checkbox"
+                  checked={selectedAvailability.includes(availability)}
+                  onChange={() => handleAvailabilityChange(availability)}
+                />
+                {availability}
+              </CheckboxItem>
+            ))}
+          </CheckboxList>
+        </FilterSection>
+      )}
     </FilterSidebar>
   );
 };
 
-const HolidayListPage = () => {
-  const [packages, setPackages] = useState([]);
-  const [filteredPackages, setFilteredPackages] = useState([]);
+const TourAndActivitiesPage = () => {
+  const [tours, setTours] = useState([]);
+  const [filteredTours, setFilteredTours] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [animatingId, setAnimatingId] = useState(null);
   const [sortBy, setSortBy] = useState("name");
   const [viewMode, setViewMode] = useState("list");
   const router = useRouter();
 
+  // Fetch tours from API
   useEffect(() => {
-    async function fetchPackages() {
+    async function fetchTours() {
       try {
-        const response = await packageApi.getAllPackages();
-        const packagesData = response.data;
-        const availablePackages = packagesData.filter(
-          (packageItem) => packageItem.availability !== "ComingSoon"
+        setLoading(true);
+        const response = await tourApi.getAllTours(); 
+        const toursData = response.data;
+        console.log("tour data", toursData)
+        
+        // Filter available tours
+        const availableTours = toursData.filter(
+          (tour) => tour.tourAvailability !== "ComingSoon"
         );
-        setPackages(availablePackages);
-        setFilteredPackages(availablePackages);
+        
+        setTours(availableTours);
+        setFilteredTours(availableTours);
       } catch (err) {
-        console.error("Error fetching packages:", err);
+        console.error("Error fetching tours:", err);
+        setError("Failed to load tours");
       } finally {
         setLoading(false);
       }
     }
-    fetchPackages();
+    
+    fetchTours();
   }, []);
 
-  const handleBookNow = (packageItem) => {
-    setAnimatingId(packageItem.id);
+  const handleBookNow = (tour) => {
+    setAnimatingId(tour.id);
     
-    // Navigate to booking page with package details
-    const bookingUrl = `/booking?id=${packageItem.id}&type=package`;
+    // Navigate to booking page with tour details
+    const bookingUrl = `/booking?id=${tour.id}&type=tour`;
     router.push(bookingUrl);
     
     // Show success message
@@ -843,70 +869,84 @@ const HolidayListPage = () => {
   };
 
   const handleFilterChange = useCallback(
-    ({ priceRange, categories, nights, locations, searchTerm }) => {
-      let filtered = [...packages];
+    ({ priceRange, locations, tags, availability, searchTerm }) => {
+      let filtered = [...tours];
 
+      // Price filter
       filtered = filtered.filter(
-        (pkg) => pkg.price >= priceRange[0] && pkg.price <= priceRange[1]
+        (tour) => {
+          const price = parseFloat(tour.price);
+          return price >= priceRange[0] && price <= priceRange[1];
+        }
       );
 
-      if (categories.length) {
-        filtered = filtered.filter((pkg) =>
-          categories.includes(pkg.category?.name)
-        );
-      }
-
+      // Location filter
       if (locations.length) {
-        filtered = filtered.filter((pkg) =>
-          locations.includes(pkg.location?.name)
+        filtered = filtered.filter((tour) =>
+          locations.includes(getLocationForFilter(tour))
         );
       }
 
-      if (nights.length) {
-        filtered = filtered.filter((pkg) => {
-          const nightsCount = Math.max(1, pkg.duration - 1);
-          return nights.includes(nightsCount);
-        });
+      // Tag filter
+      if (tags.length) {
+        filtered = filtered.filter((tour) =>
+          tags.includes(tour.tag)
+        );
       }
 
+      // Availability filter
+      if (availability.length) {
+        filtered = filtered.filter((tour) =>
+          availability.includes(tour.tourAvailability)
+        );
+      }
+
+      // Search filter
       if (searchTerm.trim() !== "") {
         const searchLower = searchTerm.toLowerCase();
         filtered = filtered.filter(
-          (pkg) =>
-            pkg.name.toLowerCase().includes(searchLower) ||
-            pkg.location.name.toLowerCase().includes(searchLower)
+          (tour) => {
+            const location = getLocationForFilter(tour);
+            return (
+              tour.name?.toLowerCase().includes(searchLower) ||
+              location.toLowerCase().includes(searchLower) ||
+              tour.description?.toLowerCase().includes(searchLower)
+            );
+          }
         );
       }
 
-      setFilteredPackages(filtered);
+      setFilteredTours(filtered);
     },
-    [packages]
+    [tours]
   );
 
   const handleSort = (value) => {
     setSortBy(value);
-    const sorted = [...filteredPackages].sort((a, b) => {
+    const sorted = [...filteredTours].sort((a, b) => {
       switch (value) {
         case "price-low":
-          return a.price - b.price;
+          return parseFloat(a.price) - parseFloat(b.price);
         case "price-high":
-          return b.price - a.price;
+          return parseFloat(b.price) - parseFloat(a.price);
         case "name":
           return a.name.localeCompare(b.name);
-        case "duration":
-          return a.duration - b.duration;
+        case "newest":
+          return new Date(b.createdAt) - new Date(a.createdAt);
         default:
           return 0;
       }
     });
-    setFilteredPackages(sorted);
+    setFilteredTours(sorted);
   };
 
   const handleClearFilters = () => {
-    setFilteredPackages(packages);
+    setFilteredTours(tours);
   };
 
-  const totalDestinations = Array.from(new Set(packages.map(pkg => pkg.location?.name))).length;
+  const totalDestinations = Array.from(new Set(
+    tours.map(tour => getLocationForFilter(tour)).filter(Boolean)
+  )).length;
 
   return (
     <ReveloLayout>
@@ -914,13 +954,13 @@ const HolidayListPage = () => {
         <HeaderSection>
           <HeaderContainer>
             <HeaderTitle>
-              <h1>Holiday Packages</h1>
+              <h1>Tours & Activities</h1>
               <p>Discover amazing destinations and experiences</p>
             </HeaderTitle>
             <QuickStats>
               <div className="stat-item">
-                <span className="number">{packages.length}</span>
-                <span className="label">Packages</span>
+                <span className="number">{tours.length}</span>
+                <span className="label">Tours</span>
               </div>
               <div className="stat-item">
                 <span className="number">{totalDestinations}</span>
@@ -932,7 +972,7 @@ const HolidayListPage = () => {
 
         <MainContent>
           <FilterSidebarComponent
-            data={packages}
+            data={tours}
             onFilterChange={handleFilterChange}
             onClearFilters={handleClearFilters}
           />
@@ -940,10 +980,10 @@ const HolidayListPage = () => {
           <ContentSection>
             <ContentHeader>
               <ResultsInfo>
-                <div className="count">{filteredPackages.length} packages found</div>
+                <div className="count">{filteredTours.length} tours found</div>
                 <div className="description">
-                  {filteredPackages.length !== packages.length && 
-                    `from ${packages.length} total packages`
+                  {filteredTours.length !== tours.length && 
+                    `from ${tours.length} total tours`
                   }
                 </div>
               </ResultsInfo>
@@ -970,106 +1010,101 @@ const HolidayListPage = () => {
                     <option value="name">Name</option>
                     <option value="price-low">Price: Low to High</option>
                     <option value="price-high">Price: High to Low</option>
-                    <option value="duration">Duration</option>
+                    <option value="newest">Newest First</option>
                   </select>
                 </SortControls>
               </div>
             </ContentHeader>
 
             {loading ? (
-              <PackagesList className={`${viewMode}-view`}>
+              <ToursList className={`${viewMode}-view`}>
                 {[...Array(6)].map((_, i) => (
                   <SkeletonLoader key={i} height="250px" width="100%" style={{ borderRadius: "12px" }} />
                 ))}
-              </PackagesList>
-            ) : filteredPackages.length === 0 ? (
+              </ToursList>
+            ) : filteredTours.length === 0 ? (
               <EmptyState>
                 <div className="empty-icon">
                   <i className="fal fa-search" />
                 </div>
-                <h3>No packages found</h3>
+                <h3>No tours found</h3>
                 <p>Try adjusting your filters or search terms</p>
                 <button className="reset-btn" onClick={handleClearFilters}>
                   Clear Filters
                 </button>
               </EmptyState>
             ) : (
-              <PackagesList className={`${viewMode}-view`}>
-                {filteredPackages.map((packageItem) => (
-                  <PackageCard key={packageItem.id}>
-                    <PackageImage>
-                      <Link href={`/holiday-details/${packageItem.id}`}>
-                        <img src={packageItem.imageUrl} alt={packageItem.name} />
+              <ToursList className={`${viewMode}-view`}>
+                {filteredTours.map((tour) => (
+                  <TourCard key={tour.id}>
+                    <TourImage>
+                      <Link href={`/tours-details/${tour.id}`}>
+                        <img 
+                          src={tour.imageUrl || '/assets/images/destinations/default-tour.jpg'} 
+                          alt={tour.name}
+                          onError={(e) => {
+                            e.target.src = '/assets/images/destinations/default-tour.jpg';
+                          }}
+                        />
                       </Link>
-                      <div className="status-badge">Available</div>
-                      <div className="rating">
-                        {[...Array(5)].map((_, i) => (
-                          <i
-                            key={i}
-                            className={
-                              i < (packageItem.review || 0)
-                                ? "fas fa-star"
-                                : "far fa-star"
-                            }
-                          />
-                        ))}
-                      </div>
-                    </PackageImage>
+                      
+                      {tour.tourAvailability && (
+                        <div className={`status-badge ${tour.tourAvailability.toLowerCase()}`}>
+                          {tour.tourAvailability}
+                        </div>
+                      )}
+                      
+                      {tour.tag && (
+                        <div className="tag-badge">
+                          {tour.tag}
+                        </div>
+                      )}
+                    </TourImage>
 
-                    <PackageContent>
-                      <PackageHeader>
+                    <TourContent>
+                      <TourHeader>
                         <div className="location">
                           <i className="fal fa-map-marker-alt" />
-                          <span>{capitalizeFirstLetter(packageItem.location.name)}</span>
+                          <span>{getLocationDisplay(tour.location)}</span>
                         </div>
                         <h3>
-                          <Link href={`/holiday-details/${packageItem.id}`}>
-                            {packageItem.name}
+                          <Link href={`/tours-details/${tour.id}`}>
+                            {tour.name}
                           </Link>
                         </h3>
-                      </PackageHeader>
+                      </TourHeader>
 
-                      <PackageDescription>
-                        {packageItem.description}
-                      </PackageDescription>
+                      {tour.description && (
+                        <TourDescription>
+                          {tour.description}
+                        </TourDescription>
+                      )}
 
-                      <PackageMeta>
+                      <TourMeta>
                         <div className="meta-item">
-                          <i className="fal fa-tag" />
-                          <span>{packageItem.category.name}</span>
+                          <i className="fal fa-calendar" />
+                          <span>Created: {new Date(tour.createdAt).toLocaleDateString()}</span>
                         </div>
-                        <div className="meta-item">
-                          <i className="fal fa-hotel" />
-                          <span>{packageItem.hotels} Hotels</span>
-                        </div>
-                        <div className="meta-item">
-                          <i className="fal fa-clock" />
-                          <span>{packageItem.duration} Days</span>
-                        </div>
-                      </PackageMeta>
-
-                      <FeaturesList>
-                        {packageItem.features.slice(0, viewMode === 'grid' ? 3 : 5).map((feature) => {
-                          const iconClass = activityIcons[feature.name.toLowerCase()] || "fas fa-check";
-                          return (
-                            <div key={feature.id} className="feature-tag">
-                              <i className={iconClass} />
-                              <span>{feature.name}</span>
-                            </div>
-                          );
-                        })}
-                        {packageItem.features.length > (viewMode === 'grid' ? 3 : 5) && (
-                          <div className="feature-tag">
-                            <span>+{packageItem.features.length - (viewMode === 'grid' ? 3 : 5)} more</span>
+                        {tour.tag && (
+                          <div className="meta-item">
+                            <i className="fal fa-tag" />
+                            <span>{tour.tag}</span>
                           </div>
                         )}
-                      </FeaturesList>
+                        <div className="meta-item">
+                          <i className="fal fa-check-circle" />
+                          <span>{tour.tourAvailability}</span>
+                        </div>
+                      </TourMeta>
 
-                      <PackageFooter>
+                      <TourFooter>
                         <PriceSection>
                           <div className="price">
-                            <span className="currency">{packageItem.currency} </span>
-                            {packageItem.price}
+                            <span className="currency">AED </span>
+                            {parseFloat(tour.price).toLocaleString('en-IN', {
+                              minimumFractionDigits: 0,
+                              maximumFractionDigits: 2
+                            })}
                           </div>
                           <div className="per-person">per person</div>
                         </PriceSection>
@@ -1077,24 +1112,25 @@ const HolidayListPage = () => {
                         <div style={{ display: 'flex', gap: '8px' }}>
                           <ActionButton 
                             className="view-details"
-                            onClick={() => router.push(`/holiday-details/${packageItem.id}`)}
+                            onClick={() => router.push(`/tours-details/${tour.id}`)}
                           >
                             <i className="fal fa-eye" />
                             View Details
                           </ActionButton>
                           <ActionButton
-                            className={`book-now ${animatingId === packageItem.id ? 'animate' : ''}`}
-                            onClick={() => handleBookNow(packageItem)}
+                            className={`book-now ${animatingId === tour.id ? 'animate' : ''}`}
+                            onClick={() => handleBookNow(tour)}
+                            disabled={tour.tourAvailability !== 'Available'}
                           >
                             <i className="fal fa-calendar-check" />
                             Book Now
                           </ActionButton>
                         </div>
-                      </PackageFooter>
-                    </PackageContent>
-                  </PackageCard>
+                      </TourFooter>
+                    </TourContent>
+                  </TourCard>
                 ))}
-              </PackagesList>
+              </ToursList>
             )}
           </ContentSection>
         </MainContent>
@@ -1103,4 +1139,4 @@ const HolidayListPage = () => {
   );
 };
 
-export default HolidayListPage;
+export default TourAndActivitiesPage;

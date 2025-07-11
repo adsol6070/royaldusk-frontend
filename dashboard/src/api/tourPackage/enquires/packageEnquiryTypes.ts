@@ -12,6 +12,12 @@ export interface Enquiry {
   remarks?: string;
   createdAt: string;
   updatedAt: string;
+  packageID: string;
+  package?: {
+    id: string;
+    name: string;
+    price: number;
+  };
 }
 
 // Payload for creating a new Enquiry (e.g. POST request)

@@ -38,6 +38,17 @@ export const tourApi = {
     return response.data;
   },
 
+ updateTourAvailability: async (
+    id: string,
+    availability: string
+  ): Promise<Tour> => {
+    const response = await httpClient.patch<Tour>(
+      API_ENDPOINTS.TOUR.UPDATE_AVAILABILITY(id),
+      { availability }
+    );
+    return response.data;
+  },
+
   deleteTour: async (id: string): Promise<void> => {
     await httpClient.delete(API_ENDPOINTS.TOUR.DELETE(id));
   },

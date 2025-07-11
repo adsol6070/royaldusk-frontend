@@ -1,14 +1,11 @@
 import { useState } from "react";
 import styled from "styled-components";
-import PackageCategoryList from "./PackageCategories";
 import PackageFeatureList from "./PackageFeatures";
 import PackageItineraryList from "./PackageItenaries";
 import PackageServiceList from "./PackageServices";
 import PackagePolicyList from "./PackagePolicies";
-import PackageLocationList from "./PackageLocation";
 
 const TABS = [
-  { key: "categories", label: "📦 Categories", Component: PackageCategoryList },
   { key: "features", label: "🚀 Features", Component: PackageFeatureList },
   { key: "services", label: "🛎️ Services", Component: PackageServiceList },
   {
@@ -17,11 +14,10 @@ const TABS = [
     Component: PackageItineraryList,
   },
   { key: "policies", label: "📜 Policies", Component: PackagePolicyList },
-  { key: "locations", label: "📍 Locations", Component: PackageLocationList },
 ];
 
 const PackageManagementPage = () => {
-  const [activeTab, setActiveTab] = useState("categories");
+  const [activeTab, setActiveTab] = useState("features");
 
   const ActiveComponent = TABS.find((tab) => tab.key === activeTab)?.Component;
 

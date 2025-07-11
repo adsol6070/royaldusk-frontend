@@ -331,6 +331,31 @@ const BusinessInfo = styled.div`
   }
 `;
 
+const DeveloperInfo = styled.div`
+  margin-top: 20px;
+  padding: 16px 0;
+  border-top: 1px solid #334155;
+  font-size: 12px;
+  color: #64748b;
+  text-align: center;
+
+  .developer-text {
+    margin-bottom: 8px;
+  }
+
+  .developer-contact {
+    a {
+      color: #64748b;
+      text-decoration: none;
+      transition: color 0.2s ease;
+
+      &:hover {
+        color: #94a3b8;
+      }
+    }
+  }
+`;
+
 const SocialLinks = styled.div`
   margin-top: 20px;
   display: flex;
@@ -492,11 +517,11 @@ const Footer = ({ footer, insta }) => {
               </div>
               <div className="support-item">
                 <i className="fal fa-file-alt" />
-                <Link href="/terms">Terms & Conditions</Link>
+                <Link href="/privacy-policy">Terms & Conditions</Link>
               </div>
               <div className="support-item">
                 <i className="fal fa-shield-alt" />
-                <Link href="/privacy">Privacy Policy</Link>
+                <Link href="/privacy-policy">Privacy Policy</Link>
               </div>
             </SupportLinks>
           </FooterSection>
@@ -531,15 +556,33 @@ const Footer = ({ footer, insta }) => {
           </div>
         </BusinessInfo>
 
+        {/* Developer Information */}
+        <DeveloperInfo>
+          <div className="developer-details">
+            <div className="developer-contact">
+              <div className="developer-item">
+                <span className="label">Developer:</span>
+                <span className="value">Adsol Digital</span>
+              </div>
+              <div className="developer-item">
+                <span className="label">Contact:</span>
+                <span className="value">
+                  <a href="mailto:adsolforweb@gmail.com">adsolforweb@gmail.com</a>
+                </span>
+              </div>
+            </div>
+          </div>
+        </DeveloperInfo>
+
         <FooterBottom>
           <Copyright>
             © 2024 <span className="company-name">Royal Dusk Tours - FZCO</span>
             . All rights reserved.
           </Copyright>
           <LegalLinks>
-            <Link href="/terms">Terms of Service</Link>
-            <Link href="/privacy">Privacy Policy</Link>
-            <Link href="/cookies">Cookie Policy</Link>
+            <Link href="/privacy-policy">Terms of Service</Link>
+            <Link href="/privacy-policy">Privacy Policy</Link>
+            <Link href="/privacy-policy">Cookie Policy</Link>
           </LegalLinks>
         </FooterBottom>
       </FooterContent>

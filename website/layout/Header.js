@@ -3,7 +3,7 @@ import useClickOutside from "@/utility/useClickOutside";
 import Link from "next/link";
 import { Fragment, useState } from "react";
 import { useAuth } from "@/common/context/AuthContext";
-import { useCart } from "@/common/context/CartContext";
+import { useCurrency } from "@/common/context/CurrencyContext"; // Import currency context
 import styled from "styled-components";
 
 const PlatformHeader = styled.header`
@@ -457,18 +457,7 @@ const Backdrop = styled.div`
   display: ${(props) => (props.isOpen ? "block" : "none")};
 `;
 
-const Menu = () => {
-  return (
-    <NavSection>
-      <NavLink href="/">Home</NavLink>
-      <NavLink href="/holidays">Packages</NavLink>
-      <NavLink href="/about">About</NavLink>
-      <NavLink href="/blog">Blog</NavLink>
-      <NavLink href="/contact">Contact</NavLink>
-    </NavSection>
-  );
-};
-
+// Updated Currency Selector with integrated currency context
 const CurrencySelector = styled.div`
   position: relative;
 `;
@@ -488,11 +477,17 @@ const CurrencyButton = styled.button`
   transition: all 0.2s ease;
   min-width: 80px;
   justify-content: center;
+  position: relative;
 
   &:hover {
     background: #f8853d;
     border-color: #f8853d;
     color: white;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 
   .flag {
@@ -514,6 +509,20 @@ const CurrencyButton = styled.button`
   &:hover .chevron {
     color: white;
   }
+
+  .loading-spinner {
+    width: 12px;
+    height: 12px;
+    border: 2px solid #fed7aa;
+    border-top: 2px solid #f8853d;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
 `;
 
 const CurrencyDropdown = styled.div`
@@ -525,7 +534,7 @@ const CurrencyDropdown = styled.div`
   border: 1px solid #fed7aa;
   border-radius: 8px;
   box-shadow: 0 10px 25px rgba(248, 133, 61, 0.15);
-  min-width: 160px;
+  min-width: 200px;
   overflow: hidden;
   z-index: 1000;
 `;
@@ -554,6 +563,11 @@ const CurrencyOption = styled.button`
     color: #f8853d;
   }
 
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
   .flag {
     width: 20px;
     height: 15px;
@@ -577,8 +591,160 @@ const CurrencyOption = styled.button`
       font-size: 12px;
       color: #64748b;
     }
+
+    .rate {
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 2px;
+    }
   }
 `;
+
+const ErrorMessage = styled.div`
+  padding: 8px 12px;
+  background: #fef2f2;
+  color: #dc2626;
+  font-size: 12px;
+  border-bottom: 1px solid #fed7aa;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .retry-btn {
+    background: none;
+    border: none;
+    color: #dc2626;
+    cursor: pointer;
+    text-decoration: underline;
+    font-size: 12px;
+
+    &:hover {
+      color: #b91c1c;
+    }
+  }
+`;
+
+const Menu = () => {
+  return (
+    <NavSection>
+      <NavLink href="/">Home</NavLink>
+      <NavLink href="/holidays">Packages</NavLink>
+      <NavLink href="/tours">Tours</NavLink>
+      <NavLink href="/about">About</NavLink>
+      <NavLink href="/blog">Blog</NavLink>
+      <NavLink href="/contact">Contact</NavLink>
+    </NavSection>
+  );
+};
+
+const CurrencyConverter = () => {
+  const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
+  const dropdownRef = useClickOutside(() => setShowCurrencyDropdown(false));
+  
+  const {
+    selectedCurrency,
+    exchangeRates,
+    loading,
+    error,
+    changeCurrency,
+    getCurrencyInfo,
+    refreshRates,
+    lastUpdated
+  } = useCurrency();
+
+  const currencies = [
+    { code: "AED", name: "UAE Dirham", flag: "🇦🇪" },
+    { code: "USD", name: "US Dollar", flag: "🇺🇸" },
+    { code: "EUR", name: "Euro", flag: "🇪🇺" },
+    { code: "GBP", name: "British Pound", flag: "🇬🇧" },
+    { code: "INR", name: "Indian Rupee", flag: "🇮🇳" },
+    { code: "SAR", name: "Saudi Riyal", flag: "🇸🇦" },
+  ];
+
+  const handleCurrencyChange = (currency) => {
+    changeCurrency(currency.code);
+    setShowCurrencyDropdown(false);
+  };
+
+  const currentCurrency = getCurrencyInfo(selectedCurrency);
+
+  const getExchangeRate = (currencyCode) => {
+    if (!exchangeRates || currencyCode === 'AED') return null;
+    const rate = exchangeRates[currencyCode];
+    return rate ? `1 AED = ${rate.toFixed(4)} ${currencyCode}` : null;
+  };
+
+  return (
+    <CurrencySelector ref={dropdownRef}>
+      <CurrencyButton
+        onClick={() => setShowCurrencyDropdown(!showCurrencyDropdown)}
+        disabled={loading}
+      >
+        {loading ? (
+          <div className="loading-spinner" />
+        ) : (
+          <>
+            <span className="flag">{currentCurrency.flag}</span>
+            <span>{selectedCurrency}</span>
+            <i
+              className={`fal fa-chevron-${
+                showCurrencyDropdown ? "up" : "down"
+              } chevron`}
+            />
+          </>
+        )}
+      </CurrencyButton>
+
+      {showCurrencyDropdown && (
+        <CurrencyDropdown>
+          {error && (
+            <ErrorMessage>
+              <i className="fal fa-exclamation-triangle" />
+              <span>Failed to load rates</span>
+              <button 
+                className="retry-btn" 
+                onClick={refreshRates}
+                disabled={loading}
+              >
+                Retry
+              </button>
+            </ErrorMessage>
+          )}
+          
+          {currencies.map((currency) => (
+            <CurrencyOption
+              key={currency.code}
+              className={currency.code === selectedCurrency ? "active" : ""}
+              onClick={() => handleCurrencyChange(currency)}
+              disabled={loading}
+            >
+              <span className="flag">{currency.flag}</span>
+              <div className="currency-info">
+                <div className="code">{currency.code}</div>
+                <div className="name">{currency.name}</div>
+                {getExchangeRate(currency.code) && (
+                  <div className="rate">{getExchangeRate(currency.code)}</div>
+                )}
+              </div>
+            </CurrencyOption>
+          ))}
+          
+          {lastUpdated && (
+            <div style={{ 
+              padding: '8px 16px', 
+              fontSize: '11px', 
+              color: '#94a3b8',
+              borderTop: '1px solid #fef7f0',
+              textAlign: 'center'
+            }}>
+              Updated: {new Date(lastUpdated).toLocaleTimeString()}
+            </div>
+          )}
+        </CurrencyDropdown>
+      )}
+    </CurrencySelector>
+  );
+};
 
 const AuthButtons = styled.div`
   display: flex;
@@ -613,66 +779,16 @@ const RegisterButton = styled(Link)`
   }
 `;
 
-const CurrencyConverter = () => {
-  const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
-  const [selectedCurrency, setSelectedCurrency] = useState("AED");
-  const dropdownRef = useClickOutside(() => setShowCurrencyDropdown(false));
-
-  const currencies = [
-    { code: "AED", name: "UAE Dirham", flag: "🇦🇪" },
-    { code: "USD", name: "US Dollar", flag: "🇺🇸" },
-    { code: "EUR", name: "Euro", flag: "🇪🇺" },
-    { code: "GBP", name: "British Pound", flag: "🇬🇧" },
-    { code: "INR", name: "Indian Rupee", flag: "🇮🇳" },
-    { code: "SAR", name: "Saudi Riyal", flag: "🇸🇦" },
-  ];
-
-  const handleCurrencyChange = (currency) => {
-    setSelectedCurrency(currency.code);
-    setShowCurrencyDropdown(false);
-    // Here you would typically trigger a global currency conversion
-    console.log("Currency changed to:", currency.code);
-  };
-
-  const currentCurrency = currencies.find((c) => c.code === selectedCurrency);
-
-  return (
-    <CurrencySelector ref={dropdownRef}>
-      <CurrencyButton
-        onClick={() => setShowCurrencyDropdown(!showCurrencyDropdown)}
-      >
-        <span className="flag">{currentCurrency?.flag}</span>
-        <span>{selectedCurrency}</span>
-        <i
-          className={`fal fa-chevron-${
-            showCurrencyDropdown ? "up" : "down"
-          } chevron`}
-        />
-      </CurrencyButton>
-
-      {showCurrencyDropdown && (
-        <CurrencyDropdown>
-          {currencies.map((currency) => (
-            <CurrencyOption
-              key={currency.code}
-              className={currency.code === selectedCurrency ? "active" : ""}
-              onClick={() => handleCurrencyChange(currency)}
-            >
-              <span className="flag">{currency.flag}</span>
-              <div className="currency-info">
-                <div className="code">{currency.code}</div>
-                <div className="name">{currency.name}</div>
-              </div>
-            </CurrencyOption>
-          ))}
-        </CurrencyDropdown>
-      )}
-    </CurrencySelector>
-  );
-};
-
 const MobileCurrencyConverter = ({ onCurrencyChange }) => {
-  const [selectedCurrency, setSelectedCurrency] = useState("AED");
+  const {
+    selectedCurrency,
+    exchangeRates,
+    loading,
+    error,
+    changeCurrency,
+    getCurrencyInfo,
+    refreshRates
+  } = useCurrency();
 
   const currencies = [
     { code: "AED", name: "UAE Dirham", flag: "🇦🇪" },
@@ -684,11 +800,16 @@ const MobileCurrencyConverter = ({ onCurrencyChange }) => {
   ];
 
   const handleCurrencyChange = (currency) => {
-    setSelectedCurrency(currency.code);
+    changeCurrency(currency.code);
     if (onCurrencyChange) {
       onCurrencyChange(currency);
     }
-    console.log("Currency changed to:", currency.code);
+  };
+
+  const getExchangeRate = (currencyCode) => {
+    if (!exchangeRates || currencyCode === 'AED') return null;
+    const rate = exchangeRates[currencyCode];
+    return rate ? `1 AED = ${rate.toFixed(4)}` : null;
   };
 
   return (
@@ -696,7 +817,38 @@ const MobileCurrencyConverter = ({ onCurrencyChange }) => {
       <MobileCurrencyHeader>
         <i className="fal fa-money-bill-wave" />
         Currency
+        {loading && <div className="loading-spinner" style={{ width: '16px', height: '16px' }} />}
       </MobileCurrencyHeader>
+      
+      {error && (
+        <div style={{ 
+          background: '#fef2f2', 
+          color: '#dc2626', 
+          padding: '8px 12px', 
+          borderRadius: '6px',
+          fontSize: '12px',
+          marginBottom: '12px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between'
+        }}>
+          <span>Failed to load rates</span>
+          <button 
+            onClick={refreshRates}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#dc2626',
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              fontSize: '12px'
+            }}
+          >
+            Retry
+          </button>
+        </div>
+      )}
+      
       <div
         style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}
       >
@@ -706,10 +858,16 @@ const MobileCurrencyConverter = ({ onCurrencyChange }) => {
             className={currency.code === selectedCurrency ? "active" : ""}
             onClick={() => handleCurrencyChange(currency)}
             style={{ borderRadius: "6px", border: "1px solid #fed7aa" }}
+            disabled={loading}
           >
             <span className="flag">{currency.flag}</span>
             <div className="currency-info">
               <div className="code">{currency.code}</div>
+              {getExchangeRate(currency.code) && (
+                <div style={{ fontSize: '10px', color: '#94a3b8' }}>
+                  {getExchangeRate(currency.code)}
+                </div>
+              )}
             </div>
           </CurrencyOption>
         ))}
@@ -785,7 +943,6 @@ const AuthMenu = () => {
 };
 
 const Header = ({ header }) => {
-  const { cartItems } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { userInfo, logout } = useAuth();
 
@@ -799,7 +956,6 @@ const Header = ({ header }) => {
 
   const handleMobileCurrencyChange = (currency) => {
     console.log("Mobile currency changed to:", currency.code);
-    // Add your currency change logic here
   };
 
   return (
@@ -823,12 +979,12 @@ const Header = ({ header }) => {
           <ActionsSection>
             <CurrencyConverter />
 
-            <CartButton href="/cart">
+            {/* <CartButton href="/cart">
               <i className="fal fa-shopping-cart" />
               {cartItems.length > 0 && (
                 <CartBadge>{cartItems.length}</CartBadge>
               )}
-            </CartButton>
+            </CartButton> */}
 
             <AuthMenu />
 
@@ -894,12 +1050,18 @@ const Header = ({ header }) => {
               Packages
             </MobileNavLink>
           </MobileNavItem>
-          <MobileNavItem>
+              <MobileNavItem>
+            <MobileNavLink href="/tours" onClick={closeMobileMenu}>
+              <i className="fal fa-map" />
+              Tours
+            </MobileNavLink>
+          </MobileNavItem>
+          {/* <MobileNavItem>
             <MobileNavLink href="/cart" onClick={closeMobileMenu}>
               <i className="fal fa-shopping-cart" />
               Cart ({cartItems.length})
             </MobileNavLink>
-          </MobileNavItem>
+          </MobileNavItem> */}
           {userInfo && (
             <>
               <MobileNavItem>

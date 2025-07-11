@@ -1,78 +1,130 @@
-import Counter from "./Counter";
+"use client";
+import { useState } from "react";
+import { newsletterApi } from "@/common/api";
+import toast from "react-hot-toast";
 
 const Subscribe = () => {
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubscribe = async (e) => {
+    e.preventDefault();
+
+    if (!email.trim()) return toast.error("Please enter your email");
+
+    setLoading(true);
+    try {
+      await newsletterApi.subscribe(email);
+      toast.success("Subscribed successfully!");
+      setEmail("");
+    } catch (error) {
+      toast.error("Failed to subscribe. Try again later.");
+      console.error("Newsletter Error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <section
-      className="newsletter-three bgc-primary py-100 rel z-1"
-      style={{
-        backgroundImage:
-          "url(assets/images/newsletter/newsletter-bg-lines.png)",
-      }}
-    >
-      <div className="container container-1500">
-        <div className="row">
+    <section style={{ padding: "80px 0", background: "#fef7f0" }}>
+      <div className="container">
+        <div className="row align-items-center">
+          {/* Left Section */}
           <div className="col-lg-6">
-            <div
-              className="newsletter-content-part text-white rmb-55"
-              data-aos="zoom-in-right"
-              data-aos-duration={1500}
-              data-aos-offset={50}
-            >
-              <div className="section-title counter-text-wrap mb-45">
-                <h2>Subscribe Our Newsletter to Get more offer &amp; Tips</h2>
-                <p>
-                  One site{" "}
-                  <span className="count-text plus">
-                    <Counter end={34500} />
-                  </span>{" "}
-                  most popular experience you’ll remember
-                </p>
-              </div>
-              <form className="newsletter-form mb-15" action="#">
-                <input
-                  id="news-email"
-                  type="email"
-                  placeholder="Email Address"
-                  required=""
-                />
-                <button
-                  type="submit"
-                  className="theme-btn bgc-secondary style-two"
-                >
-                  <span data-hover="Subscribe">Subscribe</span>
-                  <i className="fal fa-arrow-right" />
-                </button>
-              </form>
-              <p>No credit card requirement. No commitments</p>
-            </div>
-            <div
-              className="newsletter-bg-image"
-              data-aos="zoom-in-up"
-              data-aos-delay={100}
-              data-aos-duration={1500}
-              data-aos-offset={50}
-            >
-              <img
-                src="assets/images/newsletter/newsletter-bg-image.png"
-                alt="Newsletter"
-              />
-            </div>
-          </div>
-          <div className="col-lg-6">
-            <div
-              className="newsletter-image-part bgs-cover"
+            <h2
               style={{
-                backgroundImage:
-                  "url(assets/images/newsletter/newsletter-two-right.jpg)",
+                fontSize: "2.5rem",
+                fontWeight: 600,
+                color: "#1e293b",
+                marginBottom: "16px",
               }}
-              data-aos="fade-left"
-              data-aos-duration={1500}
-              data-aos-offset={50}
-            />
+            >
+              Stay Updated with Latest Offers
+            </h2>
+            <p
+              style={{
+                color: "#64748b",
+                fontSize: "1.1rem",
+                marginBottom: "32px",
+              }}
+            >
+              Subscribe to our newsletter and be the first to know about
+              exclusive deals, new destinations, and special packages.
+            </p>
+            <form
+              style={{ display: "flex", gap: "12px", maxWidth: "400px" }}
+              onSubmit={handleSubscribe}
+            >
+              <input
+                type="email"
+                placeholder="Enter your email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                style={{
+                  flex: 1,
+                  padding: "12px 16px",
+                  border: "2px solid #fed7aa",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  background: "white",
+                }}
+                required
+              />
+              <button
+                type="submit"
+                style={{
+                  padding: "12px 24px",
+                  background: "#f8853d",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontWeight: 500,
+                  cursor: "pointer",
+                  transition: "background 0.3s ease",
+                }}
+                disabled={loading}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.background = "#e67428")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.background = "#f8853d")
+                }
+              >
+                {loading ? "Submitting..." : "Subscribe"}
+              </button>
+            </form>
+          </div>
+
+          {/* Right Section */}
+          <div className="col-lg-6 text-center">
+            <div
+              style={{
+                width: "300px",
+                height: "300px",
+                background: "linear-gradient(135deg, #f8853d, #e67428)",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto",
+                color: "white",
+              }}
+            >
+              <div>
+                <i
+                  className="fal fa-envelope"
+                  style={{ fontSize: "4rem", marginBottom: "16px" }}
+                />
+                <div style={{ fontSize: "1.2rem", fontWeight: 600 }}>
+                  Join Now
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </section>
   );
 };
+
 export default Subscribe;

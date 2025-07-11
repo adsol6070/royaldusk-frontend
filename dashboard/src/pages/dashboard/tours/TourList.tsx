@@ -6,6 +6,7 @@ import {
   Pagination,
   OverlayTrigger,
   Tooltip,
+  Form,
 } from "react-bootstrap";
 import {
   FaPlus,
@@ -16,58 +17,44 @@ import {
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/config/route-paths.config";
-import { useTours } from "@/hooks/useTour";
+import { useTours, useUpdateTourAvailability, useDeleteTour } from "@/hooks/useTour";
 import { resolveRoute } from "@/utils/resolveRoute";
+import Swal from "sweetalert2";
+import { capitalizeFirstLetter } from "@/utils/capitalizeFirstLetter";
 
 const TourList = () => {
-  const demoTours = [
-    {
-      id: 1,
-      name: "Majestic Himalayas",
-      location: "Manali, India",
-      created_at: "2025-04-01T10:30:00Z",
-    },
-    {
-      id: 2,
-      name: "Desert Safari",
-      location: "Dubai, UAE",
-      created_at: "2025-03-20T15:45:00Z",
-    },
-    {
-      id: 3,
-      name: "Romantic Paris",
-      location: "Paris, France",
-      created_at: "2025-02-14T09:00:00Z",
-    },
-    {
-      id: 4,
-      name: "Amazon Adventure",
-      location: "Brazil",
-      created_at: "2025-01-28T14:10:00Z",
-    },
-    {
-      id: 5,
-      name: "Northern Lights",
-      location: "Reykjavík, Iceland",
-      created_at: "2024-12-10T22:00:00Z",
-    },
-  ];
-
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const toursPerPage = 10;
 
-  const { data: fetchedTours } = useTours();
-  const tours =
-    fetchedTours && fetchedTours.length > 0 ? fetchedTours : demoTours;
+  const { data: tours } = useTours();
+  const { mutate: deleteTour } = useDeleteTour();
+  const { mutate: updateTourAvailability } = useUpdateTourAvailability();
 
-  const handleDelete = (_id: string) => {
-    // deleteTour(id);
+  const handleDelete = (id: string) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "This tour will be permanently deleted!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    }).then((result: any) => {
+      if (result.isConfirmed) {
+        deleteTour(id);
+        Swal.fire("Deleted!", "The tour has been deleted.", "success");
+      }
+    });
+  };
+
+  const handleAvailabilityChange = (id: string, newAvailability: string) => {
+    updateTourAvailability({ id, availability: newAvailability });
   };
 
   const indexOfLastTour = currentPage * toursPerPage;
   const indexOfFirstTour = indexOfLastTour - toursPerPage;
-  const currentTours = tours?.slice(indexOfFirstTour, indexOfLastTour);
+  const currentTours = tours?.slice(indexOfFirstTour, indexOfLastTour) || [];
   const totalPages = Math.ceil((tours?.length || 0) / toursPerPage);
 
   return (
@@ -84,32 +71,46 @@ const TourList = () => {
           <FaPlus className="me-2" /> Create Tour
         </Button>
       </div>
-      {tours?.length > 0 ? (
+      {currentTours.length > 0 ? (
         <>
-          <Table
-            striped
-            bordered
-            hover
-            responsive
-            className="shadow-sm rounded"
-          >
+          <Table striped bordered hover responsive className="shadow-sm rounded">
             <thead className="table-dark text-center">
               <tr>
-                <th>#</th>
+                <th>S.No</th>
                 <th>Name</th>
                 <th>Location</th>
+                <th>Status</th>
                 <th>Created At</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody className="text-center bg-white">
-              {currentTours.map((tour: any, index) => (
+              {currentTours.map((tour: any, index: number) => (
                 <tr key={tour.id} className="align-middle">
                   <td className="fw-bold">{indexOfFirstTour + index + 1}</td>
-                  <td>{tour.name}</td>
-                  <td>{tour.location}</td>
+                  <td>{capitalizeFirstLetter(tour.name)}</td>
+                  <td>{capitalizeFirstLetter(tour.location.name)}</td>
                   <td>
-                    {tour.created_at
+                    <Form.Select
+                      value={tour.tourAvailability}
+                      onChange={(e) =>
+                        handleAvailabilityChange(tour.id, e.target.value)
+                      }
+                      className={`fw-bold ${
+                        tour.tourAvailability === "Available"
+                          ? "text-success"
+                          : tour.tourAvailability === "SoldOut"
+                          ? "text-danger"
+                          : "text-warning"
+                      }`}
+                    >
+                      <option value="Available">Available</option>
+                      <option value="SoldOut">Sold Out</option>
+                      <option value="ComingSoon">Coming Soon</option>
+                    </Form.Select>
+                  </td>
+                  <td>
+                    {tour.createdAt
                       ? new Intl.DateTimeFormat("en-GB", {
                           day: "2-digit",
                           month: "2-digit",
@@ -117,7 +118,7 @@ const TourList = () => {
                           hour: "2-digit",
                           minute: "2-digit",
                           hour12: true,
-                        }).format(new Date(tour.created_at))
+                        }).format(new Date(tour.createdAt))
                       : "N/A"}
                   </td>
                   <td>
@@ -130,9 +131,7 @@ const TourList = () => {
                         size="sm"
                         className="me-2"
                         onClick={() =>
-                          navigate(
-                            `${resolveRoute(ROUTES.PRIVATE.EDIT_TOUR, tour.id)}`
-                          )
+                          navigate(resolveRoute(ROUTES.PRIVATE.EDIT_TOUR, tour.id))
                         }
                       >
                         <FaEdit />
@@ -147,12 +146,7 @@ const TourList = () => {
                         size="sm"
                         className="me-2"
                         onClick={() =>
-                          navigate(
-                            `${resolveRoute(
-                              ROUTES.PRIVATE.TOUR_DETAILS,
-                              tour.id
-                            )}`
-                          )
+                          navigate(resolveRoute(ROUTES.PRIVATE.TOUR_DETAILS, tour.id))
                         }
                       >
                         <FaEye />
@@ -165,7 +159,7 @@ const TourList = () => {
                       <Button
                         variant="outline-danger"
                         size="sm"
-                        onClick={() => handleDelete(String(tour.id))}
+                        onClick={() => handleDelete(tour.id)}
                       >
                         <FaTrash />
                       </Button>
