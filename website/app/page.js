@@ -187,6 +187,7 @@ const SearchWidget = styled.div`
       align-items: center;
       justify-content: center;
       gap: 8px;
+      cursor: pointer;
 
       i {
         font-size: 16px;
@@ -225,7 +226,7 @@ const SearchWidget = styled.div`
   }
 
   .search-content {
-    .packages-search {
+    .packages-search, .tours-search {
       .search-grid {
         display: grid;
         grid-template-columns: 1fr auto;
@@ -669,6 +670,15 @@ const ActionButton = styled.button`
     }
   }
 
+  &.inquire-now {
+    background-color: #3b82f6;
+    color: white;
+    &:hover {
+      background-color: #2563eb;
+      transform: translateY(-1px);
+    }
+  }
+
   i {
     font-size: 12px;
   }
@@ -761,9 +771,99 @@ const PopularDestinations = styled.section`
   }
 `;
 
+const CategoryCard = styled(Link)`
+  height: 120px;
+  padding: 24px;
+  text-decoration: none !important;
+  background: #fef7f0;
+  border-radius: 16px;
+  border: 1px solid #fed7aa;
+  transition: all 0.3s ease;
+  display: flex !important;
+  align-items: center;
+  gap: 16px;
+  color: inherit;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #f8853d, #e67428);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 1;
+  }
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 32px rgba(248, 133, 61, 0.25);
+    text-decoration: none !important;
+    color: white !important;
+    
+    &::before {
+      opacity: 1;
+    }
+
+    .category-icon {
+      background: white !important;
+      color: #f8853d !important;
+    }
+
+    .category-content h6 {
+      color: white !important;
+    }
+
+    .category-content p {
+      color: rgba(255, 255, 255, 0.9) !important;
+    }
+  }
+
+  .category-icon {
+    width: 60px;
+    height: 60px;
+    background: #f8853d;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+    position: relative;
+    z-index: 2;
+    transition: all 0.3s ease;
+  }
+
+  .category-content {
+    position: relative;
+    z-index: 2;
+
+    h6 {
+      font-size: 16px;
+      margin-bottom: 8px;
+      color: #1e293b;
+      font-weight: 600;
+      transition: color 0.3s ease;
+    }
+
+    p {
+      font-size: 14px;
+      margin: 0;
+      color: #64748b;
+      transition: color 0.3s ease;
+    }
+  }
+`;
+
 const HomePage = () => {
   const [featuredPackages, setFeaturedPackages] = useState([]);
+  const [customTours, setCustomTours] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [toursLoading, setToursLoading] = useState(true);
   const [animatingId, setAnimatingId] = useState(null);
   const [activeTab, setActiveTab] = useState("packages");
   const [searchQuery, setSearchQuery] = useState("");
@@ -784,7 +884,82 @@ const HomePage = () => {
         setLoading(false);
       }
     };
+
+    const fetchCustomTours = async () => {
+      try {
+        // Mock data for custom tours - replace with actual API call
+        const mockTours = [
+          {
+            id: 1,
+            name: "Himalayan Adventure Trek",
+            imageUrl: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
+            location: { name: "Himalayas" },
+            startingPrice: "25000",
+            currency: "₹",
+            groupSize: "4-8 people",
+            description: "Customizable trekking adventure in the majestic Himalayas"
+          },
+          {
+            id: 2,
+            name: "Kerala Backwater Experience",
+            imageUrl: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=400&h=300&fit=crop",
+            location: { name: "Kerala" },
+            startingPrice: "15000",
+            currency: "₹",
+            groupSize: "2-6 people",
+            description: "Personalized backwater cruise with cultural immersion"
+          },
+          {
+            id: 3,
+            name: "Rajasthan Royal Heritage",
+            imageUrl: "https://images.unsplash.com/photo-1477587458883-47145ed94245?w=400&h=300&fit=crop",
+            location: { name: "Rajasthan" },
+            startingPrice: "35000",
+            currency: "₹",
+            groupSize: "2-10 people",
+            description: "Luxury heritage tour with palace stays and cultural experiences"
+          },
+          {
+            id: 4,
+            name: "Goa Beach & Adventure",
+            imageUrl: "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=400&h=300&fit=crop",
+            location: { name: "Goa" },
+            startingPrice: "12000",
+            currency: "₹",
+            groupSize: "2-8 people",
+            description: "Custom beach vacation with water sports and nightlife"
+          },
+          {
+            id: 5,
+            name: "Wildlife Safari Expedition",
+            imageUrl: "https://images.unsplash.com/photo-1549366021-9f761d040a94?w=400&h=300&fit=crop",
+            location: { name: "Madhya Pradesh" },
+            startingPrice: "20000",
+            currency: "₹",
+            groupSize: "3-6 people",
+            description: "Tailored wildlife photography and safari experience"
+          },
+          {
+            id: 6,
+            name: "Spiritual Journey",
+            imageUrl: "https://images.unsplash.com/photo-1545558014-8692077e9b5c?w=400&h=300&fit=crop",
+            location: { name: "Varanasi" },
+            startingPrice: "8000",
+            currency: "₹",
+            groupSize: "1-4 people",
+            description: "Personalized spiritual and cultural journey"
+          }
+        ];
+        setCustomTours(mockTours);
+      } catch (err) {
+        console.error("Failed to load custom tours", err);
+      } finally {
+        setToursLoading(false);
+      }
+    };
+
     fetchFeatured();
+    fetchCustomTours();
   }, []);
 
   const handleAddToCart = (packageItem) => {
@@ -796,16 +971,23 @@ const HomePage = () => {
 
   const handleLocationClick = (location) => {
     if (location?.name) {
-      router.push(`/holidays?location=${encodeURIComponent(location.name)}`);
+      const targetPage = activeTab === "tours" ? "/custom-tours" : "/holidays";
+      router.push(`${targetPage}?location=${encodeURIComponent(location.name)}`);
     }
   };
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
-      router.push(`/holidays?search=${encodeURIComponent(searchQuery)}`);
+      const targetPage = activeTab === "tours" ? "/custom-tours" : "/holidays";
+      router.push(`${targetPage}?search=${encodeURIComponent(searchQuery)}`);
     } else {
-      router.push("/holidays");
+      const targetPage = activeTab === "tours" ? "/custom-tours" : "/holidays";
+      router.push(targetPage);
     }
+  };
+
+  const handleInquireNow = (tour) => {
+    router.push(`/custom-tours/inquiry/${tour.id}`);
   };
 
   const isInCart = (id) => cartItems.some((item) => item.id === id);
@@ -816,17 +998,23 @@ const HomePage = () => {
       id: "packages",
       icon: "fal fa-route",
       title: "Travel Packages",
-      description:
-        "Complete tour packages with accommodation, meals, and guided experiences",
+      description: "Complete tour packages with accommodation, meals, and guided experiences",
       available: true,
       stats: { number: "120+", label: "Packages" },
+    },
+    {
+      id: "tours",
+      icon: "fal fa-map-marked",
+      title: "Custom Tours",
+      description: "Personalized tour experiences tailored to your preferences",
+      available: true,
+      stats: { number: "50+", label: "Experiences" },
     },
     {
       id: "flights",
       icon: "fal fa-plane",
       title: "Flight Booking",
-      description:
-        "Book domestic and international flights at competitive prices",
+      description: "Book domestic and international flights at competitive prices",
       available: false,
       stats: { number: "Soon", label: "Airlines" },
     },
@@ -838,42 +1026,192 @@ const HomePage = () => {
       available: false,
       stats: { number: "Soon", label: "Properties" },
     },
-    {
-      id: "tours",
-      icon: "fal fa-map-marked",
-      title: "Custom Tours",
-      description: "Personalized tour experiences tailored to your preferences",
-      available: false,
-      stats: { number: "Soon", label: "Experiences" },
-    },
   ];
 
   const popularDestinations = [
     {
       name: "Manali",
-      packages: "15 packages",
-      image:
-        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
+      packages: activeTab === "tours" ? "Custom tours available" : "15 packages",
+      image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
     },
     {
       name: "Goa",
-      packages: "12 packages",
-      image:
-        "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=400&h=300&fit=crop",
+      packages: activeTab === "tours" ? "Custom tours available" : "12 packages",
+      image: "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=400&h=300&fit=crop",
     },
     {
       name: "Kerala",
-      packages: "18 packages",
-      image:
-        "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=400&h=300&fit=crop",
+      packages: activeTab === "tours" ? "Custom tours available" : "18 packages",
+      image: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=400&h=300&fit=crop",
     },
     {
       name: "Rajasthan",
-      packages: "22 packages",
-      image:
-        "https://images.unsplash.com/photo-1477587458883-47145ed94245?w=400&h=300&fit=crop",
+      packages: activeTab === "tours" ? "Custom tours available" : "22 packages",
+      image: "https://images.unsplash.com/photo-1477587458883-47145ed94245?w=400&h=300&fit=crop",
     },
   ];
+
+  // Dynamic content based on active tab
+  const getDynamicContent = () => {
+    return {
+      heroDescription: activeTab === "tours"
+        ? "From curated travel packages to custom tours, flight bookings, and hotel reservations - create your perfect personalized journey with us."
+        : "From curated travel packages to flight bookings, hotel reservations, and custom tours - we're building the ultimate travel experience platform.",
+
+      searchTitle: activeTab === "tours" ? "Find Your Perfect Custom Tour" : "Find Your Perfect Trip",
+      searchDescription: activeTab === "tours" ? "Describe your ideal custom tour experience" : "Search across our comprehensive travel services",
+      searchLabel: activeTab === "tours"
+        ? "Describe your ideal custom tour"
+        : "Search destinations, packages, or experiences",
+      searchPlaceholder: activeTab === "tours"
+        ? "e.g. 7-day adventure tour in Himalayas, Family trip to Kerala..."
+        : "e.g. Manali, Adventure tours, Beach holidays...",
+      searchButton: activeTab === "tours" ? "Find Custom Tours" : "Search Packages",
+
+      featuredTitle: activeTab === "tours" ? "Custom Tour Ideas" : "Featured Packages",
+      viewAllText: activeTab === "tours" ? "View All Custom Tours" : "View All Packages",
+      viewAllLink: activeTab === "tours" ? "/custom-tours" : "/holidays",
+
+      statsTitle: activeTab === "tours" ? "Why Choose Our Custom Tours?" : "Why Choose Royal Dusk Tours?",
+      statsDescription: activeTab === "tours"
+        ? "Experience the freedom of personalized travel with our custom tour services"
+        : "Join thousands of satisfied travelers who trust us with their journey",
+
+      stats: activeTab === "tours"
+        ? [
+          { number: "50+", label: "Custom Tours" },
+          { number: "100%", label: "Personalized" },
+          { number: "500+", label: "Tours Created" },
+          { number: "24/7", label: "Planning Support" }
+        ]
+        : [
+          { number: "120+", label: "Active Packages" },
+          { number: "50+", label: "Destinations" },
+          { number: "2500+", label: "Happy Customers" },
+          { number: "24/7", label: "Support Available" }
+        ]
+    };
+  };
+
+  const dynamicContent = getDynamicContent();
+  const currentData = activeTab === "tours" ? customTours : featuredPackages;
+  const currentLoading = activeTab === "tours" ? toursLoading : loading;
+
+  const renderContent = () => {
+    if (currentLoading) {
+      return Array.from({ length: 8 }).map((_, idx) => (
+        <div key={idx} className="col-xl-3 col-lg-4 col-md-6 mb-4">
+          <SkeletonLoader
+            height="320px"
+            width="100%"
+            style={{ borderRadius: "16px" }}
+          />
+        </div>
+      ));
+    }
+
+    if (currentData.length === 0) {
+      return (
+        <div className="col-12 text-center py-5">
+          <i
+            className={`fal ${activeTab === "tours" ? "fa-route" : "fa-map-marked-alt"}`}
+            style={{
+              fontSize: "3rem",
+              color: "#d1d5db",
+              marginBottom: "16px",
+            }}
+          />
+          <h4 style={{ color: "#374151", marginBottom: "8px" }}>
+            No {activeTab === "tours" ? "Custom Tours" : "Packages"} Available
+          </h4>
+          <p style={{ color: "#64748b", margin: 0 }}>
+            {activeTab === "tours"
+              ? "Contact us to create your personalized travel experience!"
+              : "Check back soon for exciting new travel packages!"
+            }
+          </p>
+        </div>
+      );
+    }
+
+    return currentData.map((item) => (
+      <div key={item.id} className="col-xl-3 col-lg-4 col-md-6 mb-4">
+        <PackageCard>
+          <div className="image">
+            <img src={item.imageUrl} alt={item.name} />
+            <div className="status-badge">
+              {activeTab === "tours" ? "Customizable" : "Available"}
+            </div>
+            {item.location?.name && (
+              <div
+                className="location-badge"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleLocationClick(item.location);
+                }}
+              >
+                <i className="fal fa-map-marker-alt" />
+                {item.location.name}
+              </div>
+            )}
+          </div>
+          <div className="content">
+            <div className="package-meta">
+              <div className="duration">
+                <i className={`fal ${activeTab === "tours" ? "fa-users" : "fa-clock"}`} />
+                {activeTab === "tours" ? (item.groupSize || "Flexible") : (item.duration || "5 Days")}
+              </div>
+              <div className="rating">
+                <i className="fas fa-star" />
+                <i className="fas fa-star" />
+                <i className="fas fa-star" />
+                <i className="fas fa-star" />
+                <i className={activeTab === "tours" ? "fas fa-star" : "far fa-star"} />
+                <span>{activeTab === "tours" ? "(Custom)" : "(4.2)"}</span>
+              </div>
+            </div>
+
+            <h6>
+              <Link href={`/${activeTab === "tours" ? "custom-tours" : "holiday-details"}/${item.id}`}>
+                {item.name}
+              </Link>
+            </h6>
+
+            <div className="footer">
+              <span className="price">
+                {activeTab === "tours" ? "Starting from " : ""}{item.currency || "₹"} {activeTab === "tours" ? item.startingPrice : item.price}
+                <small>/person</small>
+              </span>
+              {activeTab === "tours" ? (
+                <ActionButton
+                  className="inquire-now"
+                  onClick={() => handleInquireNow(item)}
+                >
+                  <i className="fal fa-envelope" /> Inquire Now
+                </ActionButton>
+              ) : (
+                isInCart(item.id) ? (
+                  <ActionButton
+                    className="view-cart"
+                    onClick={handleViewCart}
+                  >
+                    <i className="fal fa-eye" /> View Cart
+                  </ActionButton>
+                ) : (
+                  <ActionButton
+                    className={`add-to-cart ${animatingId === item.id ? "animate" : ""}`}
+                    onClick={() => handleAddToCart(item)}
+                  >
+                    <i className="fal fa-plus" /> Add to Cart
+                  </ActionButton>
+                )
+              )}
+            </div>
+          </div>
+        </PackageCard>
+      </div>
+    ));
+  };
 
   return (
     <ReveloLayout>
@@ -884,9 +1222,7 @@ const HomePage = () => {
             <div className="hero-content">
               <h1>Royal Dusk Tours</h1>
               <p className="platform-description">
-                From curated travel packages to flight bookings, hotel
-                reservations, and custom tours - we're building the ultimate
-                travel experience platform.
+                {dynamicContent.heroDescription}
               </p>
             </div>
           </div>
@@ -896,16 +1232,15 @@ const HomePage = () => {
         <SearchWidget>
           <div className="container">
             <div className="search-header">
-              <h3>Find Your Perfect Trip</h3>
-              <p>Search across our comprehensive travel services</p>
+              <h3>{dynamicContent.searchTitle}</h3>
+              <p>{dynamicContent.searchDescription}</p>
             </div>
 
             <div className="service-tabs">
               {services.map((service) => (
                 <div
                   key={service.id}
-                  className={`tab ${activeTab === service.id ? "active" : ""} ${!service.available ? "coming-soon" : ""
-                    }`}
+                  className={`tab ${activeTab === service.id ? "active" : ""} ${!service.available ? "coming-soon" : ""}`}
                   onClick={() => service.available && setActiveTab(service.id)}
                 >
                   <i className={service.icon} />
@@ -920,12 +1255,12 @@ const HomePage = () => {
                   <div className="search-grid">
                     <div className="search-field">
                       <label className="label">
-                        Search destinations, packages, or experiences
+                        {dynamicContent.searchLabel}
                       </label>
                       <input
                         type="text"
                         className="search-input"
-                        placeholder="e.g. Manali, Adventure tours, Beach holidays..."
+                        placeholder={dynamicContent.searchPlaceholder}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         onKeyPress={(e) => e.key === "Enter" && handleSearch()}
@@ -933,22 +1268,44 @@ const HomePage = () => {
                     </div>
                     <button className="search-button" onClick={handleSearch}>
                       <i className="fal fa-search" />
-                      Search Packages
+                      {dynamicContent.searchButton}
                     </button>
                   </div>
                 </div>
               )}
 
-              {activeTab !== "packages" && (
+              {activeTab === "tours" && (
+                <div className="tours-search">
+                  <div className="search-grid">
+                    <div className="search-field">
+                      <label className="label">
+                        {dynamicContent.searchLabel}
+                      </label>
+                      <input
+                        type="text"
+                        className="search-input"
+                        placeholder={dynamicContent.searchPlaceholder}
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+                      />
+                    </div>
+                    <button className="search-button" onClick={handleSearch}>
+                      <i className="fal fa-search" />
+                      {dynamicContent.searchButton}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {(activeTab === "flights" || activeTab === "hotels") && (
                 <div className="coming-soon-message">
                   <i className="fal fa-clock" />
                   <h4>
-                    {services.find((s) => s.id === activeTab)?.title} Coming
-                    Soon
+                    {services.find((s) => s.id === activeTab)?.title} Coming Soon
                   </h4>
                   <p>
-                    We're working hard to bring you this service. Stay tuned for
-                    updates!
+                    We're working hard to bring you this service. Stay tuned for updates!
                   </p>
                 </div>
               )}
@@ -987,13 +1344,16 @@ const HomePage = () => {
               {services.map((service) => (
                 <div
                   key={service.id}
-                  className={`service-card ${service.available ? "available" : "coming-soon"
-                    }`}
-                  onClick={() =>
-                    service.available &&
-                    service.id === "packages" &&
-                    router.push("/holidays")
-                  }
+                  className={`service-card ${service.available ? "available" : "coming-soon"}`}
+                  onClick={() => {
+                    if (service.available) {
+                      if (service.id === "packages") {
+                        router.push("/holidays");
+                      } else if (service.id === "tours") {
+                        router.push("/custom-tours");
+                      }
+                    }
+                  }}
                 >
                   {!service.available && (
                     <div className="status-badge">Coming Soon</div>
@@ -1040,8 +1400,10 @@ const HomePage = () => {
                   margin: "0 auto 0",
                 }}
               >
-                Discover our most sought-after travel destinations with
-                exclusive packages
+                {activeTab === "tours"
+                  ? "Create custom tours to these amazing destinations"
+                  : "Discover our most sought-after travel destinations with exclusive packages"
+                }
               </p>
             </div>
 
@@ -1050,13 +1412,10 @@ const HomePage = () => {
                 <div
                   key={index}
                   className="destination-card"
-                  onClick={() =>
-                    router.push(
-                      `/holidays?location=${encodeURIComponent(
-                        destination.name
-                      )}`
-                    )
-                  }
+                  onClick={() => {
+                    const targetPage = activeTab === "tours" ? "/custom-tours" : "/holidays";
+                    router.push(`${targetPage}?location=${encodeURIComponent(destination.name)}`);
+                  }}
                 >
                   <div
                     className="background"
@@ -1073,122 +1432,42 @@ const HomePage = () => {
           </div>
         </PopularDestinations>
 
-        {/* Featured Packages */}
+        {/* Featured Packages / Custom Tours */}
         <FeaturedPackages>
           <div className="container">
             <div className="packages-header">
-              <h3>Featured Packages</h3>
-              <Link href="/holidays" className="view-all">
-                View All Packages
+              <h3>{dynamicContent.featuredTitle}</h3>
+              <Link href={dynamicContent.viewAllLink} className="view-all">
+                {dynamicContent.viewAllText}
                 <i className="fal fa-arrow-right" />
               </Link>
             </div>
 
             <div className="filters">
-              <button className="filter-btn active">All Packages</button>
-              <button className="filter-btn">Adventure</button>
-              <button className="filter-btn">Family</button>
-              <button className="filter-btn">Luxury</button>
-              <button className="filter-btn">Budget</button>
+              <button
+                className={`filter-btn ${activeTab === "packages" ? "active" : ""}`}
+                onClick={() => setActiveTab("packages")}
+              >
+                All Packages
+              </button>
+              <button
+                className={`filter-btn ${activeTab === "tours" ? "active" : ""}`}
+                onClick={() => setActiveTab("tours")}
+              >
+                Custom Tours
+              </button>
+              {activeTab === "packages" && (
+                <>
+                  <button className="filter-btn">Adventure</button>
+                  <button className="filter-btn">Family</button>
+                  <button className="filter-btn">Luxury</button>
+                  <button className="filter-btn">Budget</button>
+                </>
+              )}
             </div>
 
             <div className="row">
-              {loading ? (
-                Array.from({ length: 8 }).map((_, idx) => (
-                  <div key={idx} className="col-xl-3 col-lg-4 col-md-6 mb-4">
-                    <SkeletonLoader
-                      height="320px"
-                      width="100%"
-                      style={{ borderRadius: "16px" }}
-                    />
-                  </div>
-                ))
-              ) : featuredPackages.length === 0 ? (
-                <div className="col-12 text-center py-5">
-                  <i
-                    className="fal fa-map-marked-alt"
-                    style={{
-                      fontSize: "3rem",
-                      color: "#d1d5db",
-                      marginBottom: "16px",
-                    }}
-                  />
-                  <h4 style={{ color: "#374151", marginBottom: "8px" }}>
-                    No Packages Available
-                  </h4>
-                  <p style={{ color: "#64748b", margin: 0 }}>
-                    Check back soon for exciting new travel packages!
-                  </p>
-                </div>
-              ) : (
-                featuredPackages.map((pkg) => (
-                  <div key={pkg.id} className="col-xl-3 col-lg-4 col-md-6 mb-4">
-                    <PackageCard>
-                      <div className="image">
-                        <img src={pkg.imageUrl} alt={pkg.name} />
-                        <div className="status-badge">Available</div>
-                        {pkg.location?.name && (
-                          <div
-                            className="location-badge"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleLocationClick(pkg.location);
-                            }}
-                          >
-                            <i className="fal fa-map-marker-alt" />
-                            {pkg.location.name}
-                          </div>
-                        )}
-                      </div>
-                      <div className="content">
-                        <div className="package-meta">
-                          <div className="duration">
-                            <i className="fal fa-clock" />
-                            {pkg.duration || "5 Days"}
-                          </div>
-                          <div className="rating">
-                            <i className="fas fa-star" />
-                            <i className="fas fa-star" />
-                            <i className="fas fa-star" />
-                            <i className="fas fa-star" />
-                            <i className="far fa-star" />
-                            <span>(4.2)</span>
-                          </div>
-                        </div>
-
-                        <h6>
-                          <Link href={`/holiday-details/${pkg.id}`}>
-                            {pkg.name}
-                          </Link>
-                        </h6>
-
-                        <div className="footer">
-                          <span className="price">
-                            {pkg.currency} {pkg.price}
-                            <small>/person</small>
-                          </span>
-                          {isInCart(pkg.id) ? (
-                            <ActionButton
-                              className="view-cart"
-                              onClick={handleViewCart}
-                            >
-                              <i className="fal fa-eye" /> View Cart
-                            </ActionButton>
-                          ) : (
-                            <ActionButton
-                              className={`add-to-cart ${animatingId === pkg.id ? "animate" : ""
-                                }`}
-                              onClick={() => handleAddToCart(pkg)}
-                            >
-                              <i className="fal fa-plus" /> Add to Cart
-                            </ActionButton>
-                          )}
-                        </div>
-                      </div>
-                    </PackageCard>
-                  </div>
-                ))
-              )}
+              {renderContent()}
             </div>
           </div>
         </FeaturedPackages>
@@ -1197,8 +1476,7 @@ const HomePage = () => {
         <section
           style={{
             padding: "60px 0",
-            background:
-              "linear-gradient(135deg, #f8853d 0%, #e67428 50%, #d65e1f 100%)",
+            background: "linear-gradient(135deg, #f8853d 0%, #e67428 50%, #d65e1f 100%)",
             color: "white",
           }}
         >
@@ -1212,7 +1490,7 @@ const HomePage = () => {
                   color: "white",
                 }}
               >
-                Why Choose Royal Dusk Tours?
+                {dynamicContent.statsTitle}
               </h2>
               <p
                 style={{
@@ -1222,104 +1500,39 @@ const HomePage = () => {
                   margin: "0 auto",
                 }}
               >
-                Join thousands of satisfied travelers who trust us with their
-                journey
+                {dynamicContent.statsDescription}
               </p>
             </div>
 
             <div className="row">
-              <div className="col-md-3 col-6 mb-4">
-                <div className="text-center">
-                  <div
-                    style={{
-                      fontSize: "3rem",
-                      fontWeight: 700,
-                      marginBottom: "8px",
-                    }}
-                  >
-                    <Counter end={120} />+
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "14px",
-                      opacity: 0.9,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.5px",
-                    }}
-                  >
-                    Active Packages
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-3 col-6 mb-4">
-                <div className="text-center">
-                  <div
-                    style={{
-                      fontSize: "3rem",
-                      fontWeight: 700,
-                      marginBottom: "8px",
-                    }}
-                  >
-                    <Counter end={50} />+
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "14px",
-                      opacity: 0.9,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.5px",
-                    }}
-                  >
-                    Destinations
+              {dynamicContent.stats.map((stat, index) => (
+                <div key={index} className="col-md-3 col-6 mb-4">
+                  <div className="text-center">
+                    <div
+                      style={{
+                        fontSize: "3rem",
+                        fontWeight: 700,
+                        marginBottom: "8px",
+                      }}
+                    >
+                      {stat.number.includes("+") || stat.number === "24/7" || stat.number === "100%"
+                        ? stat.number
+                        : <><Counter end={parseInt(stat.number)} />+</>
+                      }
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "14px",
+                        opacity: 0.9,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                      }}
+                    >
+                      {stat.label}
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="col-md-3 col-6 mb-4">
-                <div className="text-center">
-                  <div
-                    style={{
-                      fontSize: "3rem",
-                      fontWeight: 700,
-                      marginBottom: "8px",
-                    }}
-                  >
-                    <Counter end={2500} />+
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "14px",
-                      opacity: 0.9,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.5px",
-                    }}
-                  >
-                    Happy Customers
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-3 col-6 mb-4">
-                <div className="text-center">
-                  <div
-                    style={{
-                      fontSize: "3rem",
-                      fontWeight: 700,
-                      marginBottom: "8px",
-                    }}
-                  >
-                    24/7
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "14px",
-                      opacity: 0.9,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.5px",
-                    }}
-                  >
-                    Support Available
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </section>
@@ -1346,401 +1559,61 @@ const HomePage = () => {
                   margin: "0 auto",
                 }}
               >
-                Find the perfect travel experience that matches your interests
-                and style
+                Find the perfect travel experience that matches your interests and style
               </p>
             </div>
 
             <div className="row">
-              <div className="col-md-4 mb-4">
-                <Link
-                  href="/holidays?category=adventure"
-                  className="action-card d-block"
-                  style={{
-                    height: "120px",
-                    padding: "24px",
-                    textDecoration: "none",
-                    background: "#fef7f0",
-                    borderRadius: "16px",
-                    border: "1px solid #fed7aa",
-                    transition: "all 0.3s ease",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "16px",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.background = "#f8853d";
-                    e.target.style.color = "white";
-                    e.target.style.transform = "translateY(-4px)";
-                    e.target.style.boxShadow =
-                      "0 8px 32px rgba(248, 133, 61, 0.25)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.background = "#fef7f0";
-                    e.target.style.color = "inherit";
-                    e.target.style.transform = "translateY(0)";
-                    e.target.style.boxShadow = "none";
-                  }}
-                >
-                  <div
-                    className="icon"
-                    style={{
-                      width: "60px",
-                      height: "60px",
-                      background: "#f8853d",
-                      borderRadius: "12px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "white",
-                    }}
-                  >
-                    <i
-                      className="fal fa-mountain"
-                      style={{ fontSize: "24px" }}
-                    />
-                  </div>
-                  <div className="content">
-                    <h6
-                      style={{
-                        fontSize: "16px",
-                        marginBottom: "8px",
-                        color: "inherit",
-                      }}
-                    >
-                      Adventure Tours
-                    </h6>
-                    <p
-                      style={{ fontSize: "14px", margin: 0, color: "#64748b" }}
-                    >
-                      Thrilling experiences for the adventurous soul
-                    </p>
-                  </div>
-                </Link>
-              </div>
-
-              <div className="col-md-4 mb-4">
-                <Link
-                  href="/holidays?category=family"
-                  className="action-card d-block"
-                  style={{
-                    height: "120px",
-                    padding: "24px",
-                    textDecoration: "none",
-                    background: "#fef7f0",
-                    borderRadius: "16px",
-                    border: "1px solid #fed7aa",
-                    transition: "all 0.3s ease",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "16px",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.background = "#f8853d";
-                    e.target.style.color = "white";
-                    e.target.style.transform = "translateY(-4px)";
-                    e.target.style.boxShadow =
-                      "0 8px 32px rgba(248, 133, 61, 0.25)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.background = "#fef7f0";
-                    e.target.style.color = "inherit";
-                    e.target.style.transform = "translateY(0)";
-                    e.target.style.boxShadow = "none";
-                  }}
-                >
-                  <div
-                    className="icon"
-                    style={{
-                      width: "60px",
-                      height: "60px",
-                      background: "#f8853d",
-                      borderRadius: "12px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "white",
-                    }}
-                  >
-                    <i className="fal fa-users" style={{ fontSize: "24px" }} />
-                  </div>
-                  <div className="content">
-                    <h6
-                      style={{
-                        fontSize: "16px",
-                        marginBottom: "8px",
-                        color: "inherit",
-                      }}
-                    >
-                      Family Packages
-                    </h6>
-                    <p
-                      style={{ fontSize: "14px", margin: 0, color: "#64748b" }}
-                    >
-                      Perfect getaways for family bonding time
-                    </p>
-                  </div>
-                </Link>
-              </div>
-
-              <div className="col-md-4 mb-4">
-                <Link
-                  href="/holidays?category=luxury"
-                  className="action-card d-block"
-                  style={{
-                    height: "120px",
-                    padding: "24px",
-                    textDecoration: "none",
-                    background: "#fef7f0",
-                    borderRadius: "16px",
-                    border: "1px solid #fed7aa",
-                    transition: "all 0.3s ease",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "16px",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.background = "#f8853d";
-                    e.target.style.color = "white";
-                    e.target.style.transform = "translateY(-4px)";
-                    e.target.style.boxShadow =
-                      "0 8px 32px rgba(248, 133, 61, 0.25)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.background = "#fef7f0";
-                    e.target.style.color = "inherit";
-                    e.target.style.transform = "translateY(0)";
-                    e.target.style.boxShadow = "none";
-                  }}
-                >
-                  <div
-                    className="icon"
-                    style={{
-                      width: "60px",
-                      height: "60px",
-                      background: "#f8853d",
-                      borderRadius: "12px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "white",
-                    }}
-                  >
-                    <i className="fal fa-crown" style={{ fontSize: "24px" }} />
-                  </div>
-                  <div className="content">
-                    <h6
-                      style={{
-                        fontSize: "16px",
-                        marginBottom: "8px",
-                        color: "inherit",
-                      }}
-                    >
-                      Luxury Tours
-                    </h6>
-                    <p
-                      style={{ fontSize: "14px", margin: 0, color: "#64748b" }}
-                    >
-                      Premium experiences with world-class service
-                    </p>
-                  </div>
-                </Link>
-              </div>
-
-              <div className="col-md-4 mb-4">
-                <Link
-                  href="/holidays?category=honeymoon"
-                  className="action-card d-block"
-                  style={{
-                    height: "120px",
-                    padding: "24px",
-                    textDecoration: "none",
-                    background: "#fef7f0",
-                    borderRadius: "16px",
-                    border: "1px solid #fed7aa",
-                    transition: "all 0.3s ease",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "16px",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.background = "#f8853d";
-                    e.target.style.color = "white";
-                    e.target.style.transform = "translateY(-4px)";
-                    e.target.style.boxShadow =
-                      "0 8px 32px rgba(248, 133, 61, 0.25)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.background = "#fef7f0";
-                    e.target.style.color = "inherit";
-                    e.target.style.transform = "translateY(0)";
-                    e.target.style.boxShadow = "none";
-                  }}
-                >
-                  <div
-                    className="icon"
-                    style={{
-                      width: "60px",
-                      height: "60px",
-                      background: "#f8853d",
-                      borderRadius: "12px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "white",
-                    }}
-                  >
-                    <i className="fal fa-heart" style={{ fontSize: "24px" }} />
-                  </div>
-                  <div className="content">
-                    <h6
-                      style={{
-                        fontSize: "16px",
-                        marginBottom: "8px",
-                        color: "inherit",
-                      }}
-                    >
-                      Honeymoon Specials
-                    </h6>
-                    <p
-                      style={{ fontSize: "14px", margin: 0, color: "#64748b" }}
-                    >
-                      Romantic getaways for newlyweds
-                    </p>
-                  </div>
-                </Link>
-              </div>
-
-              <div className="col-md-4 mb-4">
-                <Link
-                  href="/holidays?category=weekend"
-                  className="action-card d-block"
-                  style={{
-                    height: "120px",
-                    padding: "24px",
-                    textDecoration: "none",
-                    background: "#fef7f0",
-                    borderRadius: "16px",
-                    border: "1px solid #fed7aa",
-                    transition: "all 0.3s ease",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "16px",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.background = "#f8853d";
-                    e.target.style.color = "white";
-                    e.target.style.transform = "translateY(-4px)";
-                    e.target.style.boxShadow =
-                      "0 8px 32px rgba(248, 133, 61, 0.25)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.background = "#fef7f0";
-                    e.target.style.color = "inherit";
-                    e.target.style.transform = "translateY(0)";
-                    e.target.style.boxShadow = "none";
-                  }}
-                >
-                  <div
-                    className="icon"
-                    style={{
-                      width: "60px",
-                      height: "60px",
-                      background: "#f8853d",
-                      borderRadius: "12px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "white",
-                    }}
-                  >
-                    <i
-                      className="fal fa-calendar-weekend"
-                      style={{ fontSize: "24px" }}
-                    />
-                  </div>
-                  <div className="content">
-                    <h6
-                      style={{
-                        fontSize: "16px",
-                        marginBottom: "8px",
-                        color: "inherit",
-                      }}
-                    >
-                      Weekend Getaways
-                    </h6>
-                    <p
-                      style={{ fontSize: "14px", margin: 0, color: "#64748b" }}
-                    >
-                      Quick escapes for busy professionals
-                    </p>
-                  </div>
-                </Link>
-              </div>
-
-              <div className="col-md-4 mb-4">
-                <Link
-                  href="/holidays?category=spiritual"
-                  className="action-card d-block"
-                  style={{
-                    height: "120px",
-                    padding: "24px",
-                    textDecoration: "none",
-                    background: "#fef7f0",
-                    borderRadius: "16px",
-                    border: "1px solid #fed7aa",
-                    transition: "all 0.3s ease",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "16px",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.background = "#f8853d";
-                    e.target.style.color = "white";
-                    e.target.style.transform = "translateY(-4px)";
-                    e.target.style.boxShadow =
-                      "0 8px 32px rgba(248, 133, 61, 0.25)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.background = "#fef7f0";
-                    e.target.style.color = "inherit";
-                    e.target.style.transform = "translateY(0)";
-                    e.target.style.boxShadow = "none";
-                  }}
-                >
-                  <div
-                    className="icon"
-                    style={{
-                      width: "60px",
-                      height: "60px",
-                      background: "#f8853d",
-                      borderRadius: "12px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "white",
-                    }}
-                  >
-                    <i className="fal fa-om" style={{ fontSize: "24px" }} />
-                  </div>
-                  <div className="content">
-                    <h6
-                      style={{
-                        fontSize: "16px",
-                        marginBottom: "8px",
-                        color: "inherit",
-                      }}
-                    >
-                      Spiritual Tours
-                    </h6>
-                    <p
-                      style={{ fontSize: "14px", margin: 0, color: "#64748b" }}
-                    >
-                      Sacred journeys for inner peace
-                    </p>
-                  </div>
-                </Link>
-              </div>
+              {[
+                {
+                  href: activeTab === "tours" ? "/custom-tours?category=adventure" : "/holidays?category=adventure",
+                  icon: "fal fa-mountain",
+                  title: "Adventure Tours",
+                  description: "Thrilling experiences for the adventurous soul"
+                },
+                {
+                  href: activeTab === "tours" ? "/custom-tours?category=family" : "/holidays?category=family",
+                  icon: "fal fa-users",
+                  title: "Family Packages",
+                  description: "Perfect getaways for family bonding time"
+                },
+                {
+                  href: activeTab === "tours" ? "/custom-tours?category=luxury" : "/holidays?category=luxury",
+                  icon: "fal fa-crown",
+                  title: "Luxury Tours",
+                  description: "Premium experiences with world-class service"
+                },
+                {
+                  href: activeTab === "tours" ? "/custom-tours?category=honeymoon" : "/holidays?category=honeymoon",
+                  icon: "fal fa-heart",
+                  title: "Honeymoon Specials",
+                  description: "Romantic getaways for newlyweds"
+                },
+                {
+                  href: activeTab === "tours" ? "/custom-tours?category=weekend" : "/holidays?category=weekend",
+                  icon: "fal fa-calendar",
+                  title: "Weekend Getaways",
+                  description: "Quick escapes for busy professionals"
+                },
+                {
+                  href: activeTab === "tours" ? "/custom-tours?category=spiritual" : "/holidays?category=spiritual",
+                  icon: "fal fa-om",
+                  title: "Spiritual Tours",
+                  description: "Sacred journeys for inner peace"
+                }
+              ].map((category, index) => (
+                <div key={index} className="col-md-4 mb-4">
+                  <CategoryCard href={category.href}>
+                    <div className="category-icon">
+                      <i className={category.icon} />
+                    </div>
+                    <div className="category-content">
+                      <h6>{category.title}</h6>
+                      <p>{category.description}</p>
+                    </div>
+                  </CategoryCard>
+                </div>
+              ))}
             </div>
           </div>
         </section>
