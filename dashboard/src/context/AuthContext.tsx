@@ -76,7 +76,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const register = async (data: RegisterPayload) => {
     try {
       const response = await authApi.register(data);
-      if (response.status === "success") {
+      if (response.success) {
         toast.success(response.message);
       }
     } catch (error: any) {
@@ -89,11 +89,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (data: LoginPayload): Promise<any> => {
     try {
       const response = await authApi.login(data);
-      if (response.status === "success") {
-        localStorage.setItem("access_token", response.access_token);
-        localStorage.setItem("refresh_token", response.refresh_token);
+      if (response.success) {
+        const { token, refreshToken } = response.data;
+        localStorage.setItem("access_token", token);
+        localStorage.setItem("refresh_token", refreshToken);
         await checkLoggedIn();
-        toast.success("Login successful");
+        toast.success(response.message || "Login successful");
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Login failed");

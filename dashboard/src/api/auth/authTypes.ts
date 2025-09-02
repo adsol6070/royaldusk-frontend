@@ -21,10 +21,20 @@ export interface ResetPasswordPayload {
 }
 
 export interface AuthResponse {
-  status: string;
+  success: boolean;
   message: string;
-  access_token: string;
-  refresh_token: string;
+  data: {
+    requires2FA: boolean;
+    token: string;
+    refreshToken: string;
+    user: {
+      id: string;
+      name: string;
+      email: string;
+      // add other user fields you return from backend
+      [key: string]: any;
+    };
+  };
 }
 
 export interface ForgotPasswordResponse {

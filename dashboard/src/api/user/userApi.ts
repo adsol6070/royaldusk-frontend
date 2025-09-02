@@ -23,16 +23,16 @@ export const userApi = {
     );
     return response.data;
   },
-   deleteUser: async (id: string): Promise<User> => {
+  deleteUser: async (id: string): Promise<User> => {
     const response = await httpClient.delete<User>(
       API_ENDPOINTS.USER.DELETE(id)
     );
     return response.data;
   },
   me: async (): Promise<any> => {
-    const response = await httpClient.get<ApiResponse<{ user: User }>>(
+    const response = await httpClient.get<ApiResponse<{ profile: User }>>(
       API_ENDPOINTS.USER.ME
     );
-    return response.data.data.user;
+    return response.data.data.profile;
   },
 };
