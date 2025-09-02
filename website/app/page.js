@@ -1014,15 +1014,6 @@ const ActionButton = styled.button`
     cursor: not-allowed;
   }
 
-  &.inquire-now {
-    background-color: #3b82f6;
-    color: white;
-    &:hover {
-      background-color: #2563eb;
-      transform: translateY(-1px);
-    }
-  }
-
   i {
     font-size: 12px;
   }
@@ -1501,7 +1492,8 @@ const HomePage = () => {
       id: "packages",
       icon: "fal fa-route",
       title: "Travel Packages",
-      description: "Complete tour packages with accommodation, meals, and guided experiences",
+      description:
+        "Complete tour packages with accommodation, meals, and guided experiences",
       available: true,
       stats: {
         number:
@@ -1521,18 +1513,11 @@ const HomePage = () => {
       },
     },
     {
-      id: "tours",
-      icon: "fal fa-map-marked",
-      title: "Custom Tours",
-      description: "Personalized tour experiences tailored to your preferences",
-      available: true,
-      stats: { number: "50+", label: "Experiences" },
-    },
-    {
       id: "flights",
       icon: "fal fa-plane",
       title: "Flight Booking",
-      description: "Book domestic and international flights at competitive prices",
+      description:
+        "Book domestic and international flights at competitive prices",
       available: false,
       stats: { number: "Soon", label: "Airlines" },
     },
@@ -1777,168 +1762,6 @@ const HomePage = () => {
     </TourCard>
   );
 
-  // Dynamic content based on active tab
-  const getDynamicContent = () => {
-    return {
-      heroDescription: activeTab === "tours"
-        ? "From curated travel packages to custom tours, flight bookings, and hotel reservations - create your perfect personalized journey with us."
-        : "From curated travel packages to flight bookings, hotel reservations, and custom tours - we're building the ultimate travel experience platform.",
-
-      searchTitle: activeTab === "tours" ? "Find Your Perfect Custom Tour" : "Find Your Perfect Trip",
-      searchDescription: activeTab === "tours" ? "Describe your ideal custom tour experience" : "Search across our comprehensive travel services",
-      searchLabel: activeTab === "tours"
-        ? "Describe your ideal custom tour"
-        : "Search destinations, packages, or experiences",
-      searchPlaceholder: activeTab === "tours"
-        ? "e.g. 7-day adventure tour in Himalayas, Family trip to Kerala..."
-        : "e.g. Manali, Adventure tours, Beach holidays...",
-      searchButton: activeTab === "tours" ? "Find Custom Tours" : "Search Packages",
-
-      featuredTitle: activeTab === "tours" ? "Custom Tour Ideas" : "Featured Packages",
-      viewAllText: activeTab === "tours" ? "View All Custom Tours" : "View All Packages",
-      viewAllLink: activeTab === "tours" ? "/custom-tours" : "/holidays",
-
-      statsTitle: activeTab === "tours" ? "Why Choose Our Custom Tours?" : "Why Choose Royal Dusk Tours?",
-      statsDescription: activeTab === "tours"
-        ? "Experience the freedom of personalized travel with our custom tour services"
-        : "Join thousands of satisfied travelers who trust us with their journey",
-
-      stats: activeTab === "tours"
-        ? [
-          { number: "50+", label: "Custom Tours" },
-          { number: "100%", label: "Personalized" },
-          { number: "500+", label: "Tours Created" },
-          { number: "24/7", label: "Planning Support" }
-        ]
-        : [
-          { number: "120+", label: "Active Packages" },
-          { number: "50+", label: "Destinations" },
-          { number: "2500+", label: "Happy Customers" },
-          { number: "24/7", label: "Support Available" }
-        ]
-    };
-  };
-
-  const dynamicContent = getDynamicContent();
-  const currentData = activeTab === "tours" ? customTours : featuredPackages;
-  const currentLoading = activeTab === "tours" ? toursLoading : loading;
-
-  const renderContent = () => {
-    if (currentLoading) {
-      return Array.from({ length: 8 }).map((_, idx) => (
-        <div key={idx} className="col-xl-3 col-lg-4 col-md-6 mb-4">
-          <SkeletonLoader
-            height="320px"
-            width="100%"
-            style={{ borderRadius: "16px" }}
-          />
-        </div>
-      ));
-    }
-
-    if (currentData.length === 0) {
-      return (
-        <div className="col-12 text-center py-5">
-          <i
-            className={`fal ${activeTab === "tours" ? "fa-route" : "fa-map-marked-alt"}`}
-            style={{
-              fontSize: "3rem",
-              color: "#d1d5db",
-              marginBottom: "16px",
-            }}
-          />
-          <h4 style={{ color: "#374151", marginBottom: "8px" }}>
-            No {activeTab === "tours" ? "Custom Tours" : "Packages"} Available
-          </h4>
-          <p style={{ color: "#64748b", margin: 0 }}>
-            {activeTab === "tours"
-              ? "Contact us to create your personalized travel experience!"
-              : "Check back soon for exciting new travel packages!"
-            }
-          </p>
-        </div>
-      );
-    }
-
-    return currentData.map((item) => (
-      <div key={item.id} className="col-xl-3 col-lg-4 col-md-6 mb-4">
-        <PackageCard>
-          <div className="image">
-            <img src={item.imageUrl} alt={item.name} />
-            <div className="status-badge">
-              {activeTab === "tours" ? "Customizable" : "Available"}
-            </div>
-            {item.location?.name && (
-              <div
-                className="location-badge"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleLocationClick(item.location);
-                }}
-              >
-                <i className="fal fa-map-marker-alt" />
-                {item.location.name}
-              </div>
-            )}
-          </div>
-          <div className="content">
-            <div className="package-meta">
-              <div className="duration">
-                <i className={`fal ${activeTab === "tours" ? "fa-users" : "fa-clock"}`} />
-                {activeTab === "tours" ? (item.groupSize || "Flexible") : (item.duration || "5 Days")}
-              </div>
-              <div className="rating">
-                <i className="fas fa-star" />
-                <i className="fas fa-star" />
-                <i className="fas fa-star" />
-                <i className="fas fa-star" />
-                <i className={activeTab === "tours" ? "fas fa-star" : "far fa-star"} />
-                <span>{activeTab === "tours" ? "(Custom)" : "(4.2)"}</span>
-              </div>
-            </div>
-
-            <h6>
-              <Link href={`/${activeTab === "tours" ? "custom-tours" : "holiday-details"}/${item.id}`}>
-                {item.name}
-              </Link>
-            </h6>
-
-            <div className="footer">
-              <span className="price">
-                {activeTab === "tours" ? "Starting from " : ""}{item.currency || "₹"} {activeTab === "tours" ? item.startingPrice : item.price}
-                <small>/person</small>
-              </span>
-              {activeTab === "tours" ? (
-                <ActionButton
-                  className="inquire-now"
-                  onClick={() => handleInquireNow(item)}
-                >
-                  <i className="fal fa-envelope" /> Inquire Now
-                </ActionButton>
-              ) : (
-                isInCart(item.id) ? (
-                  <ActionButton
-                    className="view-cart"
-                    onClick={handleViewCart}
-                  >
-                    <i className="fal fa-eye" /> View Cart
-                  </ActionButton>
-                ) : (
-                  <ActionButton
-                    className={`add-to-cart ${animatingId === item.id ? "animate" : ""}`}
-                    onClick={() => handleAddToCart(item)}
-                  >
-                    <i className="fal fa-plus" /> Add to Cart
-                  </ActionButton>
-                )
-              )}
-            </div>
-          </div>
-        </PackageCard>
-      </div>
-    ));
-  };
-
   return (
     <ReveloLayout>
       <PlatformContainer>
@@ -1959,8 +1782,8 @@ const HomePage = () => {
         <SearchWidget>
           <div className="container">
             <div className="search-header">
-              <h3>{dynamicContent.searchTitle}</h3>
-              <p>{dynamicContent.searchDescription}</p>
+              <h3>Find Your Perfect Trip</h3>
+              <p>Search across our comprehensive travel services</p>
             </div>
 
             <div className="service-tabs">
@@ -2106,10 +1929,12 @@ const HomePage = () => {
                 <div className="coming-soon-message">
                   <i className="fal fa-clock" />
                   <h4>
-                    {services.find((s) => s.id === activeTab)?.title} Coming Soon
+                    {services.find((s) => s.id === activeTab)?.title} Coming
+                    Soon
                   </h4>
                   <p>
-                    We're working hard to bring you this service. Stay tuned for updates!
+                    We're working hard to bring you this service. Stay tuned for
+                    updates!
                   </p>
                 </div>
               )}
@@ -2396,7 +2221,8 @@ const HomePage = () => {
         <section
           style={{
             padding: "60px 0",
-            background: "linear-gradient(135deg, #f8853d 0%, #e67428 50%, #d65e1f 100%)",
+            background:
+              "linear-gradient(135deg, #f8853d 0%, #e67428 50%, #d65e1f 100%)",
             color: "white",
           }}
         >
@@ -2410,7 +2236,7 @@ const HomePage = () => {
                   color: "white",
                 }}
               >
-                {dynamicContent.statsTitle}
+                Why Choose Royal Dusk Tours?
               </h2>
               <p
                 style={{
@@ -2420,7 +2246,8 @@ const HomePage = () => {
                   margin: "0 auto",
                 }}
               >
-                {dynamicContent.statsDescription}
+                Join thousands of satisfied travelers who trust us with their
+                journey
               </p>
             </div>
 
@@ -2543,7 +2370,8 @@ const HomePage = () => {
                   margin: "0 auto",
                 }}
               >
-                Find the perfect travel experience that matches your interests and style
+                Find the perfect travel experience that matches your interests
+                and style
               </p>
             </div>
 
