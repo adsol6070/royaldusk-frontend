@@ -1,4 +1,4 @@
-import { HttpClient } from '../helpers';
+import { HttpClient } from "../helpers";
 
 function AuthApi() {
   return {
@@ -15,7 +15,9 @@ function AuthApi() {
     },
 
     forgotPassword: (email) => {
-      return HttpClient.post(`/user-service/api/auth/forgot-password`, { email });
+      return HttpClient.post(`/user-service/api/auth/forgot-password`, {
+        email,
+      });
     },
 
     resetPassword: (data) => {
@@ -23,19 +25,47 @@ function AuthApi() {
     },
 
     resendVerificationEmail: (email) => {
-      return HttpClient.post(`/user-service/api/auth/resend-verification-email`, { email });
+      return HttpClient.post(
+        `/user-service/api/auth/resend-verification-email`,
+        { email }
+      );
     },
 
     verifyEmail: (verificationCode) => {
-      return HttpClient.post(`/user-service/api/auth/verify-email`, { verificationCode });
+      return HttpClient.post(`/user-service/api/auth/verify-email`, {
+        verificationCode,
+      });
     },
 
     googleSignIn: (idToken) => {
       return HttpClient.post(`/user-service/api/auth/google`, { idToken });
     },
 
-     appleSignIn: (idToken) => {
+    appleSignIn: (idToken) => {
       return HttpClient.post(`/user-service/api/auth/apple`, { idToken });
+    },
+
+    sendOTP: (email, type = "email") => {
+      return HttpClient.post(`/user-service/api/auth/send-otp`, {
+        email,
+        type,
+      });
+    },
+
+    verifyOTP: (email, otp, type = "email") => {
+      return HttpClient.post(`/user-service/api/auth/verify-otp`, {
+        email,
+        otp,
+        type,
+      });
+    },
+
+    completeProfile: (data, temporaryToken) => {
+      return HttpClient.post(`/user-service/api/auth/complete-profile`, data, {
+        headers: {
+          Authorization: `Bearer ${temporaryToken}`,
+        },
+      });
     },
   };
 }

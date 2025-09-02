@@ -17,6 +17,15 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [userInfo, setUserInfo] = useState(null);
+
+  const [otpState, setOtpState] = useState({
+    email: null,
+    isNewUser: false,
+    needsProfileCompletion: false,
+    temporaryToken: null,
+    otpSent: false,
+  });
+
   const router = useRouter();
 
   const startAutoLogout = (token) => {
@@ -61,6 +70,152 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setIsAuthLoading(false);
     }
+  };
+
+  const sendOTP = async (email) => {
+    try {
+      const response = await authApi.sendOTP(email.toLowerCase().trim());
+
+      if (response.success) {
+        setOtpState({
+          email: email.toLowerCase().trim(),
+          isNewUser: response.data.isNewUser,
+          needsProfileCompletion: false,
+          temporaryToken: null,
+          otpSent: true,
+        });
+
+        toast.success("OTP sent to your email");
+        return {
+          success: true,
+          isNewUser: response.data.isNewUser,
+          expiresIn: response.data.expiresIn,
+        };
+      } else {
+        throw new Error("Failed to send OTP");
+      }
+    } catch (error) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to send OTP";
+      toast.error(message);
+      throw error;
+    }
+  };
+
+  const verifyOTP = async (email, otp) => {
+    try {
+      const response = await authApi.verifyOTP(email.toLowerCase().trim(), otp);
+
+      if (response.success) {
+        const { data } = response;
+
+        // Update OTP state
+        setOtpState((prev) => ({
+          ...prev,
+          needsProfileCompletion: data.needsProfileCompletion,
+          temporaryToken: data.temporaryToken,
+        }));
+
+        if (data.needsProfileCompletion) {
+          // User needs to complete profile
+          toast.success("OTP verified! Please complete your profile.");
+          return {
+            success: true,
+            needsProfileCompletion: true,
+            temporaryToken: data.temporaryToken,
+            isNewUser: data.isNewUser,
+          };
+        } else {
+          // Existing user with complete profile - login directly
+          localStorage.setItem("access_token", data.token);
+          localStorage.setItem("refresh_token", data.refreshToken);
+
+          setIsAuthenticated(true);
+          setUserInfo(data.user);
+          startAutoLogout(data.token);
+
+          // Clear OTP state
+          setOtpState({
+            email: null,
+            isNewUser: false,
+            needsProfileCompletion: false,
+            temporaryToken: null,
+            otpSent: false,
+          });
+
+          toast.success("Login successful");
+          return {
+            success: true,
+            needsProfileCompletion: false,
+            user: data.user,
+          };
+        }
+      } else {
+        throw new Error("OTP verification failed");
+      }
+    } catch (error) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Invalid or expired OTP";
+      toast.error(message);
+      throw error;
+    }
+  };
+
+  const completeProfile = async (profileData) => {
+    try {
+      if (!otpState.temporaryToken) {
+        throw new Error("No temporary token found");
+      }
+
+      const response = await authApi.completeProfile(
+        profileData,
+        otpState.temporaryToken
+      );
+
+      if (response.success) {
+        localStorage.setItem("access_token", response.data.token);
+        localStorage.setItem("refresh_token", response.data.refreshToken);
+
+        setIsAuthenticated(true);
+        setUserInfo(response.data.user);
+        startAutoLogout(response.data.token);
+
+        // Clear OTP state
+        setOtpState({
+          email: null,
+          isNewUser: false,
+          needsProfileCompletion: false,
+          temporaryToken: null,
+          otpSent: false,
+        });
+
+        toast.success("Profile completed successfully!");
+        return { success: true, user: response.data.user };
+      } else {
+        throw new Error("Profile completion failed");
+      }
+    } catch (error) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to complete profile";
+      toast.error(message);
+      throw error;
+    }
+  };
+
+  const resetOtpState = () => {
+    setOtpState({
+      email: null,
+      isNewUser: false,
+      needsProfileCompletion: false,
+      temporaryToken: null,
+      otpSent: false,
+    });
   };
 
   const login = async (data) => {
@@ -139,28 +294,27 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-const appleLogin = async () => {
-  try {
-    const result = await signInWithPopup(auth, appleProvider);
-    const idToken = await result.user.getIdToken();
+  const appleLogin = async () => {
+    try {
+      const result = await signInWithPopup(auth, appleProvider);
+      const idToken = await result.user.getIdToken();
 
-    const response = await authApi.appleSignIn(idToken);
+      const response = await authApi.appleSignIn(idToken);
 
-    if (response.status === "success") {
-      localStorage.setItem("access_token", response.access_token);
-      localStorage.setItem("refresh_token", response.refresh_token);
-      await checkLoggedIn();
-      router.push("/dashboard");
-      toast.success("Apple Sign-In successful");
-    } else {
-      throw new Error("Apple Sign-In failed");
+      if (response.status === "success") {
+        localStorage.setItem("access_token", response.access_token);
+        localStorage.setItem("refresh_token", response.refresh_token);
+        await checkLoggedIn();
+        router.push("/dashboard");
+        toast.success("Apple Sign-In successful");
+      } else {
+        throw new Error("Apple Sign-In failed");
+      }
+    } catch (err) {
+      console.error("Apple Login Failed:", err);
+      toast.error("Apple Sign-In failed");
     }
-
-  } catch (err) {
-    console.error("Apple Login Failed:", err);
-    toast.error("Apple Sign-In failed");
-  }
-};
+  };
 
   const resetPassword = async (data) => {
     try {
@@ -217,6 +371,13 @@ const appleLogin = async () => {
         isAuthenticated,
         isAuthLoading,
         userInfo,
+
+        otpState,
+        sendOTP,
+        verifyOTP,
+        completeProfile,
+        resetOtpState,
+
         register,
         login,
         logout,

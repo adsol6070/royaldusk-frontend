@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import styled from "styled-components";
@@ -26,6 +26,18 @@ const otpSchema = yup.object().shape({
     .string()
     .matches(/^\d{6}$/, "OTP must be exactly 6 digits")
     .required("OTP is required"),
+});
+
+const profileSchema = yup.object().shape({
+  name: yup
+    .string()
+    .min(2, "Name must be at least 2 characters")
+    .required("Name is required"),
+  phone: yup
+    .string()
+    .matches(/^[+]?[\d\s\-()]+$/, "Invalid phone number format")
+    .min(10, "Phone number must be at least 10 digits")
+    .required("Phone number is required"),
 });
 
 const PlatformContainer = styled.div`
@@ -117,8 +129,19 @@ const StepIndicator = styled.div`
   .connector {
     width: 24px;
     height: 2px;
-    background: ${(props) => (props.step >= 2 ? "#10b981" : "#f1f5f9")};
     transition: all 0.3s ease;
+
+    &.completed {
+      background: #10b981;
+    }
+
+    &.active {
+      background: #667eea;
+    }
+
+    &.inactive {
+      background: #f1f5f9;
+    }
   }
 `;
 
@@ -378,49 +401,12 @@ const Divider = styled.div`
   }
 `;
 
-const GoogleButtonWrapper = styled.div`
-  margin-bottom: 24px;
-
-  button {
-    width: 100% !important;
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 8px !important;
-    padding: 12px 16px !important;
-    background: white !important;
-    transition: all 0.2s ease !important;
-
-    &:hover {
-      background: #f9fafb !important;
-      border-color: #cbd5e1 !important;
-      transform: translateY(-1px) !important;
-    }
-  }
-`;
-
 const FooterLinks = styled.div`
   display: flex;
   flex-direction: column;
   gap: 16px;
   padding-top: 24px;
   border-top: 1px solid #f1f5f9;
-`;
-
-const SignupPrompt = styled.div`
-  text-align: center;
-  font-size: 14px;
-  color: #64748b;
-
-  a {
-    color: #667eea;
-    text-decoration: none;
-    font-weight: 600;
-    margin-left: 4px;
-
-    &:hover {
-      color: #5a67d8;
-      text-decoration: underline;
-    }
-  }
 `;
 
 const QuickLink = styled.div`
@@ -449,15 +435,44 @@ const QuickLink = styled.div`
   }
 `;
 
+const UserTypeIndicator = styled.div`
+  text-align: center;
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+
+  &.new-user {
+    background: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+  }
+
+  &.existing-user {
+    background: #ecfdf5;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+  }
+`;
+
 export default function LoginPage() {
-  const { sendOTP, verifyOTP } = useAuth();
+  const { sendOTP, verifyOTP, completeProfile, otpState, isAuthenticated } =
+    useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState(1); // 1: Email, 2: OTP
+  const [step, setStep] = useState(1); // 1: Email, 2: OTP, 3: Profile
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [resendTimer, setResendTimer] = useState(0);
-  const [otpSent, setOtpSent] = useState(false);
+  const [isNewUser, setIsNewUser] = useState(false);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push("/dashboard");
+    }
+  }, [isAuthenticated, router]);
 
   const {
     register: registerEmail,
@@ -470,21 +485,27 @@ export default function LoginPage() {
     handleSubmit: handleOTPSubmit,
     formState: { errors: otpErrors },
     setValue: setOTPValue,
-    watch: watchOTP,
   } = useForm({ resolver: yupResolver(otpSchema) });
+
+  const {
+    register: registerProfile,
+    handleSubmit: handleProfileSubmit,
+    formState: { errors: profileErrors },
+  } = useForm({ resolver: yupResolver(profileSchema) });
 
   // Handle email submission
   const onEmailSubmit = async (data) => {
     setLoading(true);
     try {
-      await sendOTP(data.email);
-      setEmail(data.email);
-      setStep(2);
-      setOtpSent(true);
-      startResendTimer();
-      toast.success("OTP sent to your email!");
+      const result = await sendOTP(data.email);
+      if (result.success) {
+        setEmail(data.email);
+        setIsNewUser(result.isNewUser);
+        setStep(2);
+        startResendTimer();
+      }
     } catch (error) {
-      toast.error("Failed to send OTP. Please try again.");
+      // Error already handled by AuthContext
     } finally {
       setLoading(false);
     }
@@ -494,11 +515,34 @@ export default function LoginPage() {
   const onOTPSubmit = async (data) => {
     setLoading(true);
     try {
-      await verifyOTP(email, data.otp);
-      toast.success("Login successful!");
-      router.push("/dashboard");
+      const result = await verifyOTP(email, data.otp);
+      if (result.success) {
+        if (result.needsProfileCompletion) {
+          setStep(3);
+        } else {
+          // Login successful, user will be redirected via useEffect
+        }
+      }
     } catch (error) {
-      toast.error("Invalid OTP. Please try again.");
+      // Error already handled by AuthContext
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle profile completion
+  const onProfileSubmit = async (data) => {
+    setLoading(true);
+    try {
+      const result = await completeProfile({
+        name: data.name,
+        phone: data.phone,
+      });
+      if (result.success) {
+        // Login successful, user will be redirected via useEffect
+      }
+    } catch (error) {
+      // Error already handled by AuthContext
     } finally {
       setLoading(false);
     }
@@ -554,9 +598,8 @@ export default function LoginPage() {
       setOtp(["", "", "", "", "", ""]);
       setOTPValue("otp", "");
       startResendTimer();
-      toast.success("New OTP sent to your email!");
     } catch (error) {
-      toast.error("Failed to resend OTP. Please try again.");
+      // Error already handled by AuthContext
     } finally {
       setLoading(false);
     }
@@ -566,9 +609,42 @@ export default function LoginPage() {
   const handleBackToEmail = () => {
     setStep(1);
     setOtp(["", "", "", "", "", ""]);
-    setOtpSent(false);
     setResendTimer(0);
+    setEmail("");
+    setIsNewUser(false);
   };
+
+  // Handle back to OTP step (from profile step)
+  const handleBackToOTP = () => {
+    setStep(2);
+    setOtp(["", "", "", "", "", ""]);
+    setOTPValue("otp", "");
+  };
+
+  // Get step titles and descriptions
+  const getStepContent = () => {
+    switch (step) {
+      case 1:
+        return {
+          title: "Sign in or create account",
+          description: "Enter your email to receive a secure code",
+        };
+      case 2:
+        return {
+          title: "Verify Your Email",
+          description: `We've sent a 6-digit code to ${email}`,
+        };
+      case 3:
+        return {
+          title: "Complete Your Profile",
+          description: "Just a few more details to get started",
+        };
+      default:
+        return { title: "", description: "" };
+    }
+  };
+
+  const { title, description } = getStepContent();
 
   return (
     <ReveloLayout>
@@ -581,25 +657,51 @@ export default function LoginPage() {
                 alt="Royal Dusk Tours"
               />
             </div>
-            <h1>
-              {step === 1 ? "Sigin or create account" : "Verify Your Email"}
-            </h1>
-            <p>
-              {step === 1
-                ? "Enter your email to receive a secure code"
-                : `We've sent a 6-digit code to ${email}`}
-            </p>
+            <h1>{title}</h1>
+            <p>{description}</p>
           </Header>
 
           <StepIndicator step={step}>
-            <div className={`step ${step >= 1 ? "active" : "inactive"}`}>
+            <div
+              className={`step ${
+                step >= 1 ? (step === 1 ? "active" : "completed") : "inactive"
+              }`}
+            >
               <i className="fal fa-envelope" />
             </div>
-            <div className="connector" />
-            <div className={`step ${step >= 2 ? "active" : "inactive"}`}>
+            <div
+              className={`connector ${
+                step >= 2 ? (step === 2 ? "active" : "completed") : "inactive"
+              }`}
+            />
+            <div
+              className={`step ${
+                step >= 2 ? (step === 2 ? "active" : "completed") : "inactive"
+              }`}
+            >
               <i className="fal fa-shield-check" />
             </div>
+            <div className={`connector ${step >= 3 ? "active" : "inactive"}`} />
+            <div className={`step ${step >= 3 ? "active" : "inactive"}`}>
+              <i className="fal fa-user" />
+            </div>
           </StepIndicator>
+
+          {/* Show user type indicator on OTP step */}
+          {step === 2 && (
+            <UserTypeIndicator
+              className={isNewUser ? "new-user" : "existing-user"}
+            >
+              <i
+                className={`fal ${
+                  isNewUser ? "fa-user-plus" : "fa-user-check"
+                }`}
+              />
+              {isNewUser
+                ? "New account - profile setup required"
+                : "Welcome back!"}
+            </UserTypeIndicator>
+          )}
 
           {step === 1 ? (
             // Email Step
@@ -631,7 +733,7 @@ export default function LoginPage() {
                 {!loading && <i className="fal fa-arrow-right" />}
               </SubmitButton>
             </Form>
-          ) : (
+          ) : step === 2 ? (
             // OTP Step
             <>
               <BackButton onClick={handleBackToEmail}>
@@ -665,12 +767,6 @@ export default function LoginPage() {
                       {otpErrors.otp.message}
                     </ErrorMessage>
                   )}
-                  {otpSent && !otpErrors.otp && (
-                    <SuccessMessage>
-                      <i className="fal fa-check-circle" />
-                      Verification code sent successfully
-                    </SuccessMessage>
-                  )}
                 </FormGroup>
 
                 <ResendSection>
@@ -699,8 +795,66 @@ export default function LoginPage() {
                   disabled={loading || otp.join("").length !== 6}
                 >
                   {loading && <div className="spinner" />}
-                  {loading ? "Verifying..." : "Verify & Sign In"}
+                  {loading ? "Verifying..." : "Verify & Continue"}
                   {!loading && <i className="fal fa-check" />}
+                </SubmitButton>
+              </Form>
+            </>
+          ) : (
+            // Profile Completion Step
+            <>
+              <BackButton onClick={handleBackToOTP}>
+                <i className="fal fa-arrow-left" />
+                Back to Verification
+              </BackButton>
+
+              <Form onSubmit={handleProfileSubmit(onProfileSubmit)}>
+                <FormGroup>
+                  <Label htmlFor="name">Full Name</Label>
+                  <InputWrapper>
+                    <i className="fal fa-user input-icon" />
+                    <Input
+                      id="name"
+                      type="text"
+                      placeholder="Enter your full name"
+                      hasIcon
+                      className={profileErrors.name ? "error" : ""}
+                      {...registerProfile("name")}
+                    />
+                  </InputWrapper>
+                  {profileErrors.name && (
+                    <ErrorMessage>
+                      <i className="fal fa-exclamation-circle" />
+                      {profileErrors.name.message}
+                    </ErrorMessage>
+                  )}
+                </FormGroup>
+
+                <FormGroup>
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <InputWrapper>
+                    <i className="fal fa-phone input-icon" />
+                    <Input
+                      id="phone"
+                      type="tel"
+                      placeholder="Enter your phone number"
+                      hasIcon
+                      className={profileErrors.phone ? "error" : ""}
+                      {...registerProfile("phone")}
+                    />
+                  </InputWrapper>
+                  {profileErrors.phone && (
+                    <ErrorMessage>
+                      <i className="fal fa-exclamation-circle" />
+                      {profileErrors.phone.message}
+                    </ErrorMessage>
+                  )}
+                </FormGroup>
+
+                <SubmitButton type="submit" disabled={loading}>
+                  {loading && <div className="spinner" />}
+                  {loading ? "Creating Account..." : "Complete Setup"}
+                  {!loading && <i className="fal fa-check-circle" />}
                 </SubmitButton>
               </Form>
             </>
