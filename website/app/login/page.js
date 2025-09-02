@@ -11,16 +11,21 @@ import * as yup from "yup";
 import { toast } from "react-hot-toast";
 import ReveloLayout from "@/layout/ReveloLayout";
 import GoogleLoginButton from "@/components/GoogleLoginButton";
+import AppleLoginButton from "@/components/AppleSiginButton";
 
-const schema = yup.object().shape({
+// Validation schemas
+const emailSchema = yup.object().shape({
   email: yup
     .string()
     .email("Invalid email format")
     .required("Email is required"),
-  password: yup
+});
+
+const otpSchema = yup.object().shape({
+  otp: yup
     .string()
-    .min(6, "Password must be at least 6 characters")
-    .required("Password is required"),
+    .matches(/^\d{6}$/, "OTP must be exactly 6 digits")
+    .required("OTP is required"),
 });
 
 const PlatformContainer = styled.div`
@@ -40,6 +45,7 @@ const LoginCard = styled.div`
   width: 100%;
   max-width: 420px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
 
   @media (max-width: 480px) {
     padding: 30px 24px;
@@ -70,6 +76,49 @@ const Header = styled.div`
     font-size: 14px;
     color: #64748b;
     margin: 0;
+    line-height: 1.5;
+  }
+`;
+
+const StepIndicator = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+
+  .step {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+
+    &.active {
+      background: #667eea;
+      color: white;
+    }
+
+    &.completed {
+      background: #10b981;
+      color: white;
+    }
+
+    &.inactive {
+      background: #f1f5f9;
+      color: #94a3b8;
+    }
+  }
+
+  .connector {
+    width: 24px;
+    height: 2px;
+    background: ${(props) => (props.step >= 2 ? "#10b981" : "#f1f5f9")};
+    transition: all 0.3s ease;
   }
 `;
 
@@ -130,26 +179,47 @@ const Input = styled.input`
     border-color: #ef4444;
     background: #fef2f2;
   }
+
+  &:disabled {
+    background: #f3f4f6;
+    color: #9ca3af;
+    cursor: not-allowed;
+  }
 `;
 
-const PasswordWrapper = styled.div`
-  position: relative;
+const OTPInputContainer = styled.div`
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin: 16px 0;
+`;
 
-  .password-toggle {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: #94a3b8;
-    cursor: pointer;
-    font-size: 16px;
-    padding: 4px;
+const OTPInput = styled.input`
+  width: 48px;
+  height: 48px;
+  text-align: center;
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  background: #f9fafb;
+  transition: all 0.2s ease;
 
-    &:hover {
-      color: #64748b;
-    }
+  &:focus {
+    outline: none;
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
+  &.error {
+    border-color: #ef4444;
+    background: #fef2f2;
+  }
+
+  &.filled {
+    border-color: #10b981;
+    background: #f0fdf4;
   }
 `;
 
@@ -165,28 +235,53 @@ const ErrorMessage = styled.div`
   }
 `;
 
-const HelpLinks = styled.div`
+const SuccessMessage = styled.div`
+  color: #10b981;
+  font-size: 13px;
   display: flex;
-  justify-content: space-between;
-  margin-top: 8px;
-  gap: 16px;
+  align-items: center;
+  gap: 6px;
+  background: #f0fdf4;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #bbf7d0;
 
-  @media (max-width: 380px) {
-    flex-direction: column;
-    gap: 8px;
+  i {
+    font-size: 12px;
   }
+`;
 
-  a {
+const ResendSection = styled.div`
+  text-align: center;
+  margin-top: 16px;
+  font-size: 14px;
+  color: #64748b;
+
+  .resend-button {
+    background: none;
+    border: none;
     color: #667eea;
-    text-decoration: none;
-    font-size: 13px;
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 14px;
     font-weight: 500;
-    transition: color 0.2s ease;
+    padding: 0;
+    margin-left: 4px;
 
     &:hover {
       color: #5a67d8;
-      text-decoration: underline;
     }
+
+    &:disabled {
+      color: #9ca3af;
+      cursor: not-allowed;
+      text-decoration: none;
+    }
+  }
+
+  .countdown {
+    color: #ef4444;
+    font-weight: 500;
   }
 `;
 
@@ -239,6 +334,29 @@ const SubmitButton = styled.button`
   }
 `;
 
+const BackButton = styled.button`
+  background: none;
+  border: none;
+  color: #667eea;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0;
+  margin-bottom: 16px;
+
+  &:hover {
+    color: #5a67d8;
+    text-decoration: underline;
+  }
+
+  i {
+    font-size: 12px;
+  }
+`;
+
 const Divider = styled.div`
   display: flex;
   align-items: center;
@@ -263,7 +381,6 @@ const Divider = styled.div`
 const GoogleButtonWrapper = styled.div`
   margin-bottom: 24px;
 
-  /* Override default Google button styles to match platform */
   button {
     width: 100% !important;
     border: 1px solid #e2e8f0 !important;
@@ -333,28 +450,124 @@ const QuickLink = styled.div`
 `;
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { sendOTP, verifyOTP } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [step, setStep] = useState(1); // 1: Email, 2: OTP
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [resendTimer, setResendTimer] = useState(0);
+  const [otpSent, setOtpSent] = useState(false);
 
   const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({ resolver: yupResolver(schema) });
+    register: registerEmail,
+    handleSubmit: handleEmailSubmit,
+    formState: { errors: emailErrors },
+  } = useForm({ resolver: yupResolver(emailSchema) });
 
-  const onSubmit = async (data) => {
+  const {
+    register: registerOTP,
+    handleSubmit: handleOTPSubmit,
+    formState: { errors: otpErrors },
+    setValue: setOTPValue,
+    watch: watchOTP,
+  } = useForm({ resolver: yupResolver(otpSchema) });
+
+  // Handle email submission
+  const onEmailSubmit = async (data) => {
     setLoading(true);
     try {
-      await login(data);
-      toast.success("Welcome back!");
-      router.push("/dashboard");
+      await sendOTP(data.email);
+      setEmail(data.email);
+      setStep(2);
+      setOtpSent(true);
+      startResendTimer();
+      toast.success("OTP sent to your email!");
     } catch (error) {
-      toast.error("Login failed. Please check your credentials.");
+      toast.error("Failed to send OTP. Please try again.");
     } finally {
       setLoading(false);
     }
+  };
+
+  // Handle OTP submission
+  const onOTPSubmit = async (data) => {
+    setLoading(true);
+    try {
+      await verifyOTP(email, data.otp);
+      toast.success("Login successful!");
+      router.push("/dashboard");
+    } catch (error) {
+      toast.error("Invalid OTP. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle individual OTP input
+  const handleOTPChange = (index, value) => {
+    if (value.length <= 1 && /^\d*$/.test(value)) {
+      const newOtp = [...otp];
+      newOtp[index] = value;
+      setOtp(newOtp);
+
+      // Update form value
+      setOTPValue("otp", newOtp.join(""));
+
+      // Auto-focus next input
+      if (value && index < 5) {
+        const nextInput = document.getElementById(`otp-${index + 1}`);
+        if (nextInput) nextInput.focus();
+      }
+    }
+  };
+
+  // Handle OTP input keydown
+  const handleOTPKeyDown = (index, e) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      const prevInput = document.getElementById(`otp-${index - 1}`);
+      if (prevInput) prevInput.focus();
+    }
+  };
+
+  // Start resend timer
+  const startResendTimer = () => {
+    setResendTimer(60);
+    const interval = setInterval(() => {
+      setResendTimer((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  // Handle resend OTP
+  const handleResendOTP = async () => {
+    if (resendTimer > 0) return;
+
+    setLoading(true);
+    try {
+      await sendOTP(email);
+      setOtp(["", "", "", "", "", ""]);
+      setOTPValue("otp", "");
+      startResendTimer();
+      toast.success("New OTP sent to your email!");
+    } catch (error) {
+      toast.error("Failed to resend OTP. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle back to email step
+  const handleBackToEmail = () => {
+    setStep(1);
+    setOtp(["", "", "", "", "", ""]);
+    setOtpSent(false);
+    setResendTimer(0);
   };
 
   return (
@@ -368,89 +581,147 @@ export default function LoginPage() {
                 alt="Royal Dusk Tours"
               />
             </div>
-            <h1>Welcome Back</h1>
-            <p>Sign in to your account to continue</p>
+            <h1>
+              {step === 1 ? "Sigin or create account" : "Verify Your Email"}
+            </h1>
+            <p>
+              {step === 1
+                ? "Enter your email to receive a secure code"
+                : `We've sent a 6-digit code to ${email}`}
+            </p>
           </Header>
 
-          <Form onSubmit={handleSubmit(onSubmit)}>
-            <FormGroup>
-              <Label htmlFor="email">Email Address</Label>
-              <InputWrapper>
-                <i className="fal fa-envelope input-icon" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  hasIcon
-                  className={errors.email ? "error" : ""}
-                  {...register("email")}
-                />
-              </InputWrapper>
-              {errors.email && (
-                <ErrorMessage>
-                  <i className="fal fa-exclamation-circle" />
-                  {errors.email.message}
-                </ErrorMessage>
-              )}
-            </FormGroup>
+          <StepIndicator step={step}>
+            <div className={`step ${step >= 1 ? "active" : "inactive"}`}>
+              <i className="fal fa-envelope" />
+            </div>
+            <div className="connector" />
+            <div className={`step ${step >= 2 ? "active" : "inactive"}`}>
+              <i className="fal fa-shield-check" />
+            </div>
+          </StepIndicator>
 
-            <FormGroup>
-              <Label htmlFor="password">Password</Label>
-              <PasswordWrapper>
+          {step === 1 ? (
+            // Email Step
+            <Form onSubmit={handleEmailSubmit(onEmailSubmit)}>
+              <FormGroup>
+                <Label htmlFor="email">Email Address</Label>
                 <InputWrapper>
-                  <i className="fal fa-lock input-icon" />
+                  <i className="fal fa-envelope input-icon" />
                   <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
+                    id="email"
+                    type="email"
+                    placeholder="Enter your email address"
                     hasIcon
-                    className={errors.password ? "error" : ""}
-                    {...register("password")}
+                    className={emailErrors.email ? "error" : ""}
+                    {...registerEmail("email")}
                   />
-                  <button
-                    type="button"
-                    className="password-toggle"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    <i
-                      className={`fal fa-${showPassword ? "eye-slash" : "eye"}`}
-                    />
-                  </button>
                 </InputWrapper>
-              </PasswordWrapper>
-              {errors.password && (
-                <ErrorMessage>
-                  <i className="fal fa-exclamation-circle" />
-                  {errors.password.message}
-                </ErrorMessage>
-              )}
-              <HelpLinks>
-                <Link href="/forgot-password">Forgot Password?</Link>
-                <Link href="/resend-verification">Resend Verification</Link>
-              </HelpLinks>
-            </FormGroup>
+                {emailErrors.email && (
+                  <ErrorMessage>
+                    <i className="fal fa-exclamation-circle" />
+                    {emailErrors.email.message}
+                  </ErrorMessage>
+                )}
+              </FormGroup>
 
-            <SubmitButton type="submit" disabled={loading}>
-              {loading && <div className="spinner" />}
-              {loading ? "Signing in..." : "Sign In"}
-              {!loading && <i className="fal fa-arrow-right" />}
-            </SubmitButton>
-          </Form>
+              <SubmitButton type="submit" disabled={loading}>
+                {loading && <div className="spinner" />}
+                {loading ? "Sending..." : "Continue with email"}
+                {!loading && <i className="fal fa-arrow-right" />}
+              </SubmitButton>
+            </Form>
+          ) : (
+            // OTP Step
+            <>
+              <BackButton onClick={handleBackToEmail}>
+                <i className="fal fa-arrow-left" />
+                Change Email Address
+              </BackButton>
 
-          <Divider>
-            <span>or</span>
-          </Divider>
+              <Form onSubmit={handleOTPSubmit(onOTPSubmit)}>
+                <FormGroup>
+                  <Label>Enter 6-Digit Code</Label>
+                  <OTPInputContainer>
+                    {otp.map((digit, index) => (
+                      <OTPInput
+                        key={index}
+                        id={`otp-${index}`}
+                        type="text"
+                        maxLength="1"
+                        value={digit}
+                        onChange={(e) => handleOTPChange(index, e.target.value)}
+                        onKeyDown={(e) => handleOTPKeyDown(index, e)}
+                        className={`
+                          ${otpErrors.otp ? "error" : ""} 
+                          ${digit ? "filled" : ""}
+                        `}
+                      />
+                    ))}
+                  </OTPInputContainer>
+                  {otpErrors.otp && (
+                    <ErrorMessage>
+                      <i className="fal fa-exclamation-circle" />
+                      {otpErrors.otp.message}
+                    </ErrorMessage>
+                  )}
+                  {otpSent && !otpErrors.otp && (
+                    <SuccessMessage>
+                      <i className="fal fa-check-circle" />
+                      Verification code sent successfully
+                    </SuccessMessage>
+                  )}
+                </FormGroup>
 
-          <GoogleButtonWrapper>
-            <GoogleLoginButton text="Continue with Google" />
-          </GoogleButtonWrapper>
+                <ResendSection>
+                  {resendTimer > 0 ? (
+                    <span>
+                      Didn't receive the code? Resend in{" "}
+                      <span className="countdown">{resendTimer}s</span>
+                    </span>
+                  ) : (
+                    <span>
+                      Didn't receive the code?
+                      <button
+                        type="button"
+                        className="resend-button"
+                        onClick={handleResendOTP}
+                        disabled={loading}
+                      >
+                        Resend Code
+                      </button>
+                    </span>
+                  )}
+                </ResendSection>
+
+                <SubmitButton
+                  type="submit"
+                  disabled={loading || otp.join("").length !== 6}
+                >
+                  {loading && <div className="spinner" />}
+                  {loading ? "Verifying..." : "Verify & Sign In"}
+                  {!loading && <i className="fal fa-check" />}
+                </SubmitButton>
+              </Form>
+            </>
+          )}
+
+          {step === 1 && (
+            <>
+              <Divider>
+                <span>or</span>
+              </Divider>
+
+              <div className="mb-3">
+                <GoogleLoginButton text="Continue with Google" />
+              </div>
+              <div className="mb-3">
+                <AppleLoginButton text="Sign in with Apple" />
+              </div>
+            </>
+          )}
 
           <FooterLinks>
-            <SignupPrompt>
-              Don't have an account?
-              <Link href="/register">Create Account</Link>
-            </SignupPrompt>
-
             <QuickLink>
               <Link href="/booking-lookup">
                 <i className="fal fa-search" />

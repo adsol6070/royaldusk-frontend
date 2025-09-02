@@ -17,7 +17,6 @@ export const bookingApi = {
       API_ENDPOINTS.BOOKING.GET_BY_ID(id)
     );
 
-    console.log("✅ Booking API Response:", response);
     return response.data.data;
   },
 

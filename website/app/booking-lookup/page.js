@@ -644,21 +644,6 @@ export default function BookingLookupPage() {
               Have an account?
               <Link href="/login">Sign In</Link>
             </LoginPrompt>
-
-            <QuickLinks>
-              <QuickLink>
-                <Link href="/register">
-                  <i className="fal fa-user-plus" />
-                  Create Account
-                </Link>
-              </QuickLink>
-              <QuickLink>
-                <Link href="/holidays">
-                  <i className="fal fa-compass" />
-                  Browse Packages
-                </Link>
-              </QuickLink>
-            </QuickLinks>
           </FooterLinks>
         </LookupCard>
       </PlatformContainer>

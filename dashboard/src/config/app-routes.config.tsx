@@ -28,6 +28,10 @@ import {
   VerifyEmail,
   BookingList,
   BookingDetail,
+  TravelCategory,
+  TravelLocation,
+  NewsletterList,
+  ContactFormList,
 } from "@/pages";
 
 export const AUTH_ROUTES = [
@@ -58,6 +62,9 @@ export const PRIVATE_ROUTES = [
   { path: ROUTE_PATHS.INVOICE_LIST, element: <InvoiceList /> },
   { path: ROUTE_PATHS.INVOICE_PREVIEW(), element: <InvoicePreview /> },
 
+  { path: ROUTE_PATHS.TRAVEL_CATEGORY, element: <TravelCategory /> },
+  { path: ROUTE_PATHS.TRAVEL_LOCATION, element: <TravelLocation /> },
+
   { path: ROUTE_PATHS.TOUR_LIST, element: <TourList /> },
   { path: ROUTE_PATHS.TOUR_DETAILS(), element: <TourDetails /> },
   { path: ROUTE_PATHS.CREATE_TOUR, element: <TourForm /> },
@@ -72,4 +79,7 @@ export const PRIVATE_ROUTES = [
 
   { path: ROUTE_PATHS.BOOKING_LIST, element: <BookingList /> },
   { path: ROUTE_PATHS.BOOKING_DETAILS(), element: <BookingDetail /> },
+
+  { path: ROUTE_PATHS.NEWSLETTER_LIST, element: <NewsletterList /> },
+  { path: ROUTE_PATHS.CONTACT_FORM_LIST, element: <ContactFormList /> },
 ];

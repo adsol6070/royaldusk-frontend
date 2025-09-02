@@ -17,6 +17,12 @@ export const BlogCategories = lazy(() => import("./blogs/BlogCategories"));
 export const InvoicePreview = lazy(() => import("./invoice/InvoicePreview"));
 export const InvoiceList = lazy(() => import("./invoice/InvoiceList"));
 
+// Travel Meta Management
+export const TravelLocation = lazy(
+  () => import("./tour-package/packageMeta/PackageLocation")
+);
+export const TravelCategory = lazy(() => import("./tour-package/packageMeta/PackageCategories"));
+
 // Tour Management Pages
 export const TourList = lazy(() => import("./tours/TourList"));
 export const TourDetails = lazy(() => import("./tours/TourDetails"));
@@ -45,5 +51,10 @@ export const PackageMeta = lazy(
 );
 export const PackageEnquiry = lazy(() => import("./tour-package/EnquiryList"));
 
+// Booking Management Pages
 export const BookingList = lazy(() => import("./bookings/BookingList"));
 export const BookingDetail = lazy(() => import("./bookings/BookingDetail"));
+
+// Other Management Pages
+export const NewsletterList = lazy(() => import("./newsletter/NewsletterList"));
+export const ContactFormList = lazy(() => import("./contactForm/ContactFormList"));

@@ -32,6 +32,7 @@ const PackageLocationList = () => {
   const createLocation = useCreatePackageLocation();
   const updateLocation = useUpdatePackageLocation();
   const deleteLocation = useDeletePackageLocation();
+  console.log("location data", locations)
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Slider from "react-slick";
 import Link from "next/link";
-import { sliderProps } from "@/utility/sliderprops";
 import { packageApi } from "@/common/api";
 import SkeletonLoader from "@/components/SkeletonLoader";
 import styled from "styled-components";
@@ -20,8 +19,31 @@ const ImageWrapper = styled.div`
 const Image = styled.img`
   width: 100%;
   height: 100%;
+  object-fit: cover;
   border-radius: 50%;
 `;
+
+const sliderBaseProps = {
+  dots: false,
+  arrows: false,
+  infinite: false,
+  speed: 500,
+  slidesToScroll: 1,
+  responsive: [
+    {
+      breakpoint: 1024,
+      settings: {
+        slidesToShow: 2,
+      },
+    },
+    {
+      breakpoint: 768,
+      settings: {
+        slidesToShow: 1,
+      },
+    },
+  ],
+};
 
 const Destination = () => {
   const [locations, setLocations] = useState([]);
@@ -57,8 +79,13 @@ const Destination = () => {
     return <div className="text-center fs-3">No destinations available</div>;
   }
 
+  const sliderProps = {
+    ...sliderBaseProps,
+    slidesToShow: Math.min(locations.length, 3),
+  };
+
   return (
-    <Slider {...sliderProps.destination} className="destination-active text-center">
+    <Slider {...sliderProps} className="destination-active">
       {locations.map((location, index) => (
         <div
           key={location.id}
@@ -71,9 +98,11 @@ const Destination = () => {
           <ImageWrapper>
             <Image src={location.imageUrl} alt={location.name} />
           </ImageWrapper>
-          <div className="content mt-3">
+          <div className="content mt-3 text-center">
             <h6>
-              <Link href={`/holidays-location/${location.id}`}>{capitalizeFirstLetter(location.name)}</Link>
+              <Link href={`/holidays-location/${location.id}`}>
+                {capitalizeFirstLetter(location.name)}
+              </Link>
             </h6>
           </div>
         </div>

@@ -7,17 +7,19 @@ import HotDeals from "@/components/slider/HotDeals";
 import Subscribe from "@/components/Subscribe";
 import ReveloLayout from "@/layout/ReveloLayout";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { packageApi } from "@/common/api";
+import { useEffect, useState, useCallback } from "react";
+import { packageApi, tourApi } from "@/common/api";
 import SkeletonLoader from "@/components/SkeletonLoader";
-import { useCart } from "@/common/context/CartContext";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import styled, { keyframes } from "styled-components";
+import capitalizeFirstLetter from "@/utility/capitalizeFirstLetter";
+import { useCurrency } from "@/common/context/CurrencyContext";
+import { CardWishlistButton } from "@/components/wishlistButton";
 
-const addToCartAnimation = keyframes`
+const bookNowAnimation = keyframes`
   0% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+  50% { transform: scale(1.05); }
   100% { transform: scale(1); }
 `;
 
@@ -188,6 +190,8 @@ const SearchWidget = styled.div`
       justify-content: center;
       gap: 8px;
       cursor: pointer;
+      border: none;
+      background: none;
 
       i {
         font-size: 16px;
@@ -226,7 +230,7 @@ const SearchWidget = styled.div`
   }
 
   .search-content {
-    .packages-search, .tours-search {
+    .search-section {
       .search-grid {
         display: grid;
         grid-template-columns: 1fr auto;
@@ -305,6 +309,83 @@ const SearchWidget = styled.div`
 
       p {
         margin: 0;
+      }
+    }
+
+    .search-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      max-height: 300px;
+      overflow-y: auto;
+
+      .search-result-item {
+        padding: 12px 16px;
+        border-bottom: 1px solid #f3f4f6;
+        cursor: pointer;
+        transition: background 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        &:hover {
+          background: #f9fafb;
+        }
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        .result-image {
+          width: 40px;
+          height: 40px;
+          border-radius: 6px;
+          object-fit: cover;
+          flex-shrink: 0;
+        }
+
+        .result-content {
+          flex: 1;
+
+          .result-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1e293b;
+            margin-bottom: 2px;
+          }
+
+          .result-meta {
+            font-size: 12px;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            .location {
+              display: flex;
+              align-items: center;
+              gap: 2px;
+            }
+
+            .price {
+              font-weight: 500;
+              color: #f8853d;
+            }
+          }
+        }
+      }
+
+      .no-results {
+        padding: 20px;
+        text-align: center;
+        color: #64748b;
+        font-size: 14px;
       }
     }
   }
@@ -429,10 +510,10 @@ const PlatformServices = styled.section`
   }
 `;
 
-const FeaturedPackages = styled.section`
+const FeaturedSection = styled.section`
   padding: 40px 0;
 
-  .packages-header {
+  .section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -487,6 +568,7 @@ const FeaturedPackages = styled.section`
   }
 `;
 
+// Package Card Component
 const PackageCard = styled.div`
   background: white;
   border-radius: 16px;
@@ -521,13 +603,13 @@ const PackageCard = styled.div`
       position: absolute;
       top: 12px;
       right: 12px;
-      background: rgba(255, 255, 255, 0.95);
+      background: rgba(5, 150, 105, 0.95);
       backdrop-filter: blur(10px);
       padding: 6px 12px;
       border-radius: 20px;
       font-size: 12px;
       font-weight: 600;
-      color: #059669;
+      color: white;
       border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
@@ -554,12 +636,29 @@ const PackageCard = styled.div`
         margin-right: 4px;
       }
     }
+
+    .tag-badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(248, 133, 61, 0.9);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      color: white;
+    }
+    .wishlist-area {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+    }
   }
 
   .content {
     padding: 20px;
 
-    .package-meta {
+    .item-meta {
       display: flex;
       justify-content: space-between;
       align-items: start;
@@ -569,11 +668,225 @@ const PackageCard = styled.div`
         font-size: 12px;
         color: #64748b;
         background: #fef7f0;
-        padding: 4px 8px;
+        padding: 6px 12px;
         border-radius: 12px;
         display: flex;
         align-items: center;
         gap: 4px;
+        font-weight: 500;
+
+        i {
+          font-size: 10px;
+          color: #f8853d;
+        }
+      }
+
+      .rating {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        color: #f8853d;
+
+        i {
+          font-size: 14px;
+        }
+
+        span {
+          color: #64748b;
+          margin-left: 4px;
+        }
+      }
+    }
+
+    h6 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1e293b;
+      margin: 0 0 12px 0;
+      line-height: 1.4;
+
+      a {
+        color: inherit;
+        text-decoration: none;
+
+        &:hover {
+          color: #f8853d;
+        }
+      }
+    }
+
+    .category-badge {
+      font-size: 12px;
+      color: #f8853d;
+      background: #fef7f0;
+      padding: 4px 8px;
+      border-radius: 12px;
+      display: inline-block;
+      margin-bottom: 12px;
+      font-weight: 500;
+      border: 1px solid #fed7aa;
+
+      i {
+        margin-right: 4px;
+      }
+    }
+
+    .package-features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 16px;
+
+      .feature {
+        font-size: 11px;
+        background: #f1f5f9;
+        color: #475569;
+        padding: 4px 8px;
+        border-radius: 8px;
+        font-weight: 500;
+
+        i {
+          margin-right: 3px;
+          color: #059669;
+        }
+      }
+    }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 16px;
+
+      .price {
+        font-weight: 700;
+        color: #1e293b;
+        font-size: 16px;
+
+        .currency {
+          font-size: 14px;
+          color: #f8853d;
+          font-weight: 600;
+        }
+
+        small {
+          color: #64748b;
+          font-weight: 400;
+          font-size: 12px;
+        }
+      }
+    }
+  }
+`;
+
+// Tour Card Component
+const TourCard = styled.div`
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+  animation: ${fadeInUp} 0.6s ease;
+
+  &:hover {
+    border-color: #f8853d;
+    box-shadow: 0 8px 32px rgba(248, 133, 61, 0.12);
+    transform: translateY(-4px);
+  }
+
+  .image {
+    height: 200px;
+    overflow: hidden;
+    position: relative;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+
+    &:hover img {
+      transform: scale(1.05);
+    }
+
+    .status-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(5, 150, 105, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .location-badge {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      backdrop-filter: blur(10px);
+      cursor: pointer;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: rgba(248, 133, 61, 0.9);
+        transform: scale(1.05);
+      }
+
+      i {
+        margin-right: 4px;
+      }
+    }
+
+    .tag-badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(99, 102, 241, 0.9);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      color: white;
+    }
+    .wishlist-area {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+    }
+  }
+
+  .content {
+    padding: 20px;
+
+    .item-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 12px;
+
+      .tour-type {
+        font-size: 12px;
+        color: #6366f1;
+        background: #f0f9ff;
+        padding: 6px 12px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-weight: 500;
+        border: 1px solid #e0e7ff;
 
         i {
           font-size: 10px;
@@ -615,6 +928,33 @@ const PackageCard = styled.div`
       }
     }
 
+    .category-badge {
+      font-size: 12px;
+      color: #6366f1;
+      background: #f0f9ff;
+      padding: 4px 8px;
+      border-radius: 12px;
+      display: inline-block;
+      margin-bottom: 12px;
+      font-weight: 500;
+      border: 1px solid #e0e7ff;
+
+      i {
+        margin-right: 4px;
+      }
+    }
+
+    .tour-highlights {
+      color: #64748b;
+      font-size: 13px;
+      line-height: 1.5;
+      margin-bottom: 16px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
     .footer {
       display: flex;
       justify-content: space-between;
@@ -625,6 +965,12 @@ const PackageCard = styled.div`
         font-weight: 700;
         color: #1e293b;
         font-size: 16px;
+
+        .currency {
+          font-size: 14px;
+          color: #f8853d;
+          font-weight: 600;
+        }
 
         small {
           color: #64748b;
@@ -648,26 +994,24 @@ const ActionButton = styled.button`
   cursor: pointer;
   font-size: 12px;
   transition: all 0.3s ease;
-
-  &.add-to-cart {
-    background-color: #f8853d;
+  &.book-now {
+    background: linear-gradient(135deg, #f8853d 0%, #e67428 100%);
     color: white;
+
     &:hover {
-      background-color: #e67428;
+      background: linear-gradient(135deg, #e67428 0%, #d65e1f 100%);
       transform: translateY(-1px);
+      box-shadow: 0 8px 25px rgba(248, 133, 61, 0.3);
     }
+
     &.animate {
-      animation: ${addToCartAnimation} 0.5s ease;
+      animation: ${bookNowAnimation} 0.5s ease;
     }
   }
 
-  &.view-cart {
-    background-color: #059669;
-    color: white;
-    &:hover {
-      background-color: #047857;
-      transform: translateY(-1px);
-    }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 
   &.inquire-now {
@@ -690,9 +1034,28 @@ const PopularDestinations = styled.section`
 
   .destinations-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 20px;
     margin-top: 32px;
+
+    /* Ensure maximum 4 columns and proper centering */
+    @media (min-width: 1200px) {
+      grid-template-columns: repeat(4, 1fr);
+      max-width: 1200px;
+      margin: 32px auto 0;
+    }
+
+    @media (max-width: 1199px) and (min-width: 900px) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    @media (max-width: 899px) and (min-width: 600px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (max-width: 599px) {
+      grid-template-columns: 1fr;
+    }
   }
 
   .destination-card {
@@ -771,228 +1134,368 @@ const PopularDestinations = styled.section`
   }
 `;
 
-const CategoryCard = styled(Link)`
-  height: 120px;
-  padding: 24px;
-  text-decoration: none !important;
-  background: #fef7f0;
-  border-radius: 16px;
-  border: 1px solid #fed7aa;
-  transition: all 0.3s ease;
-  display: flex !important;
-  align-items: center;
-  gap: 16px;
-  color: inherit;
-  position: relative;
-  overflow: hidden;
+// Helper function to safely handle location display
+const getLocationDisplay = (location) => {
+  if (!location) return "";
 
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, #f8853d, #e67428);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    z-index: 1;
+  if (typeof location === "string") {
+    return capitalizeFirstLetter(location);
   }
 
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 32px rgba(248, 133, 61, 0.25);
-    text-decoration: none !important;
-    color: white !important;
-    
-    &::before {
-      opacity: 1;
-    }
-
-    .category-icon {
-      background: white !important;
-      color: #f8853d !important;
-    }
-
-    .category-content h6 {
-      color: white !important;
-    }
-
-    .category-content p {
-      color: rgba(255, 255, 255, 0.9) !important;
-    }
+  if (typeof location === "object" && location.name) {
+    return capitalizeFirstLetter(location.name);
   }
 
-  .category-icon {
-    width: 60px;
-    height: 60px;
-    background: #f8853d;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 24px;
-    position: relative;
-    z-index: 2;
-    transition: all 0.3s ease;
-  }
-
-  .category-content {
-    position: relative;
-    z-index: 2;
-
-    h6 {
-      font-size: 16px;
-      margin-bottom: 8px;
-      color: #1e293b;
-      font-weight: 600;
-      transition: color 0.3s ease;
-    }
-
-    p {
-      font-size: 14px;
-      margin: 0;
-      color: #64748b;
-      transition: color 0.3s ease;
-    }
-  }
-`;
+  return String(location);
+};
 
 const HomePage = () => {
-  const [featuredPackages, setFeaturedPackages] = useState([]);
-  const [customTours, setCustomTours] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [toursLoading, setToursLoading] = useState(true);
+  // Import currency context
+  const { selectedCurrency, convertPrice, formatPrice, getCurrencyInfo } =
+    useCurrency();
+
+  // Separate state for packages and tours
+  const [packagesData, setPackagesData] = useState({
+    items: [],
+    locations: [],
+    categories: [],
+    loading: false,
+    loaded: false,
+  });
+
+  const [toursData, setToursData] = useState({
+    items: [],
+    locations: [],
+    categories: [],
+    loading: false,
+    loaded: false,
+  });
+
   const [animatingId, setAnimatingId] = useState(null);
   const [activeTab, setActiveTab] = useState("packages");
   const [searchQuery, setSearchQuery] = useState("");
-  const { addToCart, cartItems } = useCart();
+  const [searchResults, setSearchResults] = useState([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [activeCategory, setActiveCategory] = useState("all");
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchFeatured = async () => {
-      try {
-        const response = await packageApi.getAllPackages();
-        const availablePackages = response.data.filter(
-          (pkg) => pkg.availability !== "ComingSoon"
-        );
-        setFeaturedPackages(availablePackages.slice(0, 8));
-      } catch (err) {
-        console.error("Failed to load featured packages", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Function to fetch packages data
+  const fetchPackagesData = useCallback(async () => {
+    if (packagesData.loaded && !packagesData.loading) return;
 
-    const fetchCustomTours = async () => {
-      try {
-        // Mock data for custom tours - replace with actual API call
-        const mockTours = [
-          {
-            id: 1,
-            name: "Himalayan Adventure Trek",
-            imageUrl: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
-            location: { name: "Himalayas" },
-            startingPrice: "25000",
-            currency: "₹",
-            groupSize: "4-8 people",
-            description: "Customizable trekking adventure in the majestic Himalayas"
-          },
-          {
-            id: 2,
-            name: "Kerala Backwater Experience",
-            imageUrl: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=400&h=300&fit=crop",
-            location: { name: "Kerala" },
-            startingPrice: "15000",
-            currency: "₹",
-            groupSize: "2-6 people",
-            description: "Personalized backwater cruise with cultural immersion"
-          },
-          {
-            id: 3,
-            name: "Rajasthan Royal Heritage",
-            imageUrl: "https://images.unsplash.com/photo-1477587458883-47145ed94245?w=400&h=300&fit=crop",
-            location: { name: "Rajasthan" },
-            startingPrice: "35000",
-            currency: "₹",
-            groupSize: "2-10 people",
-            description: "Luxury heritage tour with palace stays and cultural experiences"
-          },
-          {
-            id: 4,
-            name: "Goa Beach & Adventure",
-            imageUrl: "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=400&h=300&fit=crop",
-            location: { name: "Goa" },
-            startingPrice: "12000",
-            currency: "₹",
-            groupSize: "2-8 people",
-            description: "Custom beach vacation with water sports and nightlife"
-          },
-          {
-            id: 5,
-            name: "Wildlife Safari Expedition",
-            imageUrl: "https://images.unsplash.com/photo-1549366021-9f761d040a94?w=400&h=300&fit=crop",
-            location: { name: "Madhya Pradesh" },
-            startingPrice: "20000",
-            currency: "₹",
-            groupSize: "3-6 people",
-            description: "Tailored wildlife photography and safari experience"
-          },
-          {
-            id: 6,
-            name: "Spiritual Journey",
-            imageUrl: "https://images.unsplash.com/photo-1545558014-8692077e9b5c?w=400&h=300&fit=crop",
-            location: { name: "Varanasi" },
-            startingPrice: "8000",
-            currency: "₹",
-            groupSize: "1-4 people",
-            description: "Personalized spiritual and cultural journey"
+    setPackagesData((prev) => ({ ...prev, loading: true }));
+
+    try {
+      const response = await packageApi.getAllPackages();
+      const availablePackages = response.data.filter(
+        (pkg) => pkg.availability !== "ComingSoon"
+      );
+
+      // Extract unique locations from packages
+      const packageLocations = availablePackages
+        .filter((pkg) => pkg.location)
+        .map((pkg) => pkg.location)
+        .reduce((acc, location) => {
+          const existingLocation = acc.find(
+            (loc) =>
+              (loc.id && location.id && loc.id === location.id) ||
+              (loc.name &&
+                location.name &&
+                loc.name.toLowerCase() === location.name.toLowerCase())
+          );
+          if (!existingLocation) {
+            acc.push(location);
           }
-        ];
-        setCustomTours(mockTours);
-      } catch (err) {
-        console.error("Failed to load custom tours", err);
-      } finally {
-        setToursLoading(false);
+          return acc;
+        }, []);
+
+      // Extract unique categories from packages
+      const packageCategories = availablePackages
+        .filter((pkg) => pkg.category)
+        .map((pkg) => pkg.category)
+        .reduce((acc, category) => {
+          const existingCategory = acc.find(
+            (cat) =>
+              cat.id === category.id ||
+              cat.name.toLowerCase() === category.name.toLowerCase()
+          );
+          if (!existingCategory) {
+            acc.push(category);
+          }
+          return acc;
+        }, []);
+
+      setPackagesData({
+        items: availablePackages,
+        locations: packageLocations,
+        categories: packageCategories,
+        loading: false,
+        loaded: true,
+      });
+
+      console.log("Packages loaded:", availablePackages.length);
+      console.log("Package locations:", packageLocations.length);
+      console.log("Package categories:", packageCategories.length);
+    } catch (error) {
+      console.error("Failed to load packages", error);
+      setPackagesData((prev) => ({ ...prev, loading: false, loaded: true }));
+    }
+  }, [packagesData.loaded, packagesData.loading]);
+
+  // Function to fetch tours data
+  const fetchToursData = useCallback(async () => {
+    if (toursData.loaded && !toursData.loading) return;
+
+    setToursData((prev) => ({ ...prev, loading: true }));
+
+    try {
+      const response = await tourApi.getAllTours();
+      const availableTours = response.data.filter(
+        (tour) => tour.tourAvailability !== "ComingSoon"
+      );
+
+      // Extract unique locations from tours
+      const tourLocations = availableTours
+        .filter((tour) => tour.location)
+        .map((tour) => tour.location)
+        .reduce((acc, location) => {
+          const existingLocation = acc.find(
+            (loc) =>
+              (loc.id && location.id && loc.id === location.id) ||
+              (loc.name &&
+                location.name &&
+                loc.name.toLowerCase() === location.name.toLowerCase())
+          );
+          if (!existingLocation) {
+            acc.push(location);
+          }
+          return acc;
+        }, []);
+
+      // Extract unique categories from tours
+      const tourCategories = availableTours
+        .filter((tour) => tour.category)
+        .map((tour) => tour.category)
+        .reduce((acc, category) => {
+          const existingCategory = acc.find(
+            (cat) =>
+              cat.id === category.id ||
+              cat.name.toLowerCase() === category.name.toLowerCase()
+          );
+          if (!existingCategory) {
+            acc.push(category);
+          }
+          return acc;
+        }, []);
+
+      setToursData({
+        items: availableTours,
+        locations: tourLocations,
+        categories: tourCategories,
+        loading: false,
+        loaded: true,
+      });
+
+      console.log("Tours loaded:", availableTours.length);
+      console.log("Tour locations:", tourLocations.length);
+      console.log("Tour categories:", tourCategories.length);
+    } catch (error) {
+      console.error("Failed to load tours", error);
+      setToursData((prev) => ({ ...prev, loading: false, loaded: true }));
+    }
+  }, [toursData.loaded, toursData.loading]);
+
+  // Load data based on active tab
+  useEffect(() => {
+    if (activeTab === "packages") {
+      fetchPackagesData();
+    } else if (activeTab === "tours") {
+      fetchToursData();
+    }
+  }, [activeTab, fetchPackagesData, fetchToursData]);
+
+  // Initial load to get counts for services section
+  useEffect(() => {
+    // Load both packages and tours data initially to show proper counts
+    const loadInitialData = async () => {
+      try {
+        // Load packages data for count
+        if (!packagesData.loaded && !packagesData.loading) {
+          fetchPackagesData();
+        }
+        // Load tours data for count
+        if (!toursData.loaded && !toursData.loading) {
+          fetchToursData();
+        }
+      } catch (error) {
+        console.error("Failed to load initial data", error);
       }
     };
 
-    fetchFeatured();
-    fetchCustomTours();
+    loadInitialData();
+  }, []); // Run only once on mount
+
+  // Clear search results when tab changes
+  useEffect(() => {
+    setSearchResults([]);
+    setShowSearchResults(false);
+    setSearchQuery("");
+    setActiveCategory("all");
+  }, [activeTab]);
+
+  // Add click outside handler to close search results
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest(".search-field")) {
+        setShowSearchResults(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
-  const handleAddToCart = (packageItem) => {
-    setAnimatingId(packageItem.id);
-    addToCart(packageItem);
-    toast.success("Package added to cart!");
+  const handleBookNow = (item) => {
+    setAnimatingId(item.id);
+
+    // Navigate to booking page with item details
+    const itemType = activeTab === "packages" ? "package" : "tour";
+    const bookingUrl = `/booking?id=${item.id}&type=${itemType}`;
+    router.push(bookingUrl);
+
+    // Show success message
+    toast.success("Redirecting to booking page...");
+
+    // Clear animation after delay
     setTimeout(() => setAnimatingId(null), 500);
   };
 
   const handleLocationClick = (location) => {
     if (location?.name) {
-      const targetPage = activeTab === "tours" ? "/custom-tours" : "/holidays";
-      router.push(`${targetPage}?location=${encodeURIComponent(location.name)}`);
+      const route = activeTab === "packages" ? "/holidays" : "/tours";
+      router.push(`${route}?location=${encodeURIComponent(location.name)}`);
     }
   };
 
   const handleSearch = () => {
+    const route = activeTab === "packages" ? "/holidays" : "/tours";
     if (searchQuery.trim()) {
-      const targetPage = activeTab === "tours" ? "/custom-tours" : "/holidays";
-      router.push(`${targetPage}?search=${encodeURIComponent(searchQuery)}`);
+      router.push(`${route}?search=${encodeURIComponent(searchQuery)}`);
     } else {
-      const targetPage = activeTab === "tours" ? "/custom-tours" : "/holidays";
-      router.push(targetPage);
+      router.push(route);
+    }
+    setShowSearchResults(false);
+  };
+
+  // Dynamic search function
+  const handleSearchInput = (value) => {
+    setSearchQuery(value);
+
+    if (value.trim().length > 2) {
+      const currentData = getCurrentData();
+
+      const filtered = currentData.filter((item) => {
+        const searchTerm = value.toLowerCase();
+        const matchesName = item.name?.toLowerCase().includes(searchTerm);
+        const matchesLocation =
+          (typeof item.location === "string" &&
+            item.location.toLowerCase().includes(searchTerm)) ||
+          (typeof item.location === "object" &&
+            item.location?.name?.toLowerCase().includes(searchTerm));
+        const matchesCategory = item.category?.name
+          ?.toLowerCase()
+          .includes(searchTerm);
+        const matchesDescription = item.description
+          ?.toLowerCase()
+          .includes(searchTerm);
+
+        return (
+          matchesName ||
+          matchesLocation ||
+          matchesCategory ||
+          matchesDescription
+        );
+      });
+
+      setSearchResults(filtered.slice(0, 5)); // Show max 5 results
+      setShowSearchResults(true);
+    } else {
+      setSearchResults([]);
+      setShowSearchResults(false);
     }
   };
 
-  const handleInquireNow = (tour) => {
-    router.push(`/custom-tours/inquiry/${tour.id}`);
+  const handleCategoryFilter = (categoryName) => {
+    setActiveCategory(categoryName);
   };
 
-  const isInCart = (id) => cartItems.some((item) => item.id === id);
-  const handleViewCart = () => router.push("/cart");
+  // Get current data based on active tab
+  const getCurrentData = () => {
+    const currentTabData = activeTab === "packages" ? packagesData : toursData;
+    let data = currentTabData.items;
 
+    if (activeCategory !== "all") {
+      data = data.filter(
+        (item) =>
+          item.category?.name?.toLowerCase() === activeCategory.toLowerCase()
+      );
+    }
+
+    return data.slice(0, 8); // Show max 8 items on homepage
+  };
+
+  const getCurrentLocations = () => {
+    return activeTab === "packages"
+      ? packagesData.locations
+      : toursData.locations;
+  };
+
+  const getCurrentCategories = () => {
+    return activeTab === "packages"
+      ? packagesData.categories
+      : toursData.categories;
+  };
+
+  const isCurrentTabLoading = () => {
+    return activeTab === "packages" ? packagesData.loading : toursData.loading;
+  };
+
+  const getCurrentRoute = () => {
+    return activeTab === "packages" ? "/holidays" : "/tours";
+  };
+
+  const getCurrentDetailRoute = (item) => {
+    return activeTab === "packages"
+      ? `/holiday-details/${item.id}`
+      : `/tours-details/${item.id}`;
+  };
+
+  const getCurrentStats = () => {
+    const currentTabData = activeTab === "packages" ? packagesData : toursData;
+    return {
+      items: currentTabData.items.length,
+      locations: currentTabData.locations.length,
+      categories: currentTabData.categories.length,
+    };
+  };
+
+  // Currency conversion helper for prices
+  const convertItemPrice = (item) => {
+    const basePrice = parseFloat(item.price);
+    const baseCurrency =
+      activeTab === "packages" ? item.currency || "AED" : "AED";
+    return convertPrice(basePrice, baseCurrency);
+  };
+
+  // Format price with current currency
+  const formatItemPrice = (item) => {
+    const convertedPrice = convertItemPrice(item);
+    return formatPrice(convertedPrice);
+  };
+
+  // Dynamic services array that updates with data
   const services = [
     {
       id: "packages",
@@ -1000,7 +1503,22 @@ const HomePage = () => {
       title: "Travel Packages",
       description: "Complete tour packages with accommodation, meals, and guided experiences",
       available: true,
-      stats: { number: "120+", label: "Packages" },
+      stats: {
+        number:
+          packagesData.items.length > 0 ? `${packagesData.items.length}+` : 0,
+        label: "Packages",
+      },
+    },
+    {
+      id: "tours",
+      icon: "fal fa-map-marked",
+      title: "Tours",
+      description: "Exciting tours and activities for memorable experiences",
+      available: true,
+      stats: {
+        number: toursData.items.length > 0 ? `${toursData.items.length}+` : 0,
+        label: "Tours",
+      },
     },
     {
       id: "tours",
@@ -1028,28 +1546,236 @@ const HomePage = () => {
     },
   ];
 
-  const popularDestinations = [
-    {
-      name: "Manali",
-      packages: activeTab === "tours" ? "Custom tours available" : "15 packages",
-      image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
-    },
-    {
-      name: "Goa",
-      packages: activeTab === "tours" ? "Custom tours available" : "12 packages",
-      image: "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=400&h=300&fit=crop",
-    },
-    {
-      name: "Kerala",
-      packages: activeTab === "tours" ? "Custom tours available" : "18 packages",
-      image: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=400&h=300&fit=crop",
-    },
-    {
-      name: "Rajasthan",
-      packages: activeTab === "tours" ? "Custom tours available" : "22 packages",
-      image: "https://images.unsplash.com/photo-1477587458883-47145ed94245?w=400&h=300&fit=crop",
-    },
-  ];
+  // Dynamic popular destinations based on current tab data
+  const getPopularDestinations = () => {
+    const currentLocations = getCurrentLocations();
+    const currentData =
+      activeTab === "packages" ? packagesData.items : toursData.items;
+
+    return currentLocations
+      .slice(0, 4)
+      .map((location) => {
+        // Count items for this location
+        const itemCount = currentData.filter((item) => {
+          if (!item.location) return false;
+
+          if (typeof item.location === "string") {
+            return item.location.toLowerCase() === location.name?.toLowerCase();
+          }
+
+          if (typeof item.location === "object" && item.location.name) {
+            return (
+              item.location.name.toLowerCase() === location.name?.toLowerCase()
+            );
+          }
+
+          return false;
+        }).length;
+
+        const itemType = activeTab === "packages" ? "package" : "tour";
+        const itemText =
+          itemCount === 1 ? `1 ${itemType}` : `${itemCount} ${itemType}s`;
+
+        return {
+          name: capitalizeFirstLetter(location.name || ""),
+          packages: itemCount === 0 ? `No ${itemType}s` : itemText,
+          image:
+            location.imageUrl ||
+            "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
+          location: location,
+          count: itemCount,
+        };
+      })
+      .filter((dest) => dest.count > 0); // Only show destinations with actual items
+  };
+
+  // Render Package Card with currency conversion
+  const renderPackageCard = (pkg) => (
+    <PackageCard key={pkg.id}>
+      <div className="image">
+        <Link href={getCurrentDetailRoute(pkg)}>
+          <img
+            src={pkg.imageUrl || "/assets/images/destinations/default-tour.jpg"}
+            alt={pkg.name}
+            onError={(e) => {
+              e.target.src = "/assets/images/destinations/default-tour.jpg";
+            }}
+          />
+        </Link>
+
+        <div className="status-badge">
+          {pkg.availability === "Available" ? "Available" : pkg.availability}
+        </div>
+
+        {pkg.location?.name && (
+          <div
+            className="location-badge"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleLocationClick(pkg.location);
+            }}
+          >
+            <i className="fal fa-map-marker-alt" />
+            {capitalizeFirstLetter(pkg.location.name)}
+          </div>
+        )}
+
+        {pkg.tag && <div className="tag-badge">{pkg.tag}</div>}
+        <div className="wishlist-area">
+          <CardWishlistButton
+            itemId={pkg.id}
+            itemType="Package"
+            size="small"
+            style={{
+              position: "absolute",
+              top: "16px",
+              right: "16px",
+              zIndex: 10,
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="content">
+        <div className="item-meta">
+          <div className="duration">
+            <i className="fal fa-calendar-days" />
+            {pkg.duration ? `${pkg.duration} Days` : "Multi-Day"}
+          </div>
+          <div className="rating">
+            <i className="fas fa-star" />
+            <i className="fas fa-star" />
+            <i className="fas fa-star" />
+            <i className="fas fa-star" />
+            <i className="far fa-star" />
+            <span>(4.2)</span>
+          </div>
+        </div>
+
+        <h6>
+          <Link href={getCurrentDetailRoute(pkg)}>{pkg.name}</Link>
+        </h6>
+
+        {pkg.category?.name && (
+          <div className="category-badge">
+            <i className="fal fa-tag" />
+            {capitalizeFirstLetter(pkg.category.name)}
+          </div>
+        )}
+
+        <div className="footer">
+          <span className="price">
+            <span className="currency">{selectedCurrency}</span>{" "}
+            {formatItemPrice(pkg)}
+            <small>/person</small>
+          </span>
+
+          <ActionButton
+            className={`book-now ${animatingId === pkg.id ? "animate" : ""}`}
+            onClick={() => handleBookNow(pkg)}
+            disabled={pkg.availability !== "Available"}
+          >
+            <i className="fal fa-calendar-check" />
+            Book Now
+          </ActionButton>
+        </div>
+      </div>
+    </PackageCard>
+  );
+
+  // Render Tour Card with currency conversion
+  const renderTourCard = (tour) => (
+    <TourCard key={tour.id}>
+      <div className="image">
+        <Link href={getCurrentDetailRoute(tour)}>
+          <img
+            src={
+              tour.imageUrl || "/assets/images/destinations/default-tour.jpg"
+            }
+            alt={tour.name}
+            onError={(e) => {
+              e.target.src = "/assets/images/destinations/default-tour.jpg";
+            }}
+          />
+        </Link>
+
+        <div className="status-badge">
+          {tour.tourAvailability === "Available"
+            ? "Available"
+            : tour.tourAvailability}
+        </div>
+
+        {tour.location?.name && (
+          <div
+            className="location-badge"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleLocationClick(tour.location);
+            }}
+          >
+            <i className="fal fa-map-marker-alt" />
+            {capitalizeFirstLetter(tour.location.name)}
+          </div>
+        )}
+
+        {tour.tag && <div className="tag-badge">{tour.tag}</div>}
+        <div className="wishlist-area">
+          <CardWishlistButton
+            itemId={tour.id}
+            itemType="Tour"
+            size="small"
+            style={{
+              position: "absolute",
+              top: "16px",
+              right: "16px",
+              zIndex: 10,
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="content">
+        <div className="item-meta">
+          <div className="rating">
+            <i className="fas fa-star" />
+            <i className="fas fa-star" />
+            <i className="fas fa-star" />
+            <i className="fas fa-star" />
+            <i className="far fa-star" />
+            <span>(4.5)</span>
+          </div>
+        </div>
+
+        <h6>
+          <Link href={getCurrentDetailRoute(tour)}>{tour.name}</Link>
+        </h6>
+
+        {tour.category?.name && (
+          <div className="category-badge">
+            <i className="fal fa-tag" />
+            {capitalizeFirstLetter(tour.category.name)}
+          </div>
+        )}
+
+        <div className="footer">
+          <span className="price">
+            <span className="currency">{selectedCurrency}</span>{" "}
+            {formatItemPrice(tour)}
+            <small>/person</small>
+          </span>
+
+          <ActionButton
+            className={`book-now ${animatingId === tour.id ? "animate" : ""}`}
+            onClick={() => handleBookNow(tour)}
+            disabled={tour.tourAvailability !== "Available"}
+          >
+            <i className="fal fa-calendar-check" />
+            Book Now
+          </ActionButton>
+        </div>
+      </div>
+    </TourCard>
+  );
 
   // Dynamic content based on active tab
   const getDynamicContent = () => {
@@ -1222,7 +1948,8 @@ const HomePage = () => {
             <div className="hero-content">
               <h1>Royal Dusk Tours</h1>
               <p className="platform-description">
-                {dynamicContent.heroDescription}
+                From curated travel packages to exciting tours and activities -
+                we're building the ultimate travel experience platform.
               </p>
             </div>
           </div>
@@ -1238,67 +1965,144 @@ const HomePage = () => {
 
             <div className="service-tabs">
               {services.map((service) => (
-                <div
+                <button
                   key={service.id}
-                  className={`tab ${activeTab === service.id ? "active" : ""} ${!service.available ? "coming-soon" : ""}`}
+                  className={`tab ${activeTab === service.id ? "active" : ""} ${
+                    !service.available ? "coming-soon" : ""
+                  }`}
                   onClick={() => service.available && setActiveTab(service.id)}
                 >
                   <i className={service.icon} />
                   {service.title}
-                </div>
+                </button>
               ))}
             </div>
 
             <div className="search-content">
-              {activeTab === "packages" && (
-                <div className="packages-search">
+              {(activeTab === "packages" || activeTab === "tours") && (
+                <div className="search-section">
                   <div className="search-grid">
-                    <div className="search-field">
+                    <div
+                      className="search-field"
+                      style={{ position: "relative" }}
+                    >
                       <label className="label">
-                        {dynamicContent.searchLabel}
+                        Search{" "}
+                        {activeTab === "packages"
+                          ? "destinations, packages, or experiences"
+                          : "tours, activities, or destinations"}
                       </label>
                       <input
                         type="text"
                         className="search-input"
-                        placeholder={dynamicContent.searchPlaceholder}
+                        placeholder={`e.g. ${
+                          activeTab === "packages"
+                            ? "Dubai, Culture tours, Luxury holidays"
+                            : "City tours, Adventure activities, Cultural experiences"
+                        }...`}
                         value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onChange={(e) => handleSearchInput(e.target.value)}
                         onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+                        onFocus={() =>
+                          searchQuery.trim().length > 2 &&
+                          setShowSearchResults(true)
+                        }
                       />
+
+                      {/* Dynamic Search Results with Currency */}
+                      {showSearchResults && (
+                        <div className="search-results">
+                          {searchResults.length > 0 ? (
+                            <>
+                              {searchResults.map((item) => (
+                                <div
+                                  key={item.id}
+                                  className="search-result-item"
+                                  onClick={() => {
+                                    router.push(getCurrentDetailRoute(item));
+                                    setShowSearchResults(false);
+                                    setSearchQuery("");
+                                  }}
+                                >
+                                  <img
+                                    src={
+                                      item.imageUrl ||
+                                      "/assets/images/destinations/default-tour.jpg"
+                                    }
+                                    alt={item.name}
+                                    className="result-image"
+                                    onError={(e) => {
+                                      e.target.src =
+                                        "/assets/images/destinations/default-tour.jpg";
+                                    }}
+                                  />
+                                  <div className="result-content">
+                                    <div className="result-name">
+                                      {item.name}
+                                    </div>
+                                    <div className="result-meta">
+                                      {item.location && (
+                                        <span className="location">
+                                          <i className="fal fa-map-marker-alt" />
+                                          {typeof item.location === "string"
+                                            ? capitalizeFirstLetter(
+                                                item.location
+                                              )
+                                            : capitalizeFirstLetter(
+                                                item.location.name || ""
+                                              )}
+                                        </span>
+                                      )}
+                                      <span className="price">
+                                        {selectedCurrency}{" "}
+                                        {formatPrice(
+                                          convertPrice(
+                                            parseFloat(item.price),
+                                            activeTab === "packages"
+                                              ? item.currency || "AED"
+                                              : "AED"
+                                          )
+                                        )}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                              <div
+                                className="search-result-item"
+                                style={{
+                                  background: "#f8f9fa",
+                                  borderTop: "1px solid #e5e7eb",
+                                  justifyContent: "center",
+                                  color: "#f8853d",
+                                  fontWeight: "500",
+                                }}
+                                onClick={handleSearch}
+                              >
+                                <i
+                                  className="fal fa-search"
+                                  style={{ marginRight: "8px" }}
+                                />
+                                View all results for "{searchQuery}"
+                              </div>
+                            </>
+                          ) : (
+                            <div className="no-results">
+                              No {activeTab} found for "{searchQuery}"
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <button className="search-button" onClick={handleSearch}>
                       <i className="fal fa-search" />
-                      {dynamicContent.searchButton}
+                      Search {activeTab === "packages" ? "Packages" : "Tours"}
                     </button>
                   </div>
                 </div>
               )}
 
-              {activeTab === "tours" && (
-                <div className="tours-search">
-                  <div className="search-grid">
-                    <div className="search-field">
-                      <label className="label">
-                        {dynamicContent.searchLabel}
-                      </label>
-                      <input
-                        type="text"
-                        className="search-input"
-                        placeholder={dynamicContent.searchPlaceholder}
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-                      />
-                    </div>
-                    <button className="search-button" onClick={handleSearch}>
-                      <i className="fal fa-search" />
-                      {dynamicContent.searchButton}
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {(activeTab === "flights" || activeTab === "hotels") && (
+              {activeTab !== "packages" && activeTab !== "tours" && (
                 <div className="coming-soon-message">
                   <i className="fal fa-clock" />
                   <h4>
@@ -1344,13 +2148,15 @@ const HomePage = () => {
               {services.map((service) => (
                 <div
                   key={service.id}
-                  className={`service-card ${service.available ? "available" : "coming-soon"}`}
+                  className={`service-card ${
+                    service.available ? "available" : "coming-soon"
+                  }`}
                   onClick={() => {
                     if (service.available) {
                       if (service.id === "packages") {
                         router.push("/holidays");
                       } else if (service.id === "tours") {
-                        router.push("/custom-tours");
+                        router.push("/tours");
                       }
                     }
                   }}
@@ -1378,7 +2184,7 @@ const HomePage = () => {
           </div>
         </PlatformServices>
 
-        {/* Popular Destinations */}
+        {/* Dynamic Popular Destinations */}
         <PopularDestinations>
           <div className="container">
             <div className="text-center">
@@ -1400,77 +2206,191 @@ const HomePage = () => {
                   margin: "0 auto 0",
                 }}
               >
-                {activeTab === "tours"
-                  ? "Create custom tours to these amazing destinations"
-                  : "Discover our most sought-after travel destinations with exclusive packages"
-                }
+                Discover our most sought-after travel destinations with
+                exclusive {activeTab === "packages" ? "packages" : "tours"}
               </p>
             </div>
 
             <div className="destinations-grid">
-              {popularDestinations.map((destination, index) => (
-                <div
-                  key={index}
-                  className="destination-card"
-                  onClick={() => {
-                    const targetPage = activeTab === "tours" ? "/custom-tours" : "/holidays";
-                    router.push(`${targetPage}?location=${encodeURIComponent(destination.name)}`);
-                  }}
-                >
-                  <div
-                    className="background"
-                    style={{ backgroundImage: `url(${destination.image})` }}
-                  />
-                  <div className="overlay" />
-                  <div className="content">
-                    <h5>{destination.name}</h5>
-                    <p>{destination.packages}</p>
-                  </div>
-                </div>
-              ))}
+              {isCurrentTabLoading()
+                ? // Loading skeletons - show 4 skeleton boxes
+                  Array.from({ length: 4 }).map((_, idx) => (
+                    <SkeletonLoader
+                      key={idx}
+                      height="200px"
+                      width="100%"
+                      style={{ borderRadius: "16px" }}
+                    />
+                  ))
+                : getPopularDestinations().length === 0
+                ? // Empty state - show 4 placeholder boxes instead of full width message
+                  Array.from({ length: 4 }).map((_, idx) => (
+                    <div
+                      key={idx}
+                      className="destination-card"
+                      style={{
+                        cursor: "default",
+                        opacity: 0.6,
+                        background: "#f8f9fa",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexDirection: "column",
+                        textAlign: "center",
+                        padding: "40px 20px",
+                      }}
+                    >
+                      <div
+                        className="overlay"
+                        style={{ background: "transparent" }}
+                      />
+                      <div
+                        className="content"
+                        style={{ position: "static", color: "#64748b" }}
+                      >
+                        <i
+                          className="fal fa-map-marked-alt"
+                          style={{
+                            fontSize: "2rem",
+                            color: "#d1d5db",
+                            marginBottom: "12px",
+                            display: "block",
+                          }}
+                        />
+                        <h5
+                          style={{
+                            color: "#374151",
+                            fontSize: "1rem",
+                            marginBottom: "4px",
+                          }}
+                        >
+                          No Destinations
+                        </h5>
+                        <p
+                          style={{ fontSize: "12px", opacity: 0.8, margin: 0 }}
+                        >
+                          Coming Soon
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                : // Actual destinations
+                  getPopularDestinations().map((destination, index) => (
+                    <div
+                      key={index}
+                      className="destination-card"
+                      onClick={() => {
+                        const route = getCurrentRoute();
+                        router.push(
+                          `${route}?location=${encodeURIComponent(
+                            destination.name
+                          )}`
+                        );
+                      }}
+                    >
+                      <div
+                        className="background"
+                        style={{ backgroundImage: `url(${destination.image})` }}
+                      />
+                      <div className="overlay" />
+                      <div className="content">
+                        <h5>{destination.name}</h5>
+                        <p>{destination.packages}</p>
+                      </div>
+                    </div>
+                  ))}
             </div>
           </div>
         </PopularDestinations>
 
-        {/* Featured Packages / Custom Tours */}
-        <FeaturedPackages>
+        {/* Featured Packages/Tours with Dynamic Category Filters */}
+        <FeaturedSection>
           <div className="container">
-            <div className="packages-header">
-              <h3>{dynamicContent.featuredTitle}</h3>
-              <Link href={dynamicContent.viewAllLink} className="view-all">
-                {dynamicContent.viewAllText}
+            <div className="section-header">
+              <h3>
+                Featured {activeTab === "packages" ? "Packages" : "Tours"}
+              </h3>
+              <Link href={getCurrentRoute()} className="view-all">
+                View All {activeTab === "packages" ? "Packages" : "Tours"}
                 <i className="fal fa-arrow-right" />
               </Link>
             </div>
 
+            {/* Dynamic Category Filters */}
             <div className="filters">
               <button
-                className={`filter-btn ${activeTab === "packages" ? "active" : ""}`}
-                onClick={() => setActiveTab("packages")}
+                className={`filter-btn ${
+                  activeCategory === "all" ? "active" : ""
+                }`}
+                onClick={() => handleCategoryFilter("all")}
               >
-                All Packages
+                All {activeTab === "packages" ? "Packages" : "Tours"}
               </button>
-              <button
-                className={`filter-btn ${activeTab === "tours" ? "active" : ""}`}
-                onClick={() => setActiveTab("tours")}
-              >
-                Custom Tours
-              </button>
-              {activeTab === "packages" && (
-                <>
-                  <button className="filter-btn">Adventure</button>
-                  <button className="filter-btn">Family</button>
-                  <button className="filter-btn">Luxury</button>
-                  <button className="filter-btn">Budget</button>
-                </>
-              )}
+              {getCurrentCategories().map((category) => (
+                <button
+                  key={category.id}
+                  className={`filter-btn ${
+                    activeCategory === category.name ? "active" : ""
+                  }`}
+                  onClick={() => handleCategoryFilter(category.name)}
+                >
+                  {capitalizeFirstLetter(category.name)}
+                </button>
+              ))}
             </div>
 
             <div className="row">
-              {renderContent()}
+              {isCurrentTabLoading() ? (
+                Array.from({ length: 8 }).map((_, idx) => (
+                  <div key={idx} className="col-xl-3 col-lg-4 col-md-6 mb-4">
+                    <SkeletonLoader
+                      height="320px"
+                      width="100%"
+                      style={{ borderRadius: "16px" }}
+                    />
+                  </div>
+                ))
+              ) : getCurrentData().length === 0 ? (
+                <div className="col-12 text-center py-5">
+                  <i
+                    className="fal fa-map-marked-alt"
+                    style={{
+                      fontSize: "3rem",
+                      color: "#d1d5db",
+                      marginBottom: "16px",
+                    }}
+                  />
+                  <h4 style={{ color: "#374151", marginBottom: "8px" }}>
+                    No {activeTab === "packages" ? "Packages" : "Tours"}{" "}
+                    Available
+                    {activeCategory !== "all" &&
+                      ` in ${capitalizeFirstLetter(activeCategory)} Category`}
+                  </h4>
+                  <p style={{ color: "#64748b", margin: 0 }}>
+                    {activeCategory !== "all"
+                      ? `Try selecting a different category or check back soon for new ${activeTab}!`
+                      : `Check back soon for exciting new ${
+                          activeTab === "packages"
+                            ? "travel packages"
+                            : "tours and activities"
+                        }!`}
+                  </p>
+                </div>
+              ) : (
+                getCurrentData().map((item) => (
+                  <div
+                    key={item.id}
+                    className="col-xl-3 col-lg-4 col-md-6 mb-4"
+                  >
+                    {activeTab === "packages"
+                      ? renderPackageCard(item)
+                      : renderTourCard(item)}
+                  </div>
+                ))
+              )}
             </div>
           </div>
-        </FeaturedPackages>
+        </FeaturedSection>
 
         {/* Platform Stats */}
         <section
@@ -1505,39 +2425,103 @@ const HomePage = () => {
             </div>
 
             <div className="row">
-              {dynamicContent.stats.map((stat, index) => (
-                <div key={index} className="col-md-3 col-6 mb-4">
-                  <div className="text-center">
-                    <div
-                      style={{
-                        fontSize: "3rem",
-                        fontWeight: 700,
-                        marginBottom: "8px",
-                      }}
-                    >
-                      {stat.number.includes("+") || stat.number === "24/7" || stat.number === "100%"
-                        ? stat.number
-                        : <><Counter end={parseInt(stat.number)} />+</>
-                      }
-                    </div>
-                    <div
-                      style={{
-                        fontSize: "14px",
-                        opacity: 0.9,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px",
-                      }}
-                    >
-                      {stat.label}
-                    </div>
+              <div className="col-md-3 col-6 mb-4">
+                <div className="text-center">
+                  <div
+                    style={{
+                      fontSize: "3rem",
+                      fontWeight: 700,
+                      marginBottom: "8px",
+                    }}
+                  >
+                    <Counter end={packagesData.items.length} />+
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "14px",
+                      opacity: 0.9,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
+                    }}
+                  >
+                    Active Packages
                   </div>
                 </div>
-              ))}
+              </div>
+              <div className="col-md-3 col-6 mb-4">
+                <div className="text-center">
+                  <div
+                    style={{
+                      fontSize: "3rem",
+                      fontWeight: 700,
+                      marginBottom: "8px",
+                    }}
+                  >
+                    <Counter end={toursData.items.length} />+
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "14px",
+                      opacity: 0.9,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
+                    }}
+                  >
+                    Tours
+                  </div>
+                </div>
+              </div>
+              <div className="col-md-3 col-6 mb-4">
+                <div className="text-center">
+                  <div
+                    style={{
+                      fontSize: "3rem",
+                      fontWeight: 700,
+                      marginBottom: "8px",
+                    }}
+                  >
+                    <Counter end={getCurrentLocations().length} />+
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "14px",
+                      opacity: 0.9,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
+                    }}
+                  >
+                    Destinations
+                  </div>
+                </div>
+              </div>
+              <div className="col-md-3 col-6 mb-4">
+                <div className="text-center">
+                  <div
+                    style={{
+                      fontSize: "3rem",
+                      fontWeight: 700,
+                      marginBottom: "8px",
+                    }}
+                  >
+                    24/7
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "14px",
+                      opacity: 0.9,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
+                    }}
+                  >
+                    Support Available
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Travel Categories */}
+        {/* Dynamic Travel Categories */}
         <section style={{ padding: "60px 0", background: "white" }}>
           <div className="container">
             <div className="text-center" style={{ marginBottom: "40px" }}>
@@ -1564,150 +2548,199 @@ const HomePage = () => {
             </div>
 
             <div className="row">
-              {[
-                {
-                  href: activeTab === "tours" ? "/custom-tours?category=adventure" : "/holidays?category=adventure",
-                  icon: "fal fa-mountain",
-                  title: "Adventure Tours",
-                  description: "Thrilling experiences for the adventurous soul"
-                },
-                {
-                  href: activeTab === "tours" ? "/custom-tours?category=family" : "/holidays?category=family",
-                  icon: "fal fa-users",
-                  title: "Family Packages",
-                  description: "Perfect getaways for family bonding time"
-                },
-                {
-                  href: activeTab === "tours" ? "/custom-tours?category=luxury" : "/holidays?category=luxury",
-                  icon: "fal fa-crown",
-                  title: "Luxury Tours",
-                  description: "Premium experiences with world-class service"
-                },
-                {
-                  href: activeTab === "tours" ? "/custom-tours?category=honeymoon" : "/holidays?category=honeymoon",
-                  icon: "fal fa-heart",
-                  title: "Honeymoon Specials",
-                  description: "Romantic getaways for newlyweds"
-                },
-                {
-                  href: activeTab === "tours" ? "/custom-tours?category=weekend" : "/holidays?category=weekend",
-                  icon: "fal fa-calendar",
-                  title: "Weekend Getaways",
-                  description: "Quick escapes for busy professionals"
-                },
-                {
-                  href: activeTab === "tours" ? "/custom-tours?category=spiritual" : "/holidays?category=spiritual",
-                  icon: "fal fa-om",
-                  title: "Spiritual Tours",
-                  description: "Sacred journeys for inner peace"
-                }
-              ].map((category, index) => (
-                <div key={index} className="col-md-4 mb-4">
-                  <CategoryCard href={category.href}>
-                    <div className="category-icon">
-                      <i className={category.icon} />
-                    </div>
-                    <div className="category-content">
-                      <h6>{category.title}</h6>
-                      <p>{category.description}</p>
-                    </div>
-                  </CategoryCard>
+              {isCurrentTabLoading() ? (
+                Array.from({ length: 6 }).map((_, idx) => (
+                  <div key={idx} className="col-md-4 mb-4">
+                    <SkeletonLoader
+                      height="120px"
+                      width="100%"
+                      style={{ borderRadius: "16px" }}
+                    />
+                  </div>
+                ))
+              ) : getCurrentCategories().length === 0 ? (
+                <div className="col-12 text-center py-5">
+                  <i
+                    className="fal fa-tags"
+                    style={{
+                      fontSize: "3rem",
+                      color: "#d1d5db",
+                      marginBottom: "16px",
+                    }}
+                  />
+                  <h4 style={{ color: "#374151", marginBottom: "8px" }}>
+                    No Categories Available
+                  </h4>
+                  <p style={{ color: "#64748b", margin: 0 }}>
+                    Check back soon for exciting new categories!
+                  </p>
                 </div>
-              ))}
+              ) : (
+                getCurrentCategories()
+                  .slice(0, 6)
+                  .map((category, index) => {
+                    // Map category names to appropriate icons
+                    const getCategoryIcon = (categoryName) => {
+                      const name = categoryName.toLowerCase();
+                      switch (name) {
+                        case "adventure":
+                          return "fal fa-mountain";
+                        case "culture":
+                          return "fal fa-landmark";
+                        case "family":
+                          return "fal fa-users";
+                        case "luxury":
+                          return "fal fa-crown";
+                        case "honeymoon":
+                          return "fal fa-heart";
+                        case "weekend":
+                          return "fal fa-calendar";
+                        case "spiritual":
+                          return "fal fa-om";
+                        case "beach":
+                          return "fal fa-umbrella-beach";
+                        case "nature":
+                          return "fal fa-tree";
+                        case "food":
+                          return "fal fa-utensils";
+                        default:
+                          return "fal fa-map-marked-alt";
+                      }
+                    };
+
+                    const getCategoryDescription = (categoryName) => {
+                      const name = categoryName.toLowerCase();
+                      switch (name) {
+                        case "adventure":
+                          return "Thrilling experiences for the adventurous soul";
+                        case "culture":
+                          return "Immerse yourself in local traditions and heritage";
+                        case "family":
+                          return "Perfect getaways for family bonding time";
+                        case "luxury":
+                          return "Premium experiences with world-class service";
+                        case "honeymoon":
+                          return "Romantic getaways for newlyweds";
+                        case "weekend":
+                          return "Quick escapes for busy professionals";
+                        case "spiritual":
+                          return "Sacred journeys for inner peace";
+                        case "beach":
+                          return "Sun, sand, and relaxation by the ocean";
+                        case "nature":
+                          return "Explore the beauty of natural landscapes";
+                        case "food":
+                          return "Culinary adventures and local delicacies";
+                        default:
+                          return "Discover amazing travel experiences";
+                      }
+                    };
+
+                    return (
+                      <div key={category.id} className="col-md-4 mb-4">
+                        <Link
+                          href={`${getCurrentRoute()}?category=${encodeURIComponent(
+                            category.name
+                          )}`}
+                          className="action-card"
+                          style={{
+                            height: "120px",
+                            padding: "24px",
+                            textDecoration: "none",
+                            background: "#fef7f0",
+                            borderRadius: "16px",
+                            border: "1px solid #fed7aa",
+                            transition: "all 0.3s ease",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "16px",
+                            color: "inherit",
+                          }}
+                          onMouseEnter={(e) => {
+                            const card = e.currentTarget;
+                            const icon = card.querySelector(".icon");
+                            const content = card.querySelector(".content");
+                            card.style.background = "#f8853d";
+                            card.style.transform = "translateY(-4px)";
+                            card.style.boxShadow =
+                              "0 8px 32px rgba(248, 133, 61, 0.25)";
+                            if (icon) icon.style.background = "white";
+                            if (icon) icon.style.color = "#f8853d";
+                            if (content) {
+                              const h6 = content.querySelector("h6");
+                              const p = content.querySelector("p");
+                              if (h6) h6.style.color = "white";
+                              if (p) p.style.color = "rgba(255, 255, 255, 0.9)";
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            const card = e.currentTarget;
+                            const icon = card.querySelector(".icon");
+                            const content = card.querySelector(".content");
+                            card.style.background = "#fef7f0";
+                            card.style.transform = "translateY(0)";
+                            card.style.boxShadow = "none";
+                            if (icon) icon.style.background = "#f8853d";
+                            if (icon) icon.style.color = "white";
+                            if (content) {
+                              const h6 = content.querySelector("h6");
+                              const p = content.querySelector("p");
+                              if (h6) h6.style.color = "inherit";
+                              if (p) p.style.color = "#64748b";
+                            }
+                          }}
+                        >
+                          <div
+                            className="icon"
+                            style={{
+                              width: "60px",
+                              height: "60px",
+                              background: "#f8853d",
+                              borderRadius: "12px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              color: "white",
+                            }}
+                          >
+                            <i
+                              className={getCategoryIcon(category.name)}
+                              style={{ fontSize: "24px" }}
+                            />
+                          </div>
+                          <div className="content">
+                            <h6
+                              style={{
+                                fontSize: "16px",
+                                marginBottom: "8px",
+                                color: "inherit",
+                              }}
+                            >
+                              {`${capitalizeFirstLetter(category.name)} ${
+                                activeTab === "packages" ? "Packages" : "Tours"
+                              }`}
+                            </h6>
+                            <p
+                              style={{
+                                fontSize: "14px",
+                                margin: 0,
+                                color: "#64748b",
+                              }}
+                            >
+                              {getCategoryDescription(category.name)}
+                            </p>
+                          </div>
+                        </Link>
+                      </div>
+                    );
+                  })
+              )}
             </div>
           </div>
         </section>
 
         {/* Newsletter Section */}
-        <section style={{ padding: "80px 0", background: "#fef7f0" }}>
-          <div className="container">
-            <div className="row align-items-center">
-              <div className="col-lg-6">
-                <h2
-                  style={{
-                    fontSize: "2.5rem",
-                    fontWeight: 600,
-                    color: "#1e293b",
-                    marginBottom: "16px",
-                  }}
-                >
-                  Stay Updated with Latest Offers
-                </h2>
-                <p
-                  style={{
-                    color: "#64748b",
-                    fontSize: "1.1rem",
-                    marginBottom: "32px",
-                  }}
-                >
-                  Subscribe to our newsletter and be the first to know about
-                  exclusive deals, new destinations, and special packages.
-                </p>
-                <div
-                  style={{ display: "flex", gap: "12px", maxWidth: "400px" }}
-                >
-                  <input
-                    type="email"
-                    placeholder="Enter your email address"
-                    style={{
-                      flex: 1,
-                      padding: "12px 16px",
-                      border: "2px solid #fed7aa",
-                      borderRadius: "8px",
-                      fontSize: "14px",
-                      background: "white",
-                    }}
-                  />
-                  <button
-                    style={{
-                      padding: "12px 24px",
-                      background: "#f8853d",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "8px",
-                      fontWeight: 500,
-                      cursor: "pointer",
-                      transition: "background 0.3s ease",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.background = "#e67428";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.background = "#f8853d";
-                    }}
-                  >
-                    Subscribe
-                  </button>
-                </div>
-              </div>
-              <div className="col-lg-6 text-center">
-                <div
-                  style={{
-                    width: "300px",
-                    height: "300px",
-                    background: "linear-gradient(135deg, #f8853d, #e67428)",
-                    borderRadius: "50%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    margin: "0 auto",
-                    color: "white",
-                  }}
-                >
-                  <div>
-                    <i
-                      className="fal fa-envelope"
-                      style={{ fontSize: "4rem", marginBottom: "16px" }}
-                    />
-                    <div style={{ fontSize: "1.2rem", fontWeight: 600 }}>
-                      Join 10,000+ Travelers
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        <Subscribe />
       </PlatformContainer>
     </ReveloLayout>
   );

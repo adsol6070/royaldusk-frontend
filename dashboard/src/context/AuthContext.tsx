@@ -97,7 +97,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         toast.success(response.message || "Login successful");
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Login failed");
+      toast.error(
+        error.response?.data?.message || error.message || "Login failed"
+      );
       throw error;
     }
   };

@@ -9,6 +9,7 @@ import {
   Form,
   Row,
   Col,
+  Badge,
 } from "react-bootstrap";
 import { FaEye, FaExclamationCircle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
@@ -19,6 +20,7 @@ import { resolveRoute } from "@/utils/resolveRoute";
 const BookingList = () => {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
+  const [serviceTypeFilter, setServiceTypeFilter] = useState("");
   const bookingsPerPage = 10;
 
   const { data: bookings = [] } = useBookings();
@@ -37,7 +39,13 @@ const BookingList = () => {
       ? b.paymentStatus === paymentStatusFilter
       : true;
 
-    return matchesSearch && matchesStatus && matchesPayment;
+    const matchesServiceType = serviceTypeFilter
+      ? b.serviceType === serviceTypeFilter
+      : true;
+
+    return (
+      matchesSearch && matchesStatus && matchesPayment && matchesServiceType
+    );
   });
 
   const indexOfLast = currentPage * bookingsPerPage;
@@ -51,7 +59,7 @@ const BookingList = () => {
 
       <Form className="mb-4">
         <Row>
-          <Col md={4}>
+          <Col md={3}>
             <Form.Control
               type="text"
               placeholder="Search by name or email"
@@ -82,6 +90,16 @@ const BookingList = () => {
               <option value="canceled">Canceled</option>
             </Form.Select>
           </Col>
+          <Col md={2}>
+            <Form.Select
+              value={serviceTypeFilter}
+              onChange={(e) => setServiceTypeFilter(e.target.value)}
+            >
+              <option value="">All Services</option>
+              <option value="Tour">Tour</option>
+              <option value="Package">Package</option>
+            </Form.Select>
+          </Col>
         </Row>
       </Form>
 
@@ -92,65 +110,76 @@ const BookingList = () => {
             bordered
             hover
             responsive
-            className="shadow-sm rounded"
+            className="shadow-sm rounded text-center"
           >
-            <thead className="table-dark text-center">
+            <thead className="table-dark">
               <tr>
-                <th>S.No</th>
+                <th>#</th>
                 <th>Booking ID</th>
                 <th>Guest Name</th>
                 <th>Email</th>
-                <th>Package</th>
-                <th>Travel Date</th>
-                <th>Total Amount</th>
-                <th>Payment Status</th>
-                <th>Booking Status</th>
-                <th>Actions</th>
+                <th>Mobile</th>
+                <th>Service</th>
+                <th>Total Paid</th>
+                <th>Payment</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Action</th>
               </tr>
             </thead>
-            <tbody className="text-center bg-white">
+            <tbody className="bg-white">
               {currentBookings.map((booking, index) => (
-                <tr key={booking.id} className="align-middle">
+                <tr key={booking.id}>
                   <td>{indexOfFirst + index + 1}</td>
                   <td>{booking.id.slice(0, 8)}...</td>
                   <td>{booking.guestName}</td>
                   <td>{booking.guestEmail}</td>
-                  <td>{booking.packageName || "N/A"}</td>
+                  <td>{booking.guestMobile || "—"}</td>
                   <td>
-                    {booking.travelDate
-                      ? new Date(booking.travelDate).toLocaleDateString()
-                      : "N/A"}
+                    <Badge
+                      bg={
+                        booking.serviceType === "Tour"
+                          ? "primary"
+                          : booking.serviceType === "Package"
+                          ? "secondary"
+                          : "info"
+                      }
+                      className="text-uppercase"
+                    >
+                      {booking.serviceType}
+                    </Badge>
                   </td>
                   <td>
                     {booking.currency?.toUpperCase()}{" "}
                     {(booking.totalAmountPaid / 100).toFixed(2)}
                   </td>
                   <td>
-                    <span
-                      className={`badge bg-${
+                    <Badge
+                      bg={
                         booking.paymentStatus === "succeeded"
                           ? "success"
                           : booking.paymentStatus === "pending"
                           ? "warning"
                           : "danger"
-                      }`}
+                      }
                     >
                       {booking.paymentStatus}
-                    </span>
+                    </Badge>
                   </td>
                   <td>
-                    <span
-                      className={`badge bg-${
+                    <Badge
+                      bg={
                         booking.status === "Confirmed"
                           ? "success"
                           : booking.status === "Pending"
                           ? "warning"
                           : "secondary"
-                      }`}
+                      }
                     >
                       {booking.status}
-                    </span>
+                    </Badge>
                   </td>
+                  <td>{new Date(booking.createdAt).toLocaleDateString()}</td>
                   <td>
                     <OverlayTrigger
                       placement="top"
@@ -161,10 +190,10 @@ const BookingList = () => {
                         size="sm"
                         onClick={() =>
                           navigate(
-                            `${resolveRoute(
+                            resolveRoute(
                               ROUTES.PRIVATE.BOOKING_DETAILS,
                               booking.id
-                            )}`
+                            )
                           )
                         }
                       >
@@ -177,7 +206,7 @@ const BookingList = () => {
             </tbody>
           </Table>
 
-          {/* 🔄 Pagination */}
+          {/* Pagination */}
           <div className="d-flex justify-content-center mt-4">
             <Pagination>
               <Pagination.First
