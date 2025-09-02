@@ -12,6 +12,8 @@ import { useRouter } from "next/navigation";
 import capitalizeFirstLetter from "@/utility/capitalizeFirstLetter";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
+import { useCurrency } from "@/common/context/CurrencyContext";
+import { CardWishlistButton } from "@/components/wishlistButton";
 
 const bookNowAnimation = keyframes`
   0% { transform: scale(1); }
@@ -48,7 +50,7 @@ const HeaderTitle = styled.div`
     color: #1e293b;
     margin: 0 0 4px 0;
   }
-  
+
   p {
     font-size: 14px;
     color: #64748b;
@@ -60,22 +62,22 @@ const QuickStats = styled.div`
   display: flex;
   align-items: center;
   gap: 24px;
-  
+
   @media (max-width: 640px) {
     flex-direction: column;
     gap: 12px;
   }
-  
+
   .stat-item {
     text-align: center;
-    
+
     .number {
       font-size: 1.5rem;
       font-weight: 700;
       color: #f8853d;
       display: block;
     }
-    
+
     .label {
       font-size: 12px;
       color: #64748b;
@@ -159,7 +161,7 @@ const FilterSection = styled.div`
     text-transform: uppercase;
     letter-spacing: 0.5px;
     position: relative;
-    
+
     &::after {
       content: "";
       position: absolute;
@@ -179,7 +181,7 @@ const SearchInput = styled.input`
   border: 1px solid #fed7aa;
   border-radius: 6px;
   font-size: 14px;
-  
+
   &:focus {
     outline: none;
     border-color: #f8853d;
@@ -194,10 +196,37 @@ const PriceDisplay = styled.div`
   margin-top: 12px;
   font-size: 13px;
   color: #64748b;
-  
+
   .range {
     font-weight: 500;
     color: #f8853d;
+  }
+`;
+
+const CurrencySelector = styled.div`
+  margin-bottom: 12px;
+
+  .currency-label {
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #fed7aa;
+    border-radius: 4px;
+    font-size: 13px;
+    background: white;
+    color: #374151;
+
+    &:focus {
+      outline: none;
+      border-color: #f8853d;
+      box-shadow: 0 0 0 2px rgba(248, 133, 61, 0.1);
+    }
   }
 `;
 
@@ -215,13 +244,13 @@ const CheckboxItem = styled.label`
   font-size: 14px;
   color: #374151;
   transition: color 0.2s ease;
-  
+
   input[type="checkbox"] {
     width: 16px;
     height: 16px;
     accent-color: #f8853d;
   }
-  
+
   &:hover {
     color: #f8853d;
   }
@@ -250,7 +279,7 @@ const ResultsInfo = styled.div`
     font-weight: 600;
     color: #1e293b;
   }
-  
+
   .description {
     font-size: 14px;
     color: #64748b;
@@ -286,7 +315,7 @@ const ViewToggle = styled.div`
   background: #fef7f0;
   border-radius: 6px;
   padding: 2px;
-  
+
   button {
     padding: 8px 12px;
     border: none;
@@ -296,13 +325,13 @@ const ViewToggle = styled.div`
     font-size: 13px;
     color: #64748b;
     transition: all 0.2s ease;
-    
+
     &.active {
       background: #f8853d;
       color: white;
       box-shadow: 0 1px 3px rgba(248, 133, 61, 0.3);
     }
-    
+
     &:hover:not(.active) {
       color: #f8853d;
     }
@@ -313,7 +342,7 @@ const PackagesList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 20px;
-  
+
   &.grid-view {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -327,16 +356,16 @@ const PackageCard = styled.div`
   overflow: hidden;
   border: 1px solid #e2e8f0;
   transition: all 0.2s ease;
-  
+
   .list-view & {
     display: grid;
     grid-template-columns: 300px 1fr;
-    
+
     @media (max-width: 768px) {
       grid-template-columns: 1fr;
     }
   }
-  
+
   .grid-view & {
     display: flex;
     flex-direction: column;
@@ -351,7 +380,7 @@ const PackageCard = styled.div`
 const PackageImage = styled.div`
   position: relative;
   height: 250px;
-  
+
   .grid-view & {
     height: 200px;
   }
@@ -393,13 +422,19 @@ const PackageImage = styled.div`
       color: #f8853d;
     }
   }
+
+  .wishlist-area {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+  }
 `;
 
 const PackageContent = styled.div`
   padding: 24px;
   display: flex;
   flex-direction: column;
-  
+
   .grid-view & {
     padding: 20px;
   }
@@ -427,7 +462,7 @@ const PackageHeader = styled.div`
     color: #1e293b;
     margin: 0;
     line-height: 1.4;
-    
+
     .grid-view & {
       font-size: 1.1rem;
     }
@@ -512,15 +547,9 @@ const PriceSection = styled.div`
     font-size: 1.5rem;
     font-weight: 700;
     color: #1e293b;
-    
+
     .grid-view & {
       font-size: 1.3rem;
-    }
-
-    .currency {
-      font-size: 14px;
-      color: #64748b;
-      font-weight: 500;
     }
   }
 
@@ -542,7 +571,7 @@ const ActionButton = styled.button`
   border: none;
   cursor: pointer;
   font-size: 14px;
-  
+
   .grid-view & {
     padding: 10px 16px;
     font-size: 13px;
@@ -551,15 +580,15 @@ const ActionButton = styled.button`
   &.book-now {
     background: linear-gradient(135deg, #f8853d 0%, #e67428 100%);
     color: white;
-    
-    &:hover { 
+
+    &:hover {
       background: linear-gradient(135deg, #e67428 0%, #d65e1f 100%);
       transform: translateY(-1px);
       box-shadow: 0 8px 25px rgba(248, 133, 61, 0.3);
     }
-    
-    &.animate { 
-      animation: ${bookNowAnimation} 0.5s ease; 
+
+    &.animate {
+      animation: ${bookNowAnimation} 0.5s ease;
     }
   }
 
@@ -567,8 +596,8 @@ const ActionButton = styled.button`
     background: #fef7f0;
     color: #f8853d;
     border: 1px solid #fed7aa;
-    
-    &:hover { 
+
+    &:hover {
       background: #f8853d;
       color: white;
       border-color: #f8853d;
@@ -632,44 +661,79 @@ const CustomSlider = styled.div`
     .rc-slider-track {
       background-color: #f8853d;
     }
-    
+
     .rc-slider-handle {
       border-color: #f8853d;
       background-color: #f8853d;
-      
+
       &:hover {
         border-color: #e67428;
       }
-      
+
       &:focus {
         border-color: #e67428;
         box-shadow: 0 0 0 5px rgba(248, 133, 61, 0.2);
       }
     }
-    
+
     .rc-slider-rail {
       background-color: #fef7f0;
     }
   }
 `;
 
-const FilterSidebarComponent = ({ data = [], onFilterChange, onClearFilters }) => {
+const FilterSidebarComponent = ({
+  data = [],
+  onFilterChange,
+  onClearFilters,
+}) => {
+  const {
+    selectedCurrency,
+    changeCurrency,
+    convertPrice,
+    formatPrice,
+    getCurrencyInfo,
+    baseCurrency,
+  } = useCurrency();
+
   const [priceRange, setPriceRange] = useState([0, 1000]);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedNights, setSelectedNights] = useState([]);
   const [selectedLocations, setSelectedLocations] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const maxPrice = data.length > 0 ? Math.max(...data.map((item) => item.price)) : 1000;
-  const categories = Array.from(new Set(data.map((item) => item.category?.name))).filter(Boolean);
-  const locations = Array.from(new Set(data.map((item) => item.location?.name))).filter(Boolean);
+  // Convert all prices to selected currency for range calculation
+  const convertedPrices = data.map((item) =>
+    convertPrice(item.price, baseCurrency, selectedCurrency)
+  );
+
+  const maxPrice =
+    convertedPrices.length > 0 ? Math.ceil(Math.max(...convertedPrices)) : 1000;
+
+  const categories = Array.from(
+    new Set(data.map((item) => item.category?.name))
+  ).filter(Boolean);
+  const locations = Array.from(
+    new Set(data.map((item) => item.location?.name))
+  ).filter(Boolean);
   const nightsOptions = Array.from(
     new Set(data.map((item) => Math.max(1, item.duration - 1)))
   ).sort((a, b) => a - b);
 
+  // Available currencies
+  const availableCurrencies = [
+    { code: "AED", name: "UAE Dirham" },
+    { code: "USD", name: "US Dollar" },
+    { code: "EUR", name: "Euro" },
+    { code: "GBP", name: "British Pound" },
+    { code: "INR", name: "Indian Rupee" },
+    { code: "SAR", name: "Saudi Riyal" },
+  ];
+
+  // Reset price range when currency changes
   useEffect(() => {
     setPriceRange([0, maxPrice]);
-  }, [maxPrice]);
+  }, [maxPrice, selectedCurrency]);
 
   useEffect(() => {
     onFilterChange({
@@ -678,8 +742,17 @@ const FilterSidebarComponent = ({ data = [], onFilterChange, onClearFilters }) =
       nights: selectedNights,
       locations: selectedLocations,
       searchTerm,
+      currency: selectedCurrency,
     });
-  }, [priceRange, selectedCategories, selectedNights, selectedLocations, searchTerm, onFilterChange]);
+  }, [
+    priceRange,
+    selectedCategories,
+    selectedNights,
+    selectedLocations,
+    searchTerm,
+    selectedCurrency,
+    onFilterChange,
+  ]);
 
   const handleClearFilters = () => {
     setPriceRange([0, maxPrice]);
@@ -714,6 +787,10 @@ const FilterSidebarComponent = ({ data = [], onFilterChange, onClearFilters }) =
     );
   };
 
+  const handleCurrencyChange = (newCurrency) => {
+    changeCurrency(newCurrency);
+  };
+
   return (
     <FilterSidebar>
       <FilterHeader>
@@ -722,6 +799,22 @@ const FilterSidebarComponent = ({ data = [], onFilterChange, onClearFilters }) =
           Clear All
         </button>
       </FilterHeader>
+
+      <FilterSection>
+        <div className="filter-title">Currency</div>
+        <CurrencySelector>
+          <select
+            value={selectedCurrency}
+            onChange={(e) => handleCurrencyChange(e.target.value)}
+          >
+            {availableCurrencies.map((currency) => (
+              <option key={currency.code} value={currency.code}>
+                {getCurrencyInfo(currency.code).symbol} {currency.name}
+              </option>
+            ))}
+          </select>
+        </CurrencySelector>
+      </FilterSection>
 
       <FilterSection>
         <div className="filter-title">Search</div>
@@ -745,7 +838,9 @@ const FilterSidebarComponent = ({ data = [], onFilterChange, onClearFilters }) =
           />
         </CustomSlider>
         <PriceDisplay>
-          <span className="range">AED {priceRange[0]} - AED {priceRange[1]}</span>
+          <span className="range">
+            {formatPrice(priceRange[0])} - {formatPrice(priceRange[1])}
+          </span>
         </PriceDisplay>
       </FilterSection>
 
@@ -809,6 +904,9 @@ const HolidayListPage = () => {
   const [viewMode, setViewMode] = useState("list");
   const router = useRouter();
 
+  const { selectedCurrency, convertPrice, formatPrice, baseCurrency } =
+    useCurrency();
+
   useEffect(() => {
     async function fetchPackages() {
       try {
@@ -830,24 +928,36 @@ const HolidayListPage = () => {
 
   const handleBookNow = (packageItem) => {
     setAnimatingId(packageItem.id);
-    
+
     // Navigate to booking page with package details
     const bookingUrl = `/booking?id=${packageItem.id}&type=package`;
     router.push(bookingUrl);
-    
+
     // Show success message
     toast.success("Redirecting to booking page...");
-    
+
     // Clear animation after delay
     setTimeout(() => setAnimatingId(null), 500);
   };
 
   const handleFilterChange = useCallback(
-    ({ priceRange, categories, nights, locations, searchTerm }) => {
+    ({ priceRange, categories, nights, locations, searchTerm, currency }) => {
       let filtered = [...packages];
 
+      // Convert price range to base currency for filtering
+      const minPriceInBase = convertPrice(
+        priceRange[0],
+        currency,
+        baseCurrency
+      );
+      const maxPriceInBase = convertPrice(
+        priceRange[1],
+        currency,
+        baseCurrency
+      );
+
       filtered = filtered.filter(
-        (pkg) => pkg.price >= priceRange[0] && pkg.price <= priceRange[1]
+        (pkg) => pkg.price >= minPriceInBase && pkg.price <= maxPriceInBase
       );
 
       if (categories.length) {
@@ -880,7 +990,7 @@ const HolidayListPage = () => {
 
       setFilteredPackages(filtered);
     },
-    [packages]
+    [packages, convertPrice, baseCurrency]
   );
 
   const handleSort = (value) => {
@@ -888,9 +998,15 @@ const HolidayListPage = () => {
     const sorted = [...filteredPackages].sort((a, b) => {
       switch (value) {
         case "price-low":
-          return a.price - b.price;
+          return (
+            convertPrice(a.price, baseCurrency, selectedCurrency) -
+            convertPrice(b.price, baseCurrency, selectedCurrency)
+          );
         case "price-high":
-          return b.price - a.price;
+          return (
+            convertPrice(b.price, baseCurrency, selectedCurrency) -
+            convertPrice(a.price, baseCurrency, selectedCurrency)
+          );
         case "name":
           return a.name.localeCompare(b.name);
         case "duration":
@@ -906,7 +1022,9 @@ const HolidayListPage = () => {
     setFilteredPackages(packages);
   };
 
-  const totalDestinations = Array.from(new Set(packages.map(pkg => pkg.location?.name))).length;
+  const totalDestinations = Array.from(
+    new Set(packages.map((pkg) => pkg.location?.name))
+  ).length;
 
   return (
     <ReveloLayout>
@@ -940,33 +1058,39 @@ const HolidayListPage = () => {
           <ContentSection>
             <ContentHeader>
               <ResultsInfo>
-                <div className="count">{filteredPackages.length} packages found</div>
+                <div className="count">
+                  {filteredPackages.length} packages found
+                </div>
                 <div className="description">
-                  {filteredPackages.length !== packages.length && 
-                    `from ${packages.length} total packages`
-                  }
+                  {filteredPackages.length !== packages.length &&
+                    `from ${packages.length} total packages`}
                 </div>
               </ResultsInfo>
-              
-              <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+
+              <div
+                style={{ display: "flex", gap: "16px", alignItems: "center" }}
+              >
                 <ViewToggle>
-                  <button 
-                    className={viewMode === 'list' ? 'active' : ''}
-                    onClick={() => setViewMode('list')}
+                  <button
+                    className={viewMode === "list" ? "active" : ""}
+                    onClick={() => setViewMode("list")}
                   >
                     <i className="fal fa-list" /> List
                   </button>
-                  <button 
-                    className={viewMode === 'grid' ? 'active' : ''}
-                    onClick={() => setViewMode('grid')}
+                  <button
+                    className={viewMode === "grid" ? "active" : ""}
+                    onClick={() => setViewMode("grid")}
                   >
                     <i className="fal fa-th" /> Grid
                   </button>
                 </ViewToggle>
-                
+
                 <SortControls>
                   <span className="sort-label">Sort:</span>
-                  <select value={sortBy} onChange={(e) => handleSort(e.target.value)}>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => handleSort(e.target.value)}
+                  >
                     <option value="name">Name</option>
                     <option value="price-low">Price: Low to High</option>
                     <option value="price-high">Price: High to Low</option>
@@ -979,7 +1103,12 @@ const HolidayListPage = () => {
             {loading ? (
               <PackagesList className={`${viewMode}-view`}>
                 {[...Array(6)].map((_, i) => (
-                  <SkeletonLoader key={i} height="250px" width="100%" style={{ borderRadius: "12px" }} />
+                  <SkeletonLoader
+                    key={i}
+                    height="250px"
+                    width="100%"
+                    style={{ borderRadius: "12px" }}
+                  />
                 ))}
               </PackagesList>
             ) : filteredPackages.length === 0 ? (
@@ -995,105 +1124,146 @@ const HolidayListPage = () => {
               </EmptyState>
             ) : (
               <PackagesList className={`${viewMode}-view`}>
-                {filteredPackages.map((packageItem) => (
-                  <PackageCard key={packageItem.id}>
-                    <PackageImage>
-                      <Link href={`/holiday-details/${packageItem.id}`}>
-                        <img src={packageItem.imageUrl} alt={packageItem.name} />
-                      </Link>
-                      <div className="status-badge">Available</div>
-                      <div className="rating">
-                        {[...Array(5)].map((_, i) => (
-                          <i
-                            key={i}
-                            className={
-                              i < (packageItem.review || 0)
-                                ? "fas fa-star"
-                                : "far fa-star"
-                            }
+                {filteredPackages.map((packageItem) => {
+                  const convertedPrice = convertPrice(
+                    packageItem.price,
+                    baseCurrency,
+                    selectedCurrency
+                  );
+
+                  return (
+                    <PackageCard key={packageItem.id}>
+                      <PackageImage>
+                        <Link href={`/holiday-details/${packageItem.id}`}>
+                          <img
+                            src={packageItem.imageUrl}
+                            alt={packageItem.name}
                           />
-                        ))}
-                      </div>
-                    </PackageImage>
-
-                    <PackageContent>
-                      <PackageHeader>
-                        <div className="location">
-                          <i className="fal fa-map-marker-alt" />
-                          <span>{capitalizeFirstLetter(packageItem.location.name)}</span>
+                        </Link>
+                        <div className="status-badge">Available</div>
+                        <div className="rating">
+                          {[...Array(5)].map((_, i) => (
+                            <i
+                              key={i}
+                              className={
+                                i < (packageItem.review || 0)
+                                  ? "fas fa-star"
+                                  : "far fa-star"
+                              }
+                            />
+                          ))}
                         </div>
-                        <h3>
-                          <Link href={`/holiday-details/${packageItem.id}`}>
-                            {packageItem.name}
-                          </Link>
-                        </h3>
-                      </PackageHeader>
-
-                      <PackageDescription>
-                        {packageItem.description}
-                      </PackageDescription>
-
-                      <PackageMeta>
-                        <div className="meta-item">
-                          <i className="fal fa-tag" />
-                          <span>{packageItem.category.name}</span>
+                        <div className="wishlist-area">
+                          <CardWishlistButton
+                            itemId={packageItem.id}
+                            itemType="Package"
+                            size="small"
+                            style={{
+                              position: "absolute",
+                              top: "16px",
+                              right: "16px",
+                              zIndex: 10,
+                            }}
+                          />
                         </div>
-                        <div className="meta-item">
-                          <i className="fal fa-hotel" />
-                          <span>{packageItem.hotels} Hotels</span>
-                        </div>
-                        <div className="meta-item">
-                          <i className="fal fa-clock" />
-                          <span>{packageItem.duration} Days</span>
-                        </div>
-                      </PackageMeta>
+                      </PackageImage>
 
-                      <FeaturesList>
-                        {packageItem.features.slice(0, viewMode === 'grid' ? 3 : 5).map((feature) => {
-                          const iconClass = activityIcons[feature.name.toLowerCase()] || "fas fa-check";
-                          return (
-                            <div key={feature.id} className="feature-tag">
-                              <i className={iconClass} />
-                              <span>{feature.name}</span>
+                      <PackageContent>
+                        <PackageHeader>
+                          <div className="location">
+                            <i className="fal fa-map-marker-alt" />
+                            <span>
+                              {capitalizeFirstLetter(packageItem.location.name)}
+                            </span>
+                          </div>
+                          <h3>
+                            <Link href={`/holiday-details/${packageItem.id}`}>
+                              {packageItem.name}
+                            </Link>
+                          </h3>
+                        </PackageHeader>
+
+                        <PackageDescription>
+                          {packageItem.description}
+                        </PackageDescription>
+
+                        <PackageMeta>
+                          <div className="meta-item">
+                            <i className="fal fa-tag" />
+                            <span>{packageItem.category.name}</span>
+                          </div>
+                          <div className="meta-item">
+                            <i className="fal fa-hotel" />
+                            <span>{packageItem.hotels} Hotels</span>
+                          </div>
+                          <div className="meta-item">
+                            <i className="fal fa-clock" />
+                            <span>{packageItem.duration} Days</span>
+                          </div>
+                        </PackageMeta>
+
+                        <FeaturesList>
+                          {packageItem.features
+                            .slice(0, viewMode === "grid" ? 3 : 5)
+                            .map((feature) => {
+                              const iconClass =
+                                activityIcons[feature.name.toLowerCase()] ||
+                                "fas fa-check";
+                              return (
+                                <div key={feature.id} className="feature-tag">
+                                  <i className={iconClass} />
+                                  <span>{feature.name}</span>
+                                </div>
+                              );
+                            })}
+                          {packageItem.features.length >
+                            (viewMode === "grid" ? 3 : 5) && (
+                            <div className="feature-tag">
+                              <span>
+                                +
+                                {packageItem.features.length -
+                                  (viewMode === "grid" ? 3 : 5)}{" "}
+                                more
+                              </span>
                             </div>
-                          );
-                        })}
-                        {packageItem.features.length > (viewMode === 'grid' ? 3 : 5) && (
-                          <div className="feature-tag">
-                            <span>+{packageItem.features.length - (viewMode === 'grid' ? 3 : 5)} more</span>
-                          </div>
-                        )}
-                      </FeaturesList>
+                          )}
+                        </FeaturesList>
 
-                      <PackageFooter>
-                        <PriceSection>
-                          <div className="price">
-                            <span className="currency">{packageItem.currency} </span>
-                            {packageItem.price}
+                        <PackageFooter>
+                          <PriceSection>
+                            <div className="price">
+                              {formatPrice(convertedPrice)}
+                            </div>
+                            <div className="per-person">per person</div>
+                          </PriceSection>
+
+                          <div style={{ display: "flex", gap: "8px" }}>
+                            <ActionButton
+                              className="view-details"
+                              onClick={() =>
+                                router.push(
+                                  `/holiday-details/${packageItem.id}`
+                                )
+                              }
+                            >
+                              <i className="fal fa-eye" />
+                              View Details
+                            </ActionButton>
+                            <ActionButton
+                              className={`book-now ${
+                                animatingId === packageItem.id ? "animate" : ""
+                              }`}
+                              onClick={() => handleBookNow(packageItem)}
+                            >
+                              <i className="fal fa-calendar-check" />
+                              Book Now
+                            </ActionButton>
                           </div>
-                          <div className="per-person">per person</div>
-                        </PriceSection>
-                        
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          <ActionButton 
-                            className="view-details"
-                            onClick={() => router.push(`/holiday-details/${packageItem.id}`)}
-                          >
-                            <i className="fal fa-eye" />
-                            View Details
-                          </ActionButton>
-                          <ActionButton
-                            className={`book-now ${animatingId === packageItem.id ? 'animate' : ''}`}
-                            onClick={() => handleBookNow(packageItem)}
-                          >
-                            <i className="fal fa-calendar-check" />
-                            Book Now
-                          </ActionButton>
-                        </div>
-                      </PackageFooter>
-                    </PackageContent>
-                  </PackageCard>
-                ))}
+                        </PackageFooter>
+                      </PackageContent>
+                    </PackageCard>
+                  );
+                })}
               </PackagesList>
             )}
           </ContentSection>

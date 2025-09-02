@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 import { jwtDecode } from "jwt-decode";
 import Swal from "sweetalert2";
 import { signInWithPopup } from "firebase/auth";
-import { auth, provider } from "@/utility/firebase";
+import { auth, googleProvider, appleProvider } from "@/utility/firebase";
 
 import { authApi, userApi } from "@/common/api";
 import { useRouter } from "next/navigation";
@@ -120,7 +120,7 @@ export const AuthProvider = ({ children }) => {
 
   const googleLogin = async () => {
     try {
-      const result = await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, googleProvider);
       const idToken = await result.user.getIdToken();
       const response = await authApi.googleSignIn(idToken);
 
@@ -138,6 +138,30 @@ export const AuthProvider = ({ children }) => {
       toast.error("Google Sign-In failed");
     }
   };
+
+const appleLogin = async () => {
+  try {
+    const result = await signInWithPopup(auth, appleProvider);
+    const idToken = await result.user.getIdToken();
+
+    const response = await authApi.appleSignIn(idToken);
+
+    if (response.status === "success") {
+      localStorage.setItem("access_token", response.access_token);
+      localStorage.setItem("refresh_token", response.refresh_token);
+      await checkLoggedIn();
+      router.push("/dashboard");
+      toast.success("Apple Sign-In successful");
+    } else {
+      throw new Error("Apple Sign-In failed");
+    }
+
+  } catch (err) {
+    console.error("Apple Login Failed:", err);
+    toast.error("Apple Sign-In failed");
+  }
+};
+
   const resetPassword = async (data) => {
     try {
       const response = await authApi.resetPassword(data);
@@ -201,6 +225,7 @@ export const AuthProvider = ({ children }) => {
         resendVerification,
         verifyEmail,
         googleLogin,
+        appleLogin,
       }}
     >
       {children}

@@ -2,7 +2,7 @@ export const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 export const API_ENDPOINTS = {
   AUTH: {
-    LOGIN: `/user-service/api/auth/login`,
+    LOGIN: `/user-service/api/admin/auth/login`,
     REGISTER: `/user-service/api/auth/register`,
     LOGOUT: `/user-service/api/auth/logout`,
     FORGOT_PASSWORD: `/user-service/api/auth/forgot-password`,

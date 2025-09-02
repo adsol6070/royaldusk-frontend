@@ -45,6 +45,7 @@ const TourForm = () => {
     formData.append("slug", data.slug);
     formData.append("description", data.description);
     formData.append("price", data.price);
+    formData.append("duration", data.duration);
     formData.append("locationId", data.locationId);
     formData.append("categoryID", data.categoryID);
     formData.append("tourAvailability", data.tourAvailability);
@@ -67,6 +68,7 @@ const TourForm = () => {
       slug: "",
       description: "",
       price: "",
+      duration: "",
       tourAvailability: "",
       locationId: "",
       categoryID: "",
@@ -94,6 +96,7 @@ const TourForm = () => {
         slug: tour.slug || "",
         description: tour.description || "",
         price: tour.price || "",
+        duration: tour.duration || "",
         tourAvailability: tour.tourAvailability || "",
         categoryID: tour.categoryId || "",
         locationId: tour.locationId || "",
@@ -152,7 +155,7 @@ const TourForm = () => {
           </Form.Group>
 
           <Row>
-            <Col md={6}>
+            <Col md={4}>
               <Form.Group className="mb-3">
                 <Form.Label>Price (AED)</Form.Label>
                 <Form.Control
@@ -167,7 +170,25 @@ const TourForm = () => {
               </Form.Group>
             </Col>
 
-            <Col md={6}>
+            <Col md={4}>
+              <Form.Group className="mb-3">
+                <Form.Label>Duration (e.g. 5 hours)</Form.Label>
+                <Form.Control
+                  type="number"
+                  placeholder="Enter duration"
+                  {...register("duration", {
+                    required: "Duration is required",
+                  })}
+                />
+                {errors.duration && (
+                  <small className="text-danger">
+                    {errors.duration.message as string}
+                  </small>
+                )}
+              </Form.Group>
+            </Col>
+
+            <Col md={4}>
               <Form.Group className="mb-3">
                 <Form.Label>Availability</Form.Label>
                 <Form.Control
@@ -190,8 +211,8 @@ const TourForm = () => {
             </Col>
           </Row>
           <Row>
-              <Col md={6}>
-               <Form.Group className="mb-3">
+            <Col md={4}>
+              <Form.Group className="mb-3">
                 <Form.Label>Location</Form.Label>
                 <Controller
                   name="locationId"
@@ -226,59 +247,62 @@ const TourForm = () => {
                 )}
               </Form.Group>
             </Col>
-            <Col md={6}>
-                <Form.Group className="mb-3">
-                          <Form.Label>Category</Form.Label>
-                          <Controller
-                            name="categoryID"
-                            control={control}
-                            rules={{ required: "Category is required" }}
-                            render={({ field }) => (
-                              <Select
-                                {...field}
-                                options={categories.map((category) => ({
-                                  value: category.id,
-                                  label: capitalizeFirstLetter(category.name),
-                                }))}
-                                value={
-                                  categories
-                                    .map((category) => ({
-                                      value: category.id,
-                                      label: capitalizeFirstLetter(category.name),
-                                    }))
-                                    .find((option) => option.value === field.value) ||
-                                  null
-                                }
-                                onChange={(selectedOption) =>
-                                  field.onChange(selectedOption?.value)
-                                }
-                              />
-                            )}
-                          />
-                          {errors.categoryID && (
-                            <small className="text-danger">
-                              {errors.categoryID.message as string}
-                            </small>
-                          )}
-                        </Form.Group>
-
+            <Col md={4}>
+              <Form.Group className="mb-3">
+                <Form.Label>Category</Form.Label>
+                <Controller
+                  name="categoryID"
+                  control={control}
+                  rules={{ required: "Category is required" }}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      options={categories.map((category) => ({
+                        value: category.id,
+                        label: capitalizeFirstLetter(category.name),
+                      }))}
+                      value={
+                        categories
+                          .map((category) => ({
+                            value: category.id,
+                            label: capitalizeFirstLetter(category.name),
+                          }))
+                          .find((option) => option.value === field.value) ||
+                        null
+                      }
+                      onChange={(selectedOption) =>
+                        field.onChange(selectedOption?.value)
+                      }
+                    />
+                  )}
+                />
+                {errors.categoryID && (
+                  <small className="text-danger">
+                    {errors.categoryID.message as string}
+                  </small>
+                )}
+              </Form.Group>
+            </Col>
+            <Col md={4}>
+              <Form.Group className="mb-3">
+                <Form.Label>Tour Tag</Form.Label>
+                <Controller
+                  name="tag"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      options={tagOptions}
+                      value={tagOptions.find(
+                        (opt) => opt.value === field.value
+                      )}
+                      onChange={(val) => field.onChange(val?.value)}
+                    />
+                  )}
+                />
+              </Form.Group>
             </Col>
           </Row>
-          <Form.Group className="mb-3">
-            <Form.Label>Tour Tag</Form.Label>
-            <Controller
-              name="tag"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  {...field}
-                  options={tagOptions}
-                  value={tagOptions.find((opt) => opt.value === field.value)}
-                  onChange={(val) => field.onChange(val?.value)}
-                />
-              )}
-            />
-          </Form.Group>
 
           <Form.Group className="mb-3">
             <Form.Label>Tour Image</Form.Label>

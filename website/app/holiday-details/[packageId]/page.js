@@ -11,6 +11,8 @@ import SkeletonLoader from "@/components/SkeletonLoader";
 import { activityIcons } from "@/utility/activityIcons";
 import { useRouter } from "next/navigation";
 import capitalizeFirstLetter from "@/utility/capitalizeFirstLetter";
+import { useCurrency } from "@/common/context/CurrencyContext";
+import { CardWishlistButton } from "@/components/wishlistButton";
 
 const bookNowAnimation = keyframes`
   0% { transform: scale(1); }
@@ -88,6 +90,35 @@ const Breadcrumb = styled.nav`
 
   .separator {
     color: #fed7aa;
+  }
+`;
+
+const CurrencySelector = styled.div`
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .currency-label {
+    font-size: 14px;
+    color: #64748b;
+    font-weight: 500;
+  }
+
+  select {
+    padding: 8px 12px;
+    border: 1px solid #fed7aa;
+    border-radius: 6px;
+    font-size: 14px;
+    background: white;
+    color: #374151;
+    min-width: 120px;
+
+    &:focus {
+      outline: none;
+      border-color: #f8853d;
+      box-shadow: 0 0 0 2px rgba(248, 133, 61, 0.1);
+    }
   }
 `;
 
@@ -170,6 +201,12 @@ const HeroImage = styled.div`
       font-size: 12px;
       margin-left: 4px;
     }
+  }
+
+  .wishlist-area {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
   }
 `;
 
@@ -513,17 +550,31 @@ const SidebarCard = styled.div`
       font-weight: 700;
       color: #1e293b;
       margin-bottom: 4px;
+    }
 
-      .currency {
-        font-size: 16px;
-        color: #64748b;
-        font-weight: 500;
+    .original-price {
+      font-size: 12px;
+      color: #64748b;
+      margin-bottom: 4px;
+
+      .base-currency {
+        text-decoration: line-through;
+        opacity: 0.6;
       }
     }
 
     .per-person {
       font-size: 13px;
       color: #64748b;
+    }
+
+    .currency-note {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid #fed7aa;
+      font-style: italic;
     }
   }
 
@@ -546,19 +597,19 @@ const ActionButton = styled.button`
   cursor: pointer;
   transition: all 0.2s ease;
   border: none;
-  
+
   &.book-now {
     background: linear-gradient(135deg, #f8853d 0%, #e67428 100%);
     color: white;
-    
-    &:hover { 
+
+    &:hover {
       background: linear-gradient(135deg, #e67428 0%, #d65e1f 100%);
       transform: translateY(-1px);
       box-shadow: 0 8px 25px rgba(248, 133, 61, 0.3);
     }
-    
-    &.animate { 
-      animation: ${bookNowAnimation} 0.5s ease; 
+
+    &.animate {
+      animation: ${bookNowAnimation} 0.5s ease;
     }
   }
 
@@ -650,6 +701,25 @@ const Page = ({ params }) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
+  const {
+    selectedCurrency,
+    changeCurrency,
+    convertPrice,
+    formatPrice,
+    getCurrencyInfo,
+    baseCurrency,
+  } = useCurrency();
+
+  // Available currencies
+  const availableCurrencies = [
+    { code: "AED", name: "UAE Dirham" },
+    { code: "USD", name: "US Dollar" },
+    { code: "EUR", name: "Euro" },
+    { code: "GBP", name: "British Pound" },
+    { code: "INR", name: "Indian Rupee" },
+    { code: "SAR", name: "Saudi Riyal" },
+  ];
+
   useEffect(() => {
     async function fetchPackageDetail(packageId) {
       if (packageId) {
@@ -670,19 +740,23 @@ const Page = ({ params }) => {
     fetchPackageDetail(packageId);
   }, [packageId]);
 
-    const handleBookNow = (packageItem) => {
-      setAnimatingId(packageItem.id);
-      
-      // Navigate to booking page with package details
-      const bookingUrl = `/booking?id=${packageItem.id}&type=package`;
-      router.push(bookingUrl);
-      
-      // Show success message
-      toast.success("Redirecting to booking page...");
-      
-      // Clear animation after delay
-      setTimeout(() => setAnimatingId(null), 500);
-    };
+  const handleBookNow = (packageItem) => {
+    setAnimatingId(packageItem.id);
+
+    // Navigate to booking page with package details
+    const bookingUrl = `/booking?id=${packageItem.id}&type=package`;
+    router.push(bookingUrl);
+
+    // Show success message
+    toast.success("Redirecting to booking page...");
+
+    // Clear animation after delay
+    setTimeout(() => setAnimatingId(null), 500);
+  };
+
+  const handleCurrencyChange = (newCurrency) => {
+    changeCurrency(newCurrency);
+  };
 
   if (loading) {
     return (
@@ -731,14 +805,21 @@ const Page = ({ params }) => {
     );
   }
 
+  const convertedPrice = convertPrice(
+    packageDetail.price,
+    baseCurrency,
+    selectedCurrency
+  );
+  const showOriginalPrice = selectedCurrency !== baseCurrency;
+
   return (
     <ReveloLayout>
-     <Modal
-      isOpen={showModal}
-      packageId={packageDetail?.id}
-      packageDetail={packageDetail} // Add this line
-      onClose={() => setShowModal(false)}
-    />
+      <Modal
+        isOpen={showModal}
+        packageId={packageDetail?.id}
+        packageDetail={packageDetail}
+        onClose={() => setShowModal(false)}
+      />
       <PlatformContainer>
         <HeaderSection>
           <HeaderContainer>
@@ -763,6 +844,20 @@ const Page = ({ params }) => {
               <span className="separator">/</span>
               <div className="breadcrumb-item active">{packageDetail.name}</div>
             </Breadcrumb>
+
+            <CurrencySelector>
+              <span className="currency-label">Currency:</span>
+              <select
+                value={selectedCurrency}
+                onChange={(e) => handleCurrencyChange(e.target.value)}
+              >
+                {availableCurrencies.map((currency) => (
+                  <option key={currency.code} value={currency.code}>
+                    {getCurrencyInfo(currency.code).symbol} {currency.name}
+                  </option>
+                ))}
+              </select>
+            </CurrencySelector>
           </HeaderContainer>
         </HeaderSection>
 
@@ -788,6 +883,19 @@ const Page = ({ params }) => {
                     ))}
                   </div>
                   <span className="count">({packageDetail.review})</span>
+                </div>
+                <div className="wishlist-area">
+                  <CardWishlistButton
+                    itemId={packageId}
+                    itemType="Package"
+                    size="medium"
+                    style={{
+                      position: "absolute",
+                      top: "16px",
+                      right: "16px",
+                      zIndex: 10,
+                    }}
+                  />
                 </div>
               </HeroImage>
               <HeroContent>
@@ -998,11 +1106,22 @@ const Page = ({ params }) => {
 
             <div className="price-section">
               <div className="price-label">Starting from</div>
-              <div className="price">
-                <span className="currency">{packageDetail.currency} </span>
-                {packageDetail.price}
-              </div>
+              <div className="price">{formatPrice(convertedPrice)}</div>
+              {showOriginalPrice && (
+                <div className="original-price">
+                  Original:{" "}
+                  <span className="base-currency">
+                    {getCurrencyInfo(baseCurrency).symbol} {packageDetail.price}
+                  </span>
+                </div>
+              )}
               <div className="per-person">per person</div>
+              {selectedCurrency !== baseCurrency && (
+                <div className="currency-note">
+                  Prices converted from {baseCurrency} and may vary based on
+                  current exchange rates
+                </div>
+              )}
             </div>
 
             <div className="action-buttons">

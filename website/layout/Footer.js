@@ -464,9 +464,6 @@ const Footer = ({ footer, insta }) => {
                 <Link href="/holidays">Browse Packages</Link>
               </li>
               <li>
-                <Link href="/cart">My Cart</Link>
-              </li>
-              <li>
                 <Link href="/dashboard">Dashboard</Link>
               </li>
               <li>
@@ -488,7 +485,7 @@ const Footer = ({ footer, insta }) => {
               {locations.length > 0 ? (
                 locations.slice(0, 6).map((loc) => (
                   <li key={loc.id}>
-                    <Link href={`/holidays-location/${loc.id}`}>
+                    <Link href={`/holidays`}>
                       {capitalizeFirstLetter(loc.name)}
                     </Link>
                   </li>
@@ -576,7 +573,7 @@ const Footer = ({ footer, insta }) => {
 
         <FooterBottom>
           <Copyright>
-            © 2024 <span className="company-name">Royal Dusk Tours - FZCO</span>
+            © 2025-26 <span className="company-name">Royal Dusk Tours - FZCO</span>
             . All rights reserved.
           </Copyright>
           <LegalLinks>

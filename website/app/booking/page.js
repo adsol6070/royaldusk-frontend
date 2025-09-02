@@ -13,8 +13,8 @@ import { getNationalities } from "@/utility/getNationalities";
 import { toast } from "react-hot-toast";
 import Link from "next/link";
 import { useAuth } from "@/common/context/AuthContext";
-import { useCurrency } from "@/common/context/CurrencyContext"; // Import currency context
-import { bookingApi, paymentApi, packageApi, tourApi } from "@/common/api";
+import { useCurrency } from "@/common/context/CurrencyContext";
+import { paymentApi, packageApi, tourApi } from "@/common/api";
 import { loadStripe } from "@stripe/stripe-js";
 import { activityIcons } from "@/utility/activityIcons";
 import capitalizeFirstLetter from "@/utility/capitalizeFirstLetter";

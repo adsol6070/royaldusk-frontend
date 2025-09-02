@@ -4,6 +4,7 @@ export interface Tour {
   slug: string;
   description: string;
   price: string;
+  duration: number; 
   tag: string;
   locationId: string;
   location: {
@@ -27,6 +28,7 @@ export interface TourPayload {
   description: string;
   price: string;
   tourAvailability: string;
+  duration: string;
   tag: string;
   locationId: string;
   categoryID: string;

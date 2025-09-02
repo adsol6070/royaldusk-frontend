@@ -14,7 +14,8 @@ import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import styled, { keyframes } from "styled-components";
 import capitalizeFirstLetter from "@/utility/capitalizeFirstLetter";
-import { useCurrency } from "@/common/context/CurrencyContext"; // Import currency context
+import { useCurrency } from "@/common/context/CurrencyContext";
+import { CardWishlistButton } from "@/components/wishlistButton";
 
 const bookNowAnimation = keyframes`
   0% { transform: scale(1); }
@@ -647,6 +648,11 @@ const PackageCard = styled.div`
       font-weight: 600;
       color: white;
     }
+    .wishlist-area {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+    }
   }
 
   .content {
@@ -739,7 +745,7 @@ const PackageCard = styled.div`
         padding: 4px 8px;
         border-radius: 8px;
         font-weight: 500;
-        
+
         i {
           margin-right: 3px;
           color: #059669;
@@ -853,6 +859,11 @@ const TourCard = styled.div`
       font-size: 11px;
       font-weight: 600;
       color: white;
+    }
+    .wishlist-area {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
     }
   }
 
@@ -983,18 +994,18 @@ const ActionButton = styled.button`
   cursor: pointer;
   font-size: 12px;
   transition: all 0.3s ease;
-   &.book-now {
+  &.book-now {
     background: linear-gradient(135deg, #f8853d 0%, #e67428 100%);
     color: white;
-    
-    &:hover { 
+
+    &:hover {
       background: linear-gradient(135deg, #e67428 0%, #d65e1f 100%);
       transform: translateY(-1px);
       box-shadow: 0 8px 25px rgba(248, 133, 61, 0.3);
     }
-    
-    &.animate { 
-      animation: ${bookNowAnimation} 0.5s ease; 
+
+    &.animate {
+      animation: ${bookNowAnimation} 0.5s ease;
     }
   }
 
@@ -1017,22 +1028,22 @@ const PopularDestinations = styled.section`
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 20px;
     margin-top: 32px;
-    
+
     /* Ensure maximum 4 columns and proper centering */
     @media (min-width: 1200px) {
       grid-template-columns: repeat(4, 1fr);
       max-width: 1200px;
       margin: 32px auto 0;
     }
-    
+
     @media (max-width: 1199px) and (min-width: 900px) {
       grid-template-columns: repeat(3, 1fr);
     }
-    
+
     @media (max-width: 899px) and (min-width: 600px) {
       grid-template-columns: repeat(2, 1fr);
     }
-    
+
     @media (max-width: 599px) {
       grid-template-columns: 1fr;
     }
@@ -1116,27 +1127,23 @@ const PopularDestinations = styled.section`
 
 // Helper function to safely handle location display
 const getLocationDisplay = (location) => {
-  if (!location) return '';
-  
-  if (typeof location === 'string') {
+  if (!location) return "";
+
+  if (typeof location === "string") {
     return capitalizeFirstLetter(location);
   }
-  
-  if (typeof location === 'object' && location.name) {
+
+  if (typeof location === "object" && location.name) {
     return capitalizeFirstLetter(location.name);
   }
-  
+
   return String(location);
 };
 
 const HomePage = () => {
   // Import currency context
-  const { 
-    selectedCurrency, 
-    convertPrice, 
-    formatPrice, 
-    getCurrencyInfo 
-  } = useCurrency();
+  const { selectedCurrency, convertPrice, formatPrice, getCurrencyInfo } =
+    useCurrency();
 
   // Separate state for packages and tours
   const [packagesData, setPackagesData] = useState({
@@ -1144,15 +1151,15 @@ const HomePage = () => {
     locations: [],
     categories: [],
     loading: false,
-    loaded: false
+    loaded: false,
   });
-  
+
   const [toursData, setToursData] = useState({
     items: [],
     locations: [],
     categories: [],
     loading: false,
-    loaded: false
+    loaded: false,
   });
 
   const [animatingId, setAnimatingId] = useState(null);
@@ -1166,9 +1173,9 @@ const HomePage = () => {
   // Function to fetch packages data
   const fetchPackagesData = useCallback(async () => {
     if (packagesData.loaded && !packagesData.loading) return;
-    
-    setPackagesData(prev => ({ ...prev, loading: true }));
-    
+
+    setPackagesData((prev) => ({ ...prev, loading: true }));
+
     try {
       const response = await packageApi.getAllPackages();
       const availablePackages = response.data.filter(
@@ -1177,12 +1184,15 @@ const HomePage = () => {
 
       // Extract unique locations from packages
       const packageLocations = availablePackages
-        .filter(pkg => pkg.location)
-        .map(pkg => pkg.location)
+        .filter((pkg) => pkg.location)
+        .map((pkg) => pkg.location)
         .reduce((acc, location) => {
-          const existingLocation = acc.find(loc => 
-            (loc.id && location.id && loc.id === location.id) ||
-            (loc.name && location.name && loc.name.toLowerCase() === location.name.toLowerCase())
+          const existingLocation = acc.find(
+            (loc) =>
+              (loc.id && location.id && loc.id === location.id) ||
+              (loc.name &&
+                location.name &&
+                loc.name.toLowerCase() === location.name.toLowerCase())
           );
           if (!existingLocation) {
             acc.push(location);
@@ -1192,12 +1202,13 @@ const HomePage = () => {
 
       // Extract unique categories from packages
       const packageCategories = availablePackages
-        .filter(pkg => pkg.category)
-        .map(pkg => pkg.category)
+        .filter((pkg) => pkg.category)
+        .map((pkg) => pkg.category)
         .reduce((acc, category) => {
-          const existingCategory = acc.find(cat => 
-            cat.id === category.id || 
-            cat.name.toLowerCase() === category.name.toLowerCase()
+          const existingCategory = acc.find(
+            (cat) =>
+              cat.id === category.id ||
+              cat.name.toLowerCase() === category.name.toLowerCase()
           );
           if (!existingCategory) {
             acc.push(category);
@@ -1210,25 +1221,24 @@ const HomePage = () => {
         locations: packageLocations,
         categories: packageCategories,
         loading: false,
-        loaded: true
+        loaded: true,
       });
 
-      console.log('Packages loaded:', availablePackages.length);
-      console.log('Package locations:', packageLocations.length);
-      console.log('Package categories:', packageCategories.length);
-      
+      console.log("Packages loaded:", availablePackages.length);
+      console.log("Package locations:", packageLocations.length);
+      console.log("Package categories:", packageCategories.length);
     } catch (error) {
       console.error("Failed to load packages", error);
-      setPackagesData(prev => ({ ...prev, loading: false, loaded: true }));
+      setPackagesData((prev) => ({ ...prev, loading: false, loaded: true }));
     }
   }, [packagesData.loaded, packagesData.loading]);
 
   // Function to fetch tours data
   const fetchToursData = useCallback(async () => {
     if (toursData.loaded && !toursData.loading) return;
-    
-    setToursData(prev => ({ ...prev, loading: true }));
-    
+
+    setToursData((prev) => ({ ...prev, loading: true }));
+
     try {
       const response = await tourApi.getAllTours();
       const availableTours = response.data.filter(
@@ -1237,12 +1247,15 @@ const HomePage = () => {
 
       // Extract unique locations from tours
       const tourLocations = availableTours
-        .filter(tour => tour.location)
-        .map(tour => tour.location)
+        .filter((tour) => tour.location)
+        .map((tour) => tour.location)
         .reduce((acc, location) => {
-          const existingLocation = acc.find(loc => 
-            (loc.id && location.id && loc.id === location.id) ||
-            (loc.name && location.name && loc.name.toLowerCase() === location.name.toLowerCase())
+          const existingLocation = acc.find(
+            (loc) =>
+              (loc.id && location.id && loc.id === location.id) ||
+              (loc.name &&
+                location.name &&
+                loc.name.toLowerCase() === location.name.toLowerCase())
           );
           if (!existingLocation) {
             acc.push(location);
@@ -1252,12 +1265,13 @@ const HomePage = () => {
 
       // Extract unique categories from tours
       const tourCategories = availableTours
-        .filter(tour => tour.category)
-        .map(tour => tour.category)
+        .filter((tour) => tour.category)
+        .map((tour) => tour.category)
         .reduce((acc, category) => {
-          const existingCategory = acc.find(cat => 
-            cat.id === category.id || 
-            cat.name.toLowerCase() === category.name.toLowerCase()
+          const existingCategory = acc.find(
+            (cat) =>
+              cat.id === category.id ||
+              cat.name.toLowerCase() === category.name.toLowerCase()
           );
           if (!existingCategory) {
             acc.push(category);
@@ -1270,16 +1284,15 @@ const HomePage = () => {
         locations: tourLocations,
         categories: tourCategories,
         loading: false,
-        loaded: true
+        loaded: true,
       });
 
-      console.log('Tours loaded:', availableTours.length);
-      console.log('Tour locations:', tourLocations.length);
-      console.log('Tour categories:', tourCategories.length);
-      
+      console.log("Tours loaded:", availableTours.length);
+      console.log("Tour locations:", tourLocations.length);
+      console.log("Tour categories:", tourCategories.length);
     } catch (error) {
       console.error("Failed to load tours", error);
-      setToursData(prev => ({ ...prev, loading: false, loaded: true }));
+      setToursData((prev) => ({ ...prev, loading: false, loaded: true }));
     }
   }, [toursData.loaded, toursData.loading]);
 
@@ -1301,7 +1314,7 @@ const HomePage = () => {
         if (!packagesData.loaded && !packagesData.loading) {
           fetchPackagesData();
         }
-        // Load tours data for count  
+        // Load tours data for count
         if (!toursData.loaded && !toursData.loading) {
           fetchToursData();
         }
@@ -1317,48 +1330,48 @@ const HomePage = () => {
   useEffect(() => {
     setSearchResults([]);
     setShowSearchResults(false);
-    setSearchQuery('');
-    setActiveCategory('all');
+    setSearchQuery("");
+    setActiveCategory("all");
   }, [activeTab]);
 
   // Add click outside handler to close search results
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (!event.target.closest('.search-field')) {
+      if (!event.target.closest(".search-field")) {
         setShowSearchResults(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
   const handleBookNow = (item) => {
     setAnimatingId(item.id);
-    
+
     // Navigate to booking page with item details
-    const itemType = activeTab === 'packages' ? 'package' : 'tour';
+    const itemType = activeTab === "packages" ? "package" : "tour";
     const bookingUrl = `/booking?id=${item.id}&type=${itemType}`;
     router.push(bookingUrl);
-    
+
     // Show success message
     toast.success("Redirecting to booking page...");
-    
+
     // Clear animation after delay
     setTimeout(() => setAnimatingId(null), 500);
   };
 
   const handleLocationClick = (location) => {
     if (location?.name) {
-      const route = activeTab === 'packages' ? '/holidays' : '/tours';
+      const route = activeTab === "packages" ? "/holidays" : "/tours";
       router.push(`${route}?location=${encodeURIComponent(location.name)}`);
     }
   };
 
   const handleSearch = () => {
-    const route = activeTab === 'packages' ? '/holidays' : '/tours';
+    const route = activeTab === "packages" ? "/holidays" : "/tours";
     if (searchQuery.trim()) {
       router.push(`${route}?search=${encodeURIComponent(searchQuery)}`);
     } else {
@@ -1370,22 +1383,33 @@ const HomePage = () => {
   // Dynamic search function
   const handleSearchInput = (value) => {
     setSearchQuery(value);
-    
+
     if (value.trim().length > 2) {
       const currentData = getCurrentData();
-      
-      const filtered = currentData.filter(item => {
+
+      const filtered = currentData.filter((item) => {
         const searchTerm = value.toLowerCase();
         const matchesName = item.name?.toLowerCase().includes(searchTerm);
-        const matchesLocation = 
-          (typeof item.location === 'string' && item.location.toLowerCase().includes(searchTerm)) ||
-          (typeof item.location === 'object' && item.location?.name?.toLowerCase().includes(searchTerm));
-        const matchesCategory = item.category?.name?.toLowerCase().includes(searchTerm);
-        const matchesDescription = item.description?.toLowerCase().includes(searchTerm);
-        
-        return matchesName || matchesLocation || matchesCategory || matchesDescription;
+        const matchesLocation =
+          (typeof item.location === "string" &&
+            item.location.toLowerCase().includes(searchTerm)) ||
+          (typeof item.location === "object" &&
+            item.location?.name?.toLowerCase().includes(searchTerm));
+        const matchesCategory = item.category?.name
+          ?.toLowerCase()
+          .includes(searchTerm);
+        const matchesDescription = item.description
+          ?.toLowerCase()
+          .includes(searchTerm);
+
+        return (
+          matchesName ||
+          matchesLocation ||
+          matchesCategory ||
+          matchesDescription
+        );
       });
-      
+
       setSearchResults(filtered.slice(0, 5)); // Show max 5 results
       setShowSearchResults(true);
     } else {
@@ -1400,51 +1424,59 @@ const HomePage = () => {
 
   // Get current data based on active tab
   const getCurrentData = () => {
-    const currentTabData = activeTab === 'packages' ? packagesData : toursData;
+    const currentTabData = activeTab === "packages" ? packagesData : toursData;
     let data = currentTabData.items;
-    
-    if (activeCategory !== 'all') {
-      data = data.filter(item => 
-        item.category?.name?.toLowerCase() === activeCategory.toLowerCase()
+
+    if (activeCategory !== "all") {
+      data = data.filter(
+        (item) =>
+          item.category?.name?.toLowerCase() === activeCategory.toLowerCase()
       );
     }
-    
+
     return data.slice(0, 8); // Show max 8 items on homepage
   };
 
   const getCurrentLocations = () => {
-    return activeTab === 'packages' ? packagesData.locations : toursData.locations;
+    return activeTab === "packages"
+      ? packagesData.locations
+      : toursData.locations;
   };
 
   const getCurrentCategories = () => {
-    return activeTab === 'packages' ? packagesData.categories : toursData.categories;
+    return activeTab === "packages"
+      ? packagesData.categories
+      : toursData.categories;
   };
 
   const isCurrentTabLoading = () => {
-    return activeTab === 'packages' ? packagesData.loading : toursData.loading;
+    return activeTab === "packages" ? packagesData.loading : toursData.loading;
   };
 
   const getCurrentRoute = () => {
-    return activeTab === 'packages' ? '/holidays' : '/tours';
+    return activeTab === "packages" ? "/holidays" : "/tours";
   };
 
   const getCurrentDetailRoute = (item) => {
-    return activeTab === 'packages' ? `/holiday-details/${item.id}` : `/tours-details/${item.id}`;
+    return activeTab === "packages"
+      ? `/holiday-details/${item.id}`
+      : `/tours-details/${item.id}`;
   };
 
   const getCurrentStats = () => {
-    const currentTabData = activeTab === 'packages' ? packagesData : toursData;
+    const currentTabData = activeTab === "packages" ? packagesData : toursData;
     return {
       items: currentTabData.items.length,
       locations: currentTabData.locations.length,
-      categories: currentTabData.categories.length
+      categories: currentTabData.categories.length,
     };
   };
 
   // Currency conversion helper for prices
   const convertItemPrice = (item) => {
     const basePrice = parseFloat(item.price);
-    const baseCurrency = activeTab === 'packages' ? (item.currency || 'AED') : 'AED';
+    const baseCurrency =
+      activeTab === "packages" ? item.currency || "AED" : "AED";
     return convertPrice(basePrice, baseCurrency);
   };
 
@@ -1460,11 +1492,13 @@ const HomePage = () => {
       id: "packages",
       icon: "fal fa-route",
       title: "Travel Packages",
-      description: "Complete tour packages with accommodation, meals, and guided experiences",
+      description:
+        "Complete tour packages with accommodation, meals, and guided experiences",
       available: true,
-      stats: { 
-        number: packagesData.items.length > 0 ? `${packagesData.items.length}+` : 0, 
-        label: "Packages" 
+      stats: {
+        number:
+          packagesData.items.length > 0 ? `${packagesData.items.length}+` : 0,
+        label: "Packages",
       },
     },
     {
@@ -1473,16 +1507,17 @@ const HomePage = () => {
       title: "Tours",
       description: "Exciting tours and activities for memorable experiences",
       available: true,
-      stats: { 
-        number: toursData.items.length > 0 ? `${toursData.items.length}+` : 0, 
-        label: "Tours" 
+      stats: {
+        number: toursData.items.length > 0 ? `${toursData.items.length}+` : 0,
+        label: "Tours",
       },
     },
     {
       id: "flights",
       icon: "fal fa-plane",
       title: "Flight Booking",
-      description: "Book domestic and international flights at competitive prices",
+      description:
+        "Book domestic and international flights at competitive prices",
       available: false,
       stats: { number: "Soon", label: "Airlines" },
     },
@@ -1499,35 +1534,44 @@ const HomePage = () => {
   // Dynamic popular destinations based on current tab data
   const getPopularDestinations = () => {
     const currentLocations = getCurrentLocations();
-    const currentData = activeTab === 'packages' ? packagesData.items : toursData.items;
-    
-    return currentLocations.slice(0, 4).map(location => {
-      // Count items for this location
-      const itemCount = currentData.filter(item => {
-        if (!item.location) return false;
-        
-        if (typeof item.location === 'string') {
-          return item.location.toLowerCase() === location.name?.toLowerCase();
-        }
-        
-        if (typeof item.location === 'object' && item.location.name) {
-          return item.location.name.toLowerCase() === location.name?.toLowerCase();
-        }
-        
-        return false;
-      }).length;
-      
-      const itemType = activeTab === 'packages' ? 'package' : 'tour';
-      const itemText = itemCount === 1 ? `1 ${itemType}` : `${itemCount} ${itemType}s`;
-      
-      return {
-        name: capitalizeFirstLetter(location.name || ''),
-        packages: itemCount === 0 ? `No ${itemType}s` : itemText,
-        image: location.imageUrl || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
-        location: location,
-        count: itemCount
-      };
-    }).filter(dest => dest.count > 0); // Only show destinations with actual items
+    const currentData =
+      activeTab === "packages" ? packagesData.items : toursData.items;
+
+    return currentLocations
+      .slice(0, 4)
+      .map((location) => {
+        // Count items for this location
+        const itemCount = currentData.filter((item) => {
+          if (!item.location) return false;
+
+          if (typeof item.location === "string") {
+            return item.location.toLowerCase() === location.name?.toLowerCase();
+          }
+
+          if (typeof item.location === "object" && item.location.name) {
+            return (
+              item.location.name.toLowerCase() === location.name?.toLowerCase()
+            );
+          }
+
+          return false;
+        }).length;
+
+        const itemType = activeTab === "packages" ? "package" : "tour";
+        const itemText =
+          itemCount === 1 ? `1 ${itemType}` : `${itemCount} ${itemType}s`;
+
+        return {
+          name: capitalizeFirstLetter(location.name || ""),
+          packages: itemCount === 0 ? `No ${itemType}s` : itemText,
+          image:
+            location.imageUrl ||
+            "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
+          location: location,
+          count: itemCount,
+        };
+      })
+      .filter((dest) => dest.count > 0); // Only show destinations with actual items
   };
 
   // Render Package Card with currency conversion
@@ -1535,19 +1579,19 @@ const HomePage = () => {
     <PackageCard key={pkg.id}>
       <div className="image">
         <Link href={getCurrentDetailRoute(pkg)}>
-          <img 
-            src={pkg.imageUrl || '/assets/images/destinations/default-tour.jpg'} 
+          <img
+            src={pkg.imageUrl || "/assets/images/destinations/default-tour.jpg"}
             alt={pkg.name}
             onError={(e) => {
-              e.target.src = '/assets/images/destinations/default-tour.jpg';
+              e.target.src = "/assets/images/destinations/default-tour.jpg";
             }}
           />
         </Link>
-        
+
         <div className="status-badge">
-          {pkg.availability === 'Available' ? 'Available' : pkg.availability}
+          {pkg.availability === "Available" ? "Available" : pkg.availability}
         </div>
-        
+
         {pkg.location?.name && (
           <div
             className="location-badge"
@@ -1560,14 +1604,23 @@ const HomePage = () => {
             {capitalizeFirstLetter(pkg.location.name)}
           </div>
         )}
-        
-        {pkg.tag && (
-          <div className="tag-badge">
-            {pkg.tag}
-          </div>
-        )}
+
+        {pkg.tag && <div className="tag-badge">{pkg.tag}</div>}
+        <div className="wishlist-area">
+          <CardWishlistButton
+            itemId={pkg.id}
+            itemType="Package"
+            size="small"
+            style={{
+              position: "absolute",
+              top: "16px",
+              right: "16px",
+              zIndex: 10,
+            }}
+          />
+        </div>
       </div>
-      
+
       <div className="content">
         <div className="item-meta">
           <div className="duration">
@@ -1585,9 +1638,7 @@ const HomePage = () => {
         </div>
 
         <h6>
-          <Link href={getCurrentDetailRoute(pkg)}>
-            {pkg.name}
-          </Link>
+          <Link href={getCurrentDetailRoute(pkg)}>{pkg.name}</Link>
         </h6>
 
         {pkg.category?.name && (
@@ -1599,14 +1650,15 @@ const HomePage = () => {
 
         <div className="footer">
           <span className="price">
-            <span className="currency">{selectedCurrency}</span> {formatItemPrice(pkg)}
+            <span className="currency">{selectedCurrency}</span>{" "}
+            {formatItemPrice(pkg)}
             <small>/person</small>
           </span>
-          
+
           <ActionButton
-            className={`book-now ${animatingId === pkg.id ? 'animate' : ''}`}
+            className={`book-now ${animatingId === pkg.id ? "animate" : ""}`}
             onClick={() => handleBookNow(pkg)}
-            disabled={pkg.availability !== 'Available'}
+            disabled={pkg.availability !== "Available"}
           >
             <i className="fal fa-calendar-check" />
             Book Now
@@ -1621,19 +1673,23 @@ const HomePage = () => {
     <TourCard key={tour.id}>
       <div className="image">
         <Link href={getCurrentDetailRoute(tour)}>
-          <img 
-            src={tour.imageUrl || '/assets/images/destinations/default-tour.jpg'} 
+          <img
+            src={
+              tour.imageUrl || "/assets/images/destinations/default-tour.jpg"
+            }
             alt={tour.name}
             onError={(e) => {
-              e.target.src = '/assets/images/destinations/default-tour.jpg';
+              e.target.src = "/assets/images/destinations/default-tour.jpg";
             }}
           />
         </Link>
-        
+
         <div className="status-badge">
-          {tour.tourAvailability === 'Available' ? 'Available' : tour.tourAvailability}
+          {tour.tourAvailability === "Available"
+            ? "Available"
+            : tour.tourAvailability}
         </div>
-        
+
         {tour.location?.name && (
           <div
             className="location-badge"
@@ -1646,14 +1702,23 @@ const HomePage = () => {
             {capitalizeFirstLetter(tour.location.name)}
           </div>
         )}
-        
-        {tour.tag && (
-          <div className="tag-badge">
-            {tour.tag}
-          </div>
-        )}
+
+        {tour.tag && <div className="tag-badge">{tour.tag}</div>}
+        <div className="wishlist-area">
+          <CardWishlistButton
+            itemId={tour.id}
+            itemType="Tour"
+            size="small"
+            style={{
+              position: "absolute",
+              top: "16px",
+              right: "16px",
+              zIndex: 10,
+            }}
+          />
+        </div>
       </div>
-      
+
       <div className="content">
         <div className="item-meta">
           <div className="rating">
@@ -1667,9 +1732,7 @@ const HomePage = () => {
         </div>
 
         <h6>
-          <Link href={getCurrentDetailRoute(tour)}>
-            {tour.name}
-          </Link>
+          <Link href={getCurrentDetailRoute(tour)}>{tour.name}</Link>
         </h6>
 
         {tour.category?.name && (
@@ -1681,14 +1744,15 @@ const HomePage = () => {
 
         <div className="footer">
           <span className="price">
-            <span className="currency">{selectedCurrency}</span> {formatItemPrice(tour)}
+            <span className="currency">{selectedCurrency}</span>{" "}
+            {formatItemPrice(tour)}
             <small>/person</small>
           </span>
-          
+
           <ActionButton
-            className={`book-now ${animatingId === tour.id ? 'animate' : ''}`}
+            className={`book-now ${animatingId === tour.id ? "animate" : ""}`}
             onClick={() => handleBookNow(tour)}
-            disabled={tour.tourAvailability !== 'Available'}
+            disabled={tour.tourAvailability !== "Available"}
           >
             <i className="fal fa-calendar-check" />
             Book Now
@@ -1707,7 +1771,7 @@ const HomePage = () => {
             <div className="hero-content">
               <h1>Royal Dusk Tours</h1>
               <p className="platform-description">
-                From curated travel packages to exciting tours and activities - 
+                From curated travel packages to exciting tours and activities -
                 we're building the ultimate travel experience platform.
               </p>
             </div>
@@ -1741,20 +1805,33 @@ const HomePage = () => {
               {(activeTab === "packages" || activeTab === "tours") && (
                 <div className="search-section">
                   <div className="search-grid">
-                    <div className="search-field" style={{ position: 'relative' }}>
+                    <div
+                      className="search-field"
+                      style={{ position: "relative" }}
+                    >
                       <label className="label">
-                        Search {activeTab === 'packages' ? 'destinations, packages, or experiences' : 'tours, activities, or destinations'}
+                        Search{" "}
+                        {activeTab === "packages"
+                          ? "destinations, packages, or experiences"
+                          : "tours, activities, or destinations"}
                       </label>
                       <input
                         type="text"
                         className="search-input"
-                        placeholder={`e.g. ${activeTab === 'packages' ? 'Dubai, Culture tours, Luxury holidays' : 'City tours, Adventure activities, Cultural experiences'}...`}
+                        placeholder={`e.g. ${
+                          activeTab === "packages"
+                            ? "Dubai, Culture tours, Luxury holidays"
+                            : "City tours, Adventure activities, Cultural experiences"
+                        }...`}
                         value={searchQuery}
                         onChange={(e) => handleSearchInput(e.target.value)}
                         onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-                        onFocus={() => searchQuery.trim().length > 2 && setShowSearchResults(true)}
+                        onFocus={() =>
+                          searchQuery.trim().length > 2 &&
+                          setShowSearchResults(true)
+                        }
                       />
-                      
+
                       {/* Dynamic Search Results with Currency */}
                       {showSearchResults && (
                         <div className="search-results">
@@ -1767,31 +1844,48 @@ const HomePage = () => {
                                   onClick={() => {
                                     router.push(getCurrentDetailRoute(item));
                                     setShowSearchResults(false);
-                                    setSearchQuery('');
+                                    setSearchQuery("");
                                   }}
                                 >
                                   <img
-                                    src={item.imageUrl || '/assets/images/destinations/default-tour.jpg'}
+                                    src={
+                                      item.imageUrl ||
+                                      "/assets/images/destinations/default-tour.jpg"
+                                    }
                                     alt={item.name}
                                     className="result-image"
                                     onError={(e) => {
-                                      e.target.src = '/assets/images/destinations/default-tour.jpg';
+                                      e.target.src =
+                                        "/assets/images/destinations/default-tour.jpg";
                                     }}
                                   />
                                   <div className="result-content">
-                                    <div className="result-name">{item.name}</div>
+                                    <div className="result-name">
+                                      {item.name}
+                                    </div>
                                     <div className="result-meta">
                                       {item.location && (
                                         <span className="location">
                                           <i className="fal fa-map-marker-alt" />
-                                          {typeof item.location === 'string' 
-                                            ? capitalizeFirstLetter(item.location)
-                                            : capitalizeFirstLetter(item.location.name || '')
-                                          }
+                                          {typeof item.location === "string"
+                                            ? capitalizeFirstLetter(
+                                                item.location
+                                              )
+                                            : capitalizeFirstLetter(
+                                                item.location.name || ""
+                                              )}
                                         </span>
                                       )}
                                       <span className="price">
-                                        {selectedCurrency} {formatPrice(convertPrice(parseFloat(item.price), activeTab === 'packages' ? (item.currency || 'AED') : 'AED'))}
+                                        {selectedCurrency}{" "}
+                                        {formatPrice(
+                                          convertPrice(
+                                            parseFloat(item.price),
+                                            activeTab === "packages"
+                                              ? item.currency || "AED"
+                                              : "AED"
+                                          )
+                                        )}
                                       </span>
                                     </div>
                                   </div>
@@ -1799,16 +1893,19 @@ const HomePage = () => {
                               ))}
                               <div
                                 className="search-result-item"
-                                style={{ 
-                                  background: '#f8f9fa', 
-                                  borderTop: '1px solid #e5e7eb',
-                                  justifyContent: 'center',
-                                  color: '#f8853d',
-                                  fontWeight: '500'
+                                style={{
+                                  background: "#f8f9fa",
+                                  borderTop: "1px solid #e5e7eb",
+                                  justifyContent: "center",
+                                  color: "#f8853d",
+                                  fontWeight: "500",
                                 }}
                                 onClick={handleSearch}
                               >
-                                <i className="fal fa-search" style={{ marginRight: '8px' }} />
+                                <i
+                                  className="fal fa-search"
+                                  style={{ marginRight: "8px" }}
+                                />
                                 View all results for "{searchQuery}"
                               </div>
                             </>
@@ -1822,7 +1919,7 @@ const HomePage = () => {
                     </div>
                     <button className="search-button" onClick={handleSearch}>
                       <i className="fal fa-search" />
-                      Search {activeTab === 'packages' ? 'Packages' : 'Tours'}
+                      Search {activeTab === "packages" ? "Packages" : "Tours"}
                     </button>
                   </div>
                 </div>
@@ -1935,59 +2032,98 @@ const HomePage = () => {
                 }}
               >
                 Discover our most sought-after travel destinations with
-                exclusive {activeTab === 'packages' ? 'packages' : 'tours'}
+                exclusive {activeTab === "packages" ? "packages" : "tours"}
               </p>
             </div>
 
             <div className="destinations-grid">
-              {isCurrentTabLoading() ? (
-                Array.from({ length: 4 }).map((_, idx) => (
-                  <SkeletonLoader
-                    key={idx}
-                    height="200px"
-                    width="100%"
-                    style={{ borderRadius: "16px" }}
-                  />
-                ))
-              ) : getPopularDestinations().length === 0 ? (
-                <div className="col-12 text-center py-5">
-                  <i
-                    className="fal fa-map-marked-alt"
-                    style={{
-                      fontSize: "3rem",
-                      color: "#d1d5db",
-                      marginBottom: "16px",
-                    }}
-                  />
-                  <h4 style={{ color: "#374151", marginBottom: "8px" }}>
-                    No Destinations Available
-                  </h4>
-                  <p style={{ color: "#64748b", margin: 0 }}>
-                    Check back soon for exciting new destinations!
-                  </p>
-                </div>
-              ) : (
-                getPopularDestinations().map((destination, index) => (
-                  <div
-                    key={index}
-                    className="destination-card"
-                    onClick={() => {
-                      const route = getCurrentRoute();
-                      router.push(`${route}?location=${encodeURIComponent(destination.name)}`);
-                    }}
-                  >
-                    <div
-                      className="background"
-                      style={{ backgroundImage: `url(${destination.image})` }}
+              {isCurrentTabLoading()
+                ? // Loading skeletons - show 4 skeleton boxes
+                  Array.from({ length: 4 }).map((_, idx) => (
+                    <SkeletonLoader
+                      key={idx}
+                      height="200px"
+                      width="100%"
+                      style={{ borderRadius: "16px" }}
                     />
-                    <div className="overlay" />
-                    <div className="content">
-                      <h5>{destination.name}</h5>
-                      <p>{destination.packages}</p>
+                  ))
+                : getPopularDestinations().length === 0
+                ? // Empty state - show 4 placeholder boxes instead of full width message
+                  Array.from({ length: 4 }).map((_, idx) => (
+                    <div
+                      key={idx}
+                      className="destination-card"
+                      style={{
+                        cursor: "default",
+                        opacity: 0.6,
+                        background: "#f8f9fa",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexDirection: "column",
+                        textAlign: "center",
+                        padding: "40px 20px",
+                      }}
+                    >
+                      <div
+                        className="overlay"
+                        style={{ background: "transparent" }}
+                      />
+                      <div
+                        className="content"
+                        style={{ position: "static", color: "#64748b" }}
+                      >
+                        <i
+                          className="fal fa-map-marked-alt"
+                          style={{
+                            fontSize: "2rem",
+                            color: "#d1d5db",
+                            marginBottom: "12px",
+                            display: "block",
+                          }}
+                        />
+                        <h5
+                          style={{
+                            color: "#374151",
+                            fontSize: "1rem",
+                            marginBottom: "4px",
+                          }}
+                        >
+                          No Destinations
+                        </h5>
+                        <p
+                          style={{ fontSize: "12px", opacity: 0.8, margin: 0 }}
+                        >
+                          Coming Soon
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))
-              )}
+                  ))
+                : // Actual destinations
+                  getPopularDestinations().map((destination, index) => (
+                    <div
+                      key={index}
+                      className="destination-card"
+                      onClick={() => {
+                        const route = getCurrentRoute();
+                        router.push(
+                          `${route}?location=${encodeURIComponent(
+                            destination.name
+                          )}`
+                        );
+                      }}
+                    >
+                      <div
+                        className="background"
+                        style={{ backgroundImage: `url(${destination.image})` }}
+                      />
+                      <div className="overlay" />
+                      <div className="content">
+                        <h5>{destination.name}</h5>
+                        <p>{destination.packages}</p>
+                      </div>
+                    </div>
+                  ))}
             </div>
           </div>
         </PopularDestinations>
@@ -1996,25 +2132,31 @@ const HomePage = () => {
         <FeaturedSection>
           <div className="container">
             <div className="section-header">
-              <h3>Featured {activeTab === 'packages' ? 'Packages' : 'Tours'}</h3>
+              <h3>
+                Featured {activeTab === "packages" ? "Packages" : "Tours"}
+              </h3>
               <Link href={getCurrentRoute()} className="view-all">
-                View All {activeTab === 'packages' ? 'Packages' : 'Tours'}
+                View All {activeTab === "packages" ? "Packages" : "Tours"}
                 <i className="fal fa-arrow-right" />
               </Link>
             </div>
 
             {/* Dynamic Category Filters */}
             <div className="filters">
-              <button 
-                className={`filter-btn ${activeCategory === 'all' ? 'active' : ''}`}
-                onClick={() => handleCategoryFilter('all')}
+              <button
+                className={`filter-btn ${
+                  activeCategory === "all" ? "active" : ""
+                }`}
+                onClick={() => handleCategoryFilter("all")}
               >
-                All {activeTab === 'packages' ? 'Packages' : 'Tours'}
+                All {activeTab === "packages" ? "Packages" : "Tours"}
               </button>
               {getCurrentCategories().map((category) => (
-                <button 
+                <button
                   key={category.id}
-                  className={`filter-btn ${activeCategory === category.name ? 'active' : ''}`}
+                  className={`filter-btn ${
+                    activeCategory === category.name ? "active" : ""
+                  }`}
                   onClick={() => handleCategoryFilter(category.name)}
                 >
                   {capitalizeFirstLetter(category.name)}
@@ -2044,20 +2186,30 @@ const HomePage = () => {
                     }}
                   />
                   <h4 style={{ color: "#374151", marginBottom: "8px" }}>
-                    No {activeTab === 'packages' ? 'Packages' : 'Tours'} Available
-                    {activeCategory !== 'all' && ` in ${capitalizeFirstLetter(activeCategory)} Category`}
+                    No {activeTab === "packages" ? "Packages" : "Tours"}{" "}
+                    Available
+                    {activeCategory !== "all" &&
+                      ` in ${capitalizeFirstLetter(activeCategory)} Category`}
                   </h4>
                   <p style={{ color: "#64748b", margin: 0 }}>
-                    {activeCategory !== 'all' 
+                    {activeCategory !== "all"
                       ? `Try selecting a different category or check back soon for new ${activeTab}!`
-                      : `Check back soon for exciting new ${activeTab === 'packages' ? 'travel packages' : 'tours and activities'}!`
-                    }
+                      : `Check back soon for exciting new ${
+                          activeTab === "packages"
+                            ? "travel packages"
+                            : "tours and activities"
+                        }!`}
                   </p>
                 </div>
               ) : (
                 getCurrentData().map((item) => (
-                  <div key={item.id} className="col-xl-3 col-lg-4 col-md-6 mb-4">
-                    {activeTab === 'packages' ? renderPackageCard(item) : renderTourCard(item)}
+                  <div
+                    key={item.id}
+                    className="col-xl-3 col-lg-4 col-md-6 mb-4"
+                  >
+                    {activeTab === "packages"
+                      ? renderPackageCard(item)
+                      : renderTourCard(item)}
                   </div>
                 ))
               )}
@@ -2252,126 +2404,164 @@ const HomePage = () => {
                   </p>
                 </div>
               ) : (
-                getCurrentCategories().slice(0, 6).map((category, index) => {
-                  // Map category names to appropriate icons
-                  const getCategoryIcon = (categoryName) => {
-                    const name = categoryName.toLowerCase();
-                    switch (name) {
-                      case 'adventure': return 'fal fa-mountain';
-                      case 'culture': return 'fal fa-landmark';
-                      case 'family': return 'fal fa-users';
-                      case 'luxury': return 'fal fa-crown';
-                      case 'honeymoon': return 'fal fa-heart';
-                      case 'weekend': return 'fal fa-calendar';
-                      case 'spiritual': return 'fal fa-om';
-                      case 'beach': return 'fal fa-umbrella-beach';
-                      case 'nature': return 'fal fa-tree';
-                      case 'food': return 'fal fa-utensils';
-                      default: return 'fal fa-map-marked-alt';
-                    }
-                  };
+                getCurrentCategories()
+                  .slice(0, 6)
+                  .map((category, index) => {
+                    // Map category names to appropriate icons
+                    const getCategoryIcon = (categoryName) => {
+                      const name = categoryName.toLowerCase();
+                      switch (name) {
+                        case "adventure":
+                          return "fal fa-mountain";
+                        case "culture":
+                          return "fal fa-landmark";
+                        case "family":
+                          return "fal fa-users";
+                        case "luxury":
+                          return "fal fa-crown";
+                        case "honeymoon":
+                          return "fal fa-heart";
+                        case "weekend":
+                          return "fal fa-calendar";
+                        case "spiritual":
+                          return "fal fa-om";
+                        case "beach":
+                          return "fal fa-umbrella-beach";
+                        case "nature":
+                          return "fal fa-tree";
+                        case "food":
+                          return "fal fa-utensils";
+                        default:
+                          return "fal fa-map-marked-alt";
+                      }
+                    };
 
-                  const getCategoryDescription = (categoryName) => {
-                    const name = categoryName.toLowerCase();
-                    switch (name) {
-                      case 'adventure': return 'Thrilling experiences for the adventurous soul';
-                      case 'culture': return 'Immerse yourself in local traditions and heritage';
-                      case 'family': return 'Perfect getaways for family bonding time';
-                      case 'luxury': return 'Premium experiences with world-class service';
-                      case 'honeymoon': return 'Romantic getaways for newlyweds';
-                      case 'weekend': return 'Quick escapes for busy professionals';
-                      case 'spiritual': return 'Sacred journeys for inner peace';
-                      case 'beach': return 'Sun, sand, and relaxation by the ocean';
-                      case 'nature': return 'Explore the beauty of natural landscapes';
-                      case 'food': return 'Culinary adventures and local delicacies';
-                      default: return 'Discover amazing travel experiences';
-                    }
-                  };
+                    const getCategoryDescription = (categoryName) => {
+                      const name = categoryName.toLowerCase();
+                      switch (name) {
+                        case "adventure":
+                          return "Thrilling experiences for the adventurous soul";
+                        case "culture":
+                          return "Immerse yourself in local traditions and heritage";
+                        case "family":
+                          return "Perfect getaways for family bonding time";
+                        case "luxury":
+                          return "Premium experiences with world-class service";
+                        case "honeymoon":
+                          return "Romantic getaways for newlyweds";
+                        case "weekend":
+                          return "Quick escapes for busy professionals";
+                        case "spiritual":
+                          return "Sacred journeys for inner peace";
+                        case "beach":
+                          return "Sun, sand, and relaxation by the ocean";
+                        case "nature":
+                          return "Explore the beauty of natural landscapes";
+                        case "food":
+                          return "Culinary adventures and local delicacies";
+                        default:
+                          return "Discover amazing travel experiences";
+                      }
+                    };
 
-                  return (
-                    <div key={category.id} className="col-md-4 mb-4">
-                      <Link
-                        href={`${getCurrentRoute()}?category=${encodeURIComponent(category.name)}`}
-                        className="action-card"
-                        style={{
-                          height: "120px",
-                          padding: "24px",
-                          textDecoration: "none",
-                          background: "#fef7f0",
-                          borderRadius: "16px",
-                          border: "1px solid #fed7aa",
-                          transition: "all 0.3s ease",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "16px",
-                          color: "inherit"
-                        }}
-                        onMouseEnter={(e) => {
-                          const card = e.currentTarget;
-                          const icon = card.querySelector('.icon');
-                          const content = card.querySelector('.content');
-                          card.style.background = "#f8853d";
-                          card.style.transform = "translateY(-4px)";
-                          card.style.boxShadow = "0 8px 32px rgba(248, 133, 61, 0.25)";
-                          if (icon) icon.style.background = "white";
-                          if (icon) icon.style.color = "#f8853d";
-                          if (content) {
-                            const h6 = content.querySelector('h6');
-                            const p = content.querySelector('p');
-                            if (h6) h6.style.color = "white";
-                            if (p) p.style.color = "rgba(255, 255, 255, 0.9)";
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          const card = e.currentTarget;
-                          const icon = card.querySelector('.icon');
-                          const content = card.querySelector('.content');
-                          card.style.background = "#fef7f0";
-                          card.style.transform = "translateY(0)";
-                          card.style.boxShadow = "none";
-                          if (icon) icon.style.background = "#f8853d";
-                          if (icon) icon.style.color = "white";
-                          if (content) {
-                            const h6 = content.querySelector('h6');
-                            const p = content.querySelector('p');
-                            if (h6) h6.style.color = "inherit";
-                            if (p) p.style.color = "#64748b";
-                          }
-                        }}
-                      >
-                        <div
-                          className="icon"
+                    return (
+                      <div key={category.id} className="col-md-4 mb-4">
+                        <Link
+                          href={`${getCurrentRoute()}?category=${encodeURIComponent(
+                            category.name
+                          )}`}
+                          className="action-card"
                           style={{
-                            width: "60px",
-                            height: "60px",
-                            background: "#f8853d",
-                            borderRadius: "12px",
+                            height: "120px",
+                            padding: "24px",
+                            textDecoration: "none",
+                            background: "#fef7f0",
+                            borderRadius: "16px",
+                            border: "1px solid #fed7aa",
+                            transition: "all 0.3s ease",
                             display: "flex",
                             alignItems: "center",
-                            justifyContent: "center",
-                            color: "white",
+                            gap: "16px",
+                            color: "inherit",
+                          }}
+                          onMouseEnter={(e) => {
+                            const card = e.currentTarget;
+                            const icon = card.querySelector(".icon");
+                            const content = card.querySelector(".content");
+                            card.style.background = "#f8853d";
+                            card.style.transform = "translateY(-4px)";
+                            card.style.boxShadow =
+                              "0 8px 32px rgba(248, 133, 61, 0.25)";
+                            if (icon) icon.style.background = "white";
+                            if (icon) icon.style.color = "#f8853d";
+                            if (content) {
+                              const h6 = content.querySelector("h6");
+                              const p = content.querySelector("p");
+                              if (h6) h6.style.color = "white";
+                              if (p) p.style.color = "rgba(255, 255, 255, 0.9)";
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            const card = e.currentTarget;
+                            const icon = card.querySelector(".icon");
+                            const content = card.querySelector(".content");
+                            card.style.background = "#fef7f0";
+                            card.style.transform = "translateY(0)";
+                            card.style.boxShadow = "none";
+                            if (icon) icon.style.background = "#f8853d";
+                            if (icon) icon.style.color = "white";
+                            if (content) {
+                              const h6 = content.querySelector("h6");
+                              const p = content.querySelector("p");
+                              if (h6) h6.style.color = "inherit";
+                              if (p) p.style.color = "#64748b";
+                            }
                           }}
                         >
-                          <i className={getCategoryIcon(category.name)} style={{ fontSize: "24px" }} />
-                        </div>
-                        <div className="content">
-                          <h6
+                          <div
+                            className="icon"
                             style={{
-                              fontSize: "16px",
-                              marginBottom: "8px",
-                              color: "inherit",
+                              width: "60px",
+                              height: "60px",
+                              background: "#f8853d",
+                              borderRadius: "12px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              color: "white",
                             }}
                           >
-                            {`${capitalizeFirstLetter(category.name)} ${activeTab === 'packages' ? 'Packages' : 'Tours'}`}
-                          </h6>
-                          <p style={{ fontSize: "14px", margin: 0, color: "#64748b" }}>
-                            {getCategoryDescription(category.name)}
-                          </p>
-                        </div>
-                      </Link>
-                    </div>
-                  );
-                })
+                            <i
+                              className={getCategoryIcon(category.name)}
+                              style={{ fontSize: "24px" }}
+                            />
+                          </div>
+                          <div className="content">
+                            <h6
+                              style={{
+                                fontSize: "16px",
+                                marginBottom: "8px",
+                                color: "inherit",
+                              }}
+                            >
+                              {`${capitalizeFirstLetter(category.name)} ${
+                                activeTab === "packages" ? "Packages" : "Tours"
+                              }`}
+                            </h6>
+                            <p
+                              style={{
+                                fontSize: "14px",
+                                margin: 0,
+                                color: "#64748b",
+                              }}
+                            >
+                              {getCategoryDescription(category.name)}
+                            </p>
+                          </div>
+                        </Link>
+                      </div>
+                    );
+                  })
               )}
             </div>
           </div>

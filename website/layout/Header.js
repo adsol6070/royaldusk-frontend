@@ -1,9 +1,9 @@
 "use client";
 import useClickOutside from "@/utility/useClickOutside";
 import Link from "next/link";
-import { Fragment, useState } from "react";
+import { Fragment, useState, useEffect } from "react";
 import { useAuth } from "@/common/context/AuthContext";
-import { useCurrency } from "@/common/context/CurrencyContext"; // Import currency context
+import { useCurrency } from "@/common/context/CurrencyContext";
 import styled from "styled-components";
 
 const PlatformHeader = styled.header`
@@ -81,50 +81,6 @@ const ActionsSection = styled.div`
       display: none;
     }
   }
-`;
-
-const CartButton = styled(Link)`
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: #fef7f0;
-  border: 1px solid #fed7aa;
-  border-radius: 8px;
-  color: #f8853d;
-  text-decoration: none;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: #f8853d;
-    border-color: #f8853d;
-    color: white;
-    text-decoration: none;
-    transform: translateY(-1px);
-  }
-
-  i {
-    font-size: 16px;
-  }
-`;
-
-const CartBadge = styled.span`
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  background: #ef4444;
-  color: white;
-  font-size: 11px;
-  font-weight: 600;
-  min-width: 18px;
-  height: 18px;
-  border-radius: 9px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 4px;
 `;
 
 const AuthSection = styled.div`
@@ -457,7 +413,7 @@ const Backdrop = styled.div`
   display: ${(props) => (props.isOpen ? "block" : "none")};
 `;
 
-// Updated Currency Selector with integrated currency context
+// Enhanced Currency Selector with API-based currencies
 const CurrencySelector = styled.div`
   position: relative;
 `;
@@ -488,17 +444,6 @@ const CurrencyButton = styled.button`
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
-  }
-
-  .flag {
-    width: 16px;
-    height: 12px;
-    border-radius: 2px;
-    background: #cbd5e1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 10px;
   }
 
   .chevron {
@@ -532,35 +477,104 @@ const CurrencyDropdown = styled.div`
   margin-top: 8px;
   background: white;
   border: 1px solid #fed7aa;
-  border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(248, 133, 61, 0.15);
-  min-width: 200px;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(248, 133, 61, 0.15);
+  width: 480px;
+  max-height: 70vh;
   overflow: hidden;
   z-index: 1000;
+
+  @media (max-width: 768px) {
+    width: 320px;
+    right: -20px;
+  }
+`;
+
+const CurrencyDropdownHeader = styled.div`
+  padding: 16px 20px;
+  border-bottom: 1px solid #fef7f0;
+  background: #fef7f0;
+
+  .title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 4px;
+  }
+
+  .subtitle {
+    font-size: 12px;
+    color: #64748b;
+  }
+`;
+
+const SearchBox = styled.div`
+  padding: 16px 20px;
+  border-bottom: 1px solid #fef7f0;
+
+  input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #fed7aa;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+
+    &:focus {
+      border-color: #f8853d;
+      box-shadow: 0 0 0 2px rgba(248, 133, 61, 0.1);
+    }
+
+    &::placeholder {
+      color: #94a3b8;
+    }
+  }
+`;
+
+const CurrencyGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: #fef7f0;
+  max-height: 400px;
+  overflow-y: auto;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 `;
 
 const CurrencyOption = styled.button`
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 10px 16px;
-  width: 100%;
-  background: none;
+  gap: 6px;
+  padding: 12px 8px;
+  background: white;
   border: none;
-  color: #374151;
-  font-size: 14px;
-  text-align: left;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: all 0.2s ease;
+  position: relative;
 
   &:hover {
     background: #fef7f0;
-    color: #f8853d;
   }
 
   &.active {
-    background: #fef7f0;
-    color: #f8853d;
+    background: #f8853d;
+    color: white;
+
+    .currency-code {
+      color: white;
+    }
+
+    .currency-name {
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .exchange-rate {
+      color: rgba(255, 255, 255, 0.7);
+    }
   }
 
   &:disabled {
@@ -568,43 +582,31 @@ const CurrencyOption = styled.button`
     cursor: not-allowed;
   }
 
-  .flag {
-    width: 20px;
-    height: 15px;
-    border-radius: 2px;
-    background: #cbd5e1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 10px;
-    flex-shrink: 0;
+  .currency-code {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e293b;
   }
 
-  .currency-info {
-    flex: 1;
+  .currency-name {
+    font-size: 10px;
+    color: #64748b;
+    text-align: center;
+    line-height: 1.2;
+  }
 
-    .code {
-      font-weight: 500;
-    }
-
-    .name {
-      font-size: 12px;
-      color: #64748b;
-    }
-
-    .rate {
-      font-size: 11px;
-      color: #94a3b8;
-      margin-top: 2px;
-    }
+  .exchange-rate {
+    font-size: 9px;
+    color: #94a3b8;
+    text-align: center;
   }
 `;
 
 const ErrorMessage = styled.div`
-  padding: 8px 12px;
+  padding: 12px 20px;
   background: #fef2f2;
   color: #dc2626;
-  font-size: 12px;
+  font-size: 13px;
   border-bottom: 1px solid #fed7aa;
   display: flex;
   align-items: center;
@@ -616,11 +618,41 @@ const ErrorMessage = styled.div`
     color: #dc2626;
     cursor: pointer;
     text-decoration: underline;
-    font-size: 12px;
+    font-size: 13px;
 
     &:hover {
       color: #b91c1c;
     }
+  }
+`;
+
+const LastUpdated = styled.div`
+  padding: 8px 20px;
+  font-size: 11px;
+  color: #94a3b8;
+  text-align: center;
+  border-top: 1px solid #fef7f0;
+  background: #fafafa;
+`;
+
+const LoadingState = styled.div`
+  padding: 40px 20px;
+  text-align: center;
+  color: #64748b;
+  
+  .loading-spinner {
+    width: 24px;
+    height: 24px;
+    border: 2px solid #fed7aa;
+    border-top: 2px solid #f8853d;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 12px;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
   }
 `;
 
@@ -637,8 +669,140 @@ const Menu = () => {
   );
 };
 
+// Currency name mapping for better display names
+const getCurrencyDisplayName = (code) => {
+  const currencyNames = {
+    AED: "UAE Dirham",
+    USD: "US Dollar",
+    EUR: "Euro",
+    GBP: "British Pound",
+    INR: "Indian Rupee",
+    SAR: "Saudi Riyal",
+    JPY: "Japanese Yen",
+    CNY: "Chinese Yuan",
+    CAD: "Canadian Dollar",
+    AUD: "Australian Dollar",
+    CHF: "Swiss Franc",
+    SEK: "Swedish Krona",
+    NOK: "Norwegian Krone",
+    DKK: "Danish Krone",
+    PLN: "Polish Zloty",
+    CZK: "Czech Koruna",
+    HUF: "Hungarian Forint",
+    RON: "Romanian Leu",
+    BGN: "Bulgarian Lev",
+    HRK: "Croatian Kuna",
+    RUB: "Russian Ruble",
+    TRY: "Turkish Lira",
+    ZAR: "South African Rand",
+    BRL: "Brazilian Real",
+    MXN: "Mexican Peso",
+    ARS: "Argentine Peso",
+    CLP: "Chilean Peso",
+    COP: "Colombian Peso",
+    PEN: "Peruvian Sol",
+    KRW: "South Korean Won",
+    SGD: "Singapore Dollar",
+    HKD: "Hong Kong Dollar",
+    TWD: "Taiwan Dollar",
+    THB: "Thai Baht",
+    MYR: "Malaysian Ringgit",
+    IDR: "Indonesian Rupiah",
+    PHP: "Philippine Peso",
+    VND: "Vietnamese Dong",
+    PKR: "Pakistani Rupee",
+    LKR: "Sri Lankan Rupee",
+    BDT: "Bangladeshi Taka",
+    NPR: "Nepalese Rupee",
+    EGP: "Egyptian Pound",
+    MAD: "Moroccan Dirham",
+    TND: "Tunisian Dinar",
+    JOD: "Jordanian Dinar",
+    KWD: "Kuwaiti Dinar",
+    BHD: "Bahraini Dinar",
+    QAR: "Qatari Riyal",
+    OMR: "Omani Rial",
+    ILS: "Israeli Shekel",
+    LBP: "Lebanese Pound",
+    NGN: "Nigerian Naira",
+    GHS: "Ghanaian Cedi",
+    KES: "Kenyan Shilling",
+    UGX: "Ugandan Shilling",
+    ETB: "Ethiopian Birr",
+    XOF: "West African Franc",
+    XAF: "Central African Franc",
+    NZD: "New Zealand Dollar",
+    FJD: "Fijian Dollar",
+    TOP: "Tongan Paʻanga",
+    WST: "Samoan Tala",
+    VUV: "Vanuatu Vatu",
+    SBD: "Solomon Islands Dollar",
+    PGK: "Papua New Guinea Kina",
+    NCL: "New Caledonian Franc",
+    XPF: "CFP Franc",
+    IRR: "Iranian Rial",
+    IQD: "Iraqi Dinar",
+    AFN: "Afghan Afghani",
+    ALL: "Albanian Lek",
+    AMD: "Armenian Dram",
+    AZN: "Azerbaijani Manat",
+    BAM: "Bosnia-Herzegovina Mark",
+    BYN: "Belarusian Ruble",
+    GEL: "Georgian Lari",
+    KZT: "Kazakhstani Tenge",
+    KGS: "Kyrgystani Som",
+    MKD: "Macedonian Denar",
+    MDL: "Moldovan Leu",
+    RSD: "Serbian Dinar",
+    TJS: "Tajikistani Somoni",
+    TMT: "Turkmenistani Manat",
+    UAH: "Ukrainian Hryvnia",
+    UZS: "Uzbekistani Som",
+    XDR: "Special Drawing Rights",
+    ISK: "Icelandic Krona",
+    LYD: "Libyan Dinar",
+    DZD: "Algerian Dinar",
+    AOA: "Angolan Kwanza",
+    BWP: "Botswanan Pula",
+    BIF: "Burundian Franc",
+    XOF: "West African CFA Franc",
+    CVE: "Cape Verdean Escudo",
+    KMF: "Comorian Franc",
+    CDF: "Congolese Franc",
+    DJF: "Djiboutian Franc",
+    ERN: "Eritrean Nakfa",
+    SZL: "Swazi Lilangeni",
+    GMD: "Gambian Dalasi",
+    GNF: "Guinean Franc",
+    LSL: "Lesotho Loti",
+    LRD: "Liberian Dollar",
+    MGA: "Malagasy Ariary",
+    MWK: "Malawian Kwacha",
+    MRU: "Mauritanian Ouguiya",
+    MUR: "Mauritian Rupee",
+    MZN: "Mozambican Metical",
+    NAD: "Namibian Dollar",
+    NIO: "Nicaraguan Córdoba",
+    RWF: "Rwandan Franc",
+    STN: "São Tomé and Príncipe Dobra",
+    SCR: "Seychellois Rupee",
+    SLL: "Sierra Leonean Leone",
+    SOS: "Somali Shilling",
+    SSP: "South Sudanese Pound",
+    SDG: "Sudanese Pound",
+    TZS: "Tanzanian Shilling",
+    ZMW: "Zambian Kwacha",
+    ZWL: "Zimbabwean Dollar",
+    // Add more as needed from your API
+  };
+  
+  return currencyNames[code] || code;
+};
+
 const CurrencyConverter = () => {
   const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [availableCurrencies, setAvailableCurrencies] = useState([]);
   const dropdownRef = useClickOutside(() => setShowCurrencyDropdown(false));
   
   const {
@@ -652,26 +816,61 @@ const CurrencyConverter = () => {
     lastUpdated
   } = useCurrency();
 
-  const currencies = [
-    { code: "AED", name: "UAE Dirham", flag: "🇦🇪" },
-    { code: "USD", name: "US Dollar", flag: "🇺🇸" },
-    { code: "EUR", name: "Euro", flag: "🇪🇺" },
-    { code: "GBP", name: "British Pound", flag: "🇬🇧" },
-    { code: "INR", name: "Indian Rupee", flag: "🇮🇳" },
-    { code: "SAR", name: "Saudi Riyal", flag: "🇸🇦" },
-  ];
+  // Extract available currencies from exchange rates API
+  useEffect(() => {
+    if (exchangeRates && Object.keys(exchangeRates).length > 0) {
+      const currencies = Object.keys(exchangeRates).map(code => ({
+        code,
+        name: getCurrencyDisplayName(code),
+        rate: exchangeRates[code]
+      }));
+      setAvailableCurrencies(currencies);
+    }
+  }, [exchangeRates]);
+
+  // Filter currencies based on search term
+  const filteredCurrencies = availableCurrencies.filter(currency =>
+    currency.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    currency.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Sort currencies - popular ones first, then selected currency, then alphabetically
+  const popularCurrencies = ["USD", "EUR", "GBP", "AED", "SAR", "INR", "JPY", "CNY"];
+  const sortedCurrencies = filteredCurrencies.sort((a, b) => {
+    if (a.code === selectedCurrency) return -1;
+    if (b.code === selectedCurrency) return 1;
+    
+    const aIsPopular = popularCurrencies.includes(a.code);
+    const bIsPopular = popularCurrencies.includes(b.code);
+    
+    if (aIsPopular && !bIsPopular) return -1;
+    if (!aIsPopular && bIsPopular) return 1;
+    
+    if (aIsPopular && bIsPopular) {
+      return popularCurrencies.indexOf(a.code) - popularCurrencies.indexOf(b.code);
+    }
+    
+    return a.code.localeCompare(b.code);
+  });
 
   const handleCurrencyChange = (currency) => {
     changeCurrency(currency.code);
     setShowCurrencyDropdown(false);
+    setSearchTerm("");
   };
 
   const currentCurrency = getCurrencyInfo(selectedCurrency);
 
-  const getExchangeRate = (currencyCode) => {
-    if (!exchangeRates || currencyCode === 'AED') return null;
-    const rate = exchangeRates[currencyCode];
-    return rate ? `1 AED = ${rate.toFixed(4)} ${currencyCode}` : null;
+  const getExchangeRate = (currencyCode, rate) => {
+    if (!rate || currencyCode === 'AED') return null;
+    
+    if (rate < 0.01) {
+      return `1 AED = ${rate.toFixed(6)} ${currencyCode}`;
+    } else if (rate < 1) {
+      return `1 AED = ${rate.toFixed(4)} ${currencyCode}`;
+    } else {
+      return `1 AED = ${rate.toFixed(2)} ${currencyCode}`;
+    }
   };
 
   return (
@@ -684,7 +883,6 @@ const CurrencyConverter = () => {
           <div className="loading-spinner" />
         ) : (
           <>
-            <span className="flag">{currentCurrency.flag}</span>
             <span>{selectedCurrency}</span>
             <i
               className={`fal fa-chevron-${
@@ -697,10 +895,26 @@ const CurrencyConverter = () => {
 
       {showCurrencyDropdown && (
         <CurrencyDropdown>
+          <CurrencyDropdownHeader>
+            <div className="title">Select Currency</div>
+            <div className="subtitle">
+              {availableCurrencies.length} currencies available
+            </div>
+          </CurrencyDropdownHeader>
+
+          <SearchBox>
+            <input
+              type="text"
+              placeholder="Search currencies..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </SearchBox>
+
           {error && (
             <ErrorMessage>
               <i className="fal fa-exclamation-triangle" />
-              <span>Failed to load rates</span>
+              <span>Failed to load exchange rates</span>
               <button 
                 className="retry-btn" 
                 onClick={refreshRates}
@@ -710,35 +924,41 @@ const CurrencyConverter = () => {
               </button>
             </ErrorMessage>
           )}
-          
-          {currencies.map((currency) => (
-            <CurrencyOption
-              key={currency.code}
-              className={currency.code === selectedCurrency ? "active" : ""}
-              onClick={() => handleCurrencyChange(currency)}
-              disabled={loading}
-            >
-              <span className="flag">{currency.flag}</span>
-              <div className="currency-info">
-                <div className="code">{currency.code}</div>
-                <div className="name">{currency.name}</div>
-                {getExchangeRate(currency.code) && (
-                  <div className="rate">{getExchangeRate(currency.code)}</div>
-                )}
-              </div>
-            </CurrencyOption>
-          ))}
+
+          {loading ? (
+            <LoadingState>
+              <div className="loading-spinner" />
+              <div>Loading currencies...</div>
+            </LoadingState>
+          ) : sortedCurrencies.length === 0 ? (
+            <LoadingState>
+              <div>No currencies found</div>
+            </LoadingState>
+          ) : (
+            <CurrencyGrid>
+              {sortedCurrencies.map((currency) => (
+                <CurrencyOption
+                  key={currency.code}
+                  className={currency.code === selectedCurrency ? "active" : ""}
+                  onClick={() => handleCurrencyChange(currency)}
+                  disabled={loading}
+                >
+                  <div className="currency-code">{currency.code}</div>
+                  <div className="currency-name">{currency.name}</div>
+                  {getExchangeRate(currency.code, currency.rate) && (
+                    <div className="exchange-rate">
+                      {getExchangeRate(currency.code, currency.rate)}
+                    </div>
+                  )}
+                </CurrencyOption>
+              ))}
+            </CurrencyGrid>
+          )}
           
           {lastUpdated && (
-            <div style={{ 
-              padding: '8px 16px', 
-              fontSize: '11px', 
-              color: '#94a3b8',
-              borderTop: '1px solid #fef7f0',
-              textAlign: 'center'
-            }}>
-              Updated: {new Date(lastUpdated).toLocaleTimeString()}
-            </div>
+            <LastUpdated>
+              Last updated: {new Date(lastUpdated).toLocaleTimeString()}
+            </LastUpdated>
           )}
         </CurrencyDropdown>
       )}
@@ -780,6 +1000,9 @@ const RegisterButton = styled(Link)`
 `;
 
 const MobileCurrencyConverter = ({ onCurrencyChange }) => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [availableCurrencies, setAvailableCurrencies] = useState([]);
+  
   const {
     selectedCurrency,
     exchangeRates,
@@ -790,14 +1013,37 @@ const MobileCurrencyConverter = ({ onCurrencyChange }) => {
     refreshRates
   } = useCurrency();
 
-  const currencies = [
-    { code: "AED", name: "UAE Dirham", flag: "🇦🇪" },
-    { code: "USD", name: "US Dollar", flag: "🇺🇸" },
-    { code: "EUR", name: "Euro", flag: "🇪🇺" },
-    { code: "GBP", name: "British Pound", flag: "🇬🇧" },
-    { code: "INR", name: "Indian Rupee", flag: "🇮🇳" },
-    { code: "SAR", name: "Saudi Riyal", flag: "🇸🇦" },
-  ];
+  // Extract available currencies from exchange rates API
+  useEffect(() => {
+    if (exchangeRates && Object.keys(exchangeRates).length > 0) {
+      const currencies = Object.keys(exchangeRates).map(code => ({
+        code,
+        name: getCurrencyDisplayName(code),
+        rate: exchangeRates[code]
+      }));
+      setAvailableCurrencies(currencies);
+    }
+  }, [exchangeRates]);
+
+  // Filter and sort currencies
+  const filteredCurrencies = availableCurrencies.filter(currency =>
+    currency.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    currency.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const popularCurrencies = ["USD", "EUR", "GBP", "AED", "SAR", "INR"];
+  const sortedCurrencies = filteredCurrencies.sort((a, b) => {
+    if (a.code === selectedCurrency) return -1;
+    if (b.code === selectedCurrency) return 1;
+    
+    const aIsPopular = popularCurrencies.includes(a.code);
+    const bIsPopular = popularCurrencies.includes(b.code);
+    
+    if (aIsPopular && !bIsPopular) return -1;
+    if (!aIsPopular && bIsPopular) return 1;
+    
+    return a.code.localeCompare(b.code);
+  });
 
   const handleCurrencyChange = (currency) => {
     changeCurrency(currency.code);
@@ -806,19 +1052,42 @@ const MobileCurrencyConverter = ({ onCurrencyChange }) => {
     }
   };
 
-  const getExchangeRate = (currencyCode) => {
-    if (!exchangeRates || currencyCode === 'AED') return null;
-    const rate = exchangeRates[currencyCode];
-    return rate ? `1 AED = ${rate.toFixed(4)}` : null;
+  const getExchangeRate = (currencyCode, rate) => {
+    if (!rate || currencyCode === 'AED') return null;
+    
+    if (rate < 0.01) {
+      return `1 AED = ${rate.toFixed(6)}`;
+    } else if (rate < 1) {
+      return `1 AED = ${rate.toFixed(4)}`;
+    } else {
+      return `1 AED = ${rate.toFixed(2)}`;
+    }
   };
 
   return (
     <MobileCurrencySection>
       <MobileCurrencyHeader>
         <i className="fal fa-money-bill-wave" />
-        Currency
+        Currency ({availableCurrencies.length} available)
         {loading && <div className="loading-spinner" style={{ width: '16px', height: '16px' }} />}
       </MobileCurrencyHeader>
+      
+      <div style={{ marginBottom: '12px' }}>
+        <input
+          type="text"
+          placeholder="Search currencies..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{
+            width: '100%',
+            padding: '8px 12px',
+            border: '1px solid #fed7aa',
+            borderRadius: '6px',
+            fontSize: '14px',
+            outline: 'none'
+          }}
+        />
+      </div>
       
       {error && (
         <div style={{ 
@@ -848,30 +1117,78 @@ const MobileCurrencyConverter = ({ onCurrencyChange }) => {
           </button>
         </div>
       )}
-      
-      <div
-        style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}
-      >
-        {currencies.map((currency) => (
-          <CurrencyOption
-            key={currency.code}
-            className={currency.code === selectedCurrency ? "active" : ""}
-            onClick={() => handleCurrencyChange(currency)}
-            style={{ borderRadius: "6px", border: "1px solid #fed7aa" }}
-            disabled={loading}
-          >
-            <span className="flag">{currency.flag}</span>
-            <div className="currency-info">
-              <div className="code">{currency.code}</div>
-              {getExchangeRate(currency.code) && (
-                <div style={{ fontSize: '10px', color: '#94a3b8' }}>
-                  {getExchangeRate(currency.code)}
+
+      {loading ? (
+        <div style={{
+          textAlign: 'center',
+          padding: '20px',
+          color: '#64748b'
+        }}>
+          <div className="loading-spinner" style={{ 
+            width: '20px', 
+            height: '20px',
+            margin: '0 auto 8px'
+          }} />
+          <div>Loading currencies...</div>
+        </div>
+      ) : sortedCurrencies.length === 0 ? (
+        <div style={{
+          textAlign: 'center',
+          padding: '20px',
+          color: '#64748b'
+        }}>
+          No currencies found
+        </div>
+      ) : (
+        <div
+          style={{ 
+            display: "grid", 
+            gridTemplateColumns: "repeat(2, 1fr)", 
+            gap: "8px",
+            maxHeight: "300px",
+            overflowY: "auto"
+          }}
+        >
+          {sortedCurrencies.slice(0, 50).map((currency) => (
+            <CurrencyOption
+              key={currency.code}
+              className={currency.code === selectedCurrency ? "active" : ""}
+              onClick={() => handleCurrencyChange(currency)}
+              style={{ 
+                borderRadius: "6px", 
+                border: "1px solid #fed7aa",
+                padding: "10px 8px"
+              }}
+              disabled={loading}
+            >
+              <div className="currency-info">
+                <div className="code" style={{ fontSize: '12px', fontWeight: '600' }}>
+                  {currency.code}
                 </div>
-              )}
-            </div>
-          </CurrencyOption>
-        ))}
-      </div>
+                <div style={{ fontSize: '9px', color: '#64748b', lineHeight: '1.2' }}>
+                  {currency.name.length > 15 ? currency.name.substring(0, 15) + '...' : currency.name}
+                </div>
+                {getExchangeRate(currency.code, currency.rate) && (
+                  <div style={{ fontSize: '8px', color: '#94a3b8' }}>
+                    {getExchangeRate(currency.code, currency.rate)}
+                  </div>
+                )}
+              </div>
+            </CurrencyOption>
+          ))}
+        </div>
+      )}
+      
+      {sortedCurrencies.length > 50 && (
+        <div style={{
+          textAlign: 'center',
+          padding: '8px',
+          fontSize: '11px',
+          color: '#94a3b8'
+        }}>
+          Showing 50 of {sortedCurrencies.length} currencies
+        </div>
+      )}
     </MobileCurrencySection>
   );
 };
@@ -885,7 +1202,7 @@ const AuthMenu = () => {
     return (
       <AuthSection>
         <AuthButtons>
-          <RegisterButton href="/signup">
+          <RegisterButton href="/login">
             <i className="fal fa-user-plus" />
             Sign Up
           </RegisterButton>
@@ -979,13 +1296,6 @@ const Header = ({ header }) => {
           <ActionsSection>
             <CurrencyConverter />
 
-            {/* <CartButton href="/cart">
-              <i className="fal fa-shopping-cart" />
-              {cartItems.length > 0 && (
-                <CartBadge>{cartItems.length}</CartBadge>
-              )}
-            </CartButton> */}
-
             <AuthMenu />
 
             <MobileMenuButton onClick={toggleMobileMenu}>
@@ -1050,18 +1360,12 @@ const Header = ({ header }) => {
               Packages
             </MobileNavLink>
           </MobileNavItem>
-              <MobileNavItem>
+          <MobileNavItem>
             <MobileNavLink href="/tours" onClick={closeMobileMenu}>
               <i className="fal fa-map" />
               Tours
             </MobileNavLink>
           </MobileNavItem>
-          {/* <MobileNavItem>
-            <MobileNavLink href="/cart" onClick={closeMobileMenu}>
-              <i className="fal fa-shopping-cart" />
-              Cart ({cartItems.length})
-            </MobileNavLink>
-          </MobileNavItem> */}
           {userInfo && (
             <>
               <MobileNavItem>

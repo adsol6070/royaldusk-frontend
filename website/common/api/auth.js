@@ -33,6 +33,10 @@ function AuthApi() {
     googleSignIn: (idToken) => {
       return HttpClient.post(`/user-service/api/auth/google`, { idToken });
     },
+
+     appleSignIn: (idToken) => {
+      return HttpClient.post(`/user-service/api/auth/apple`, { idToken });
+    },
   };
 }
 
