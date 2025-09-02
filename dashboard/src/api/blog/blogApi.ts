@@ -1,6 +1,6 @@
 import { API_ENDPOINTS } from "@/config/api.config";
 import { httpClient } from "../httpClient";
-import { ApiResponse, Blog } from "./blogTypes";
+import { ApiResponse, Author, AuthorsApiResponse, Blog } from "./blogTypes";
 
 export const blogApi = {
   getAllBlogs: async (): Promise<Blog[]> => {
@@ -53,5 +53,12 @@ export const blogApi = {
       { status }
     );
     return response.data;
+  },
+
+  getBlogAuthors: async (): Promise<Author[]> => {
+    const response = await httpClient.get<ApiResponse<AuthorsApiResponse>>(
+      API_ENDPOINTS.BLOG.GET_AUTHORS
+    );
+    return response.data.data.authors;
   },
 };

@@ -26,6 +26,7 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/blog-service/api/blogs/${id}`,
     DELETE: (id: string) => `/blog-service/api/blogs/${id}`,
     UPDATE_STATUS: (id: string) => `/blog-service/api/blogs/${id}/status`,
+    GET_AUTHORS: `/user-service/api/admin/auth/authors`
   },
   BLOG_CATEGORY: {
     GET_ALL: `/blog-service/api/blog-categories`,

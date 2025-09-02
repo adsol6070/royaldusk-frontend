@@ -1,5 +1,5 @@
 import { blogApi } from "@/api/blog/blogApi";
-import { Blog } from "@/api/blog/blogTypes";
+import { Author, Blog } from "@/api/blog/blogTypes";
 import { blogCategoryApi } from "@/api/blog/categories/blogCategoryApi";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
@@ -100,3 +100,10 @@ export const useDeleteBlogCategory = () =>
     ["blogCategories"],
     "Category deleted successfully!"
   );
+
+export const useBlogAuthors = () =>
+  useQuery<Author[], Error>({
+    queryKey: ["blogAuthors"],
+    queryFn: blogApi.getBlogAuthors,
+    staleTime: 5 * 60 * 1000, // 5 minutes - authors don't change frequently
+  });

@@ -8,6 +8,7 @@ import { Toaster } from "react-hot-toast";
 import { useParams } from "react-router-dom";
 import { generateSlug } from "@/utils/generateSlug";
 import {
+  useBlogAuthors,
   useBlogById,
   useBlogCategories,
   useCreateBlog,
@@ -16,7 +17,6 @@ import {
 import TagsInput from "react-tagsinput";
 import "react-tagsinput/react-tagsinput.css";
 import { capitalizeFirstLetter } from "@/utils/capitalizeFirstLetter";
-import { useUsers } from "@/hooks/useUser";
 
 const modules = {
   toolbar: [
@@ -62,7 +62,11 @@ const BlogForm = () => {
   const { mutate: createBlog } = useCreateBlog();
   const { mutate: updateBlog } = useUpdateBlog();
   const { data: categories = [] } = useBlogCategories();
-  const { data: users = [] } = useUsers();
+  const {
+    data: authors = [],
+    isLoading: authorsLoading,
+    error: authorsError,
+  } = useBlogAuthors();
   const { data: blog } = useBlogById(String(id));
   const [tags, setTags] = useState<string[]>([]);
   const [displayDate, setDisplayDate] = useState("");
@@ -253,15 +257,15 @@ const BlogForm = () => {
                   render={({ field }) => (
                     <Select
                       {...field}
-                      options={users.map((user) => ({
-                        value: user.id,
-                        label: capitalizeFirstLetter(user.name),
+                      options={authors.map((author) => ({
+                        value: author.id,
+                        label: capitalizeFirstLetter(author.name),
                       }))}
                       value={
-                        users
-                          .map((user) => ({
-                            value: user.id,
-                            label: capitalizeFirstLetter(user.name),
+                        authors
+                          .map((author) => ({
+                            value: author.id,
+                            label: capitalizeFirstLetter(author.name),
                           }))
                           .find((option) => option.value === field.value) ||
                         null
@@ -269,6 +273,15 @@ const BlogForm = () => {
                       onChange={(selectedOption) =>
                         field.onChange(selectedOption?.value)
                       }
+                      placeholder={
+                        authorsLoading
+                          ? "Loading authors..."
+                          : "Select an author"
+                      }
+                      isSearchable={true}
+                      noOptionsMessage={() => "No authors available"}
+                      isLoading={authorsLoading}
+                      isDisabled={authorsLoading || !!authorsError}
                     />
                   )}
                 />

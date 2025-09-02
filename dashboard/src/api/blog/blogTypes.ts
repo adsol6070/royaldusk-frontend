@@ -41,6 +41,18 @@ export interface BlogPayload {
   thumbnail: string;
 }
 
+export interface Author {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  displayName: string;
+}
+
+export interface AuthorsApiResponse {
+  authors: Author[];
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   message: string;
